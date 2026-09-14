@@ -118,6 +118,9 @@ let state = {
   materias: {},          // materias de la escuela abierta actualmente
   nuevaMateria: { nombre: '', maestroUid: '' },
   materiaEnEdicion: null, // id de la materia que se está renombrando/reasignando
+  alumnos: {},            // alumnos de la escuela abierta actualmente
+  nuevoAlumno: { nombreCompleto: '', grado: '', grupo: '', fechaNacimiento: '', telefonoAlumno: '' },
+  alumnoEnEdicion: null,
   usuarios: {},
   nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
   toast: null
@@ -384,16 +387,68 @@ async function archivarMateria(id, activo) {
 }
 
 /* =========================================================
+   ALUMNOS
+   ========================================================= */
+function setNuevoAlumnoField(f, v, doRender) { state.nuevoAlumno[f] = v; if (doRender !== false) render(); }
+
+async function crearAlumno() {
+  const na = state.nuevoAlumno;
+  if (!na.nombreCompleto.trim()) { showToast('❌ Falta el nombre del alumno.'); return; }
+  const ref = db.ref(state.escuelaActual + '/alumnos').push();
+  await ref.set({
+    nombreCompleto: na.nombreCompleto.trim(),
+    grado: na.grado.trim(),
+    grupo: na.grupo.trim(),
+    fechaNacimiento: na.fechaNacimiento || null,
+    telefonoAlumno: na.telefonoAlumno.trim() || null,
+    activo: true,
+    creadoPor: state.user.uid,
+    creadoPorNombre: state.perfil.nombre || state.user.email,
+    creado: Date.now()
+  });
+  state.nuevoAlumno = { nombreCompleto: '', grado: '', grupo: '', fechaNacimiento: '', telefonoAlumno: '' };
+  showToast('✅ Alumno agregado');
+  render();
+}
+
+function puedeEditarAlumno(a) {
+  return tieneAccesoTotal() || (esMaestro() && a.creadoPor === state.user.uid);
+}
+
+function editarAlumno(id) { state.alumnoEnEdicion = id; render(); }
+function cancelarEdicionAlumno() { state.alumnoEnEdicion = null; render(); }
+
+async function guardarEdicionAlumno(id, nombreCompleto, grado, grupo, fechaNacimiento, telefonoAlumno) {
+  if (!nombreCompleto.trim()) { showToast('❌ El nombre no puede quedar vacío.'); return; }
+  await db.ref(state.escuelaActual + '/alumnos/' + id).update({
+    nombreCompleto: nombreCompleto.trim(), grado: grado.trim(), grupo: grupo.trim(),
+    fechaNacimiento: fechaNacimiento || null, telefonoAlumno: telefonoAlumno.trim() || null
+  });
+  state.alumnoEnEdicion = null;
+  showToast('✅ Alumno actualizado');
+  render();
+}
+
+async function archivarAlumno(id, activo) {
+  await db.ref(state.escuelaActual + '/alumnos/' + id + '/activo').set(activo);
+  showToast(activo ? '✅ Alumno reactivado' : '🗄️ Alumno archivado');
+}
+
+/* =========================================================
    NAVEGACIÓN
    ========================================================= */
 function abrirEscuela(key) {
   state.escuelaActual = key; state.vista = 'inicio'; render();
-  db.ref(key + '/materias').off();
+  db.ref(key + '/materias').off(); db.ref(key + '/alumnos').off();
   db.ref(key + '/materias').on('value', snap => { state.materias = snap.val() || {}; render(); });
+  db.ref(key + '/alumnos').on('value', snap => { state.alumnos = snap.val() || {}; render(); });
 }
 function volverInicio() {
-  if (state.escuelaActual && state.escuelaActual !== '__usuarios__') db.ref(state.escuelaActual + '/materias').off();
-  state.escuelaActual = null; state.materias = {}; render();
+  if (state.escuelaActual && state.escuelaActual !== '__usuarios__') {
+    db.ref(state.escuelaActual + '/materias').off();
+    db.ref(state.escuelaActual + '/alumnos').off();
+  }
+  state.escuelaActual = null; state.materias = {}; state.alumnos = {}; render();
 }
 function setVista(v) { state.vista = v; render(); }
 
@@ -556,8 +611,9 @@ function renderInicioEscuela() {
     ${esMaestro() && state.perfil.materiaNombre ? `<p style="font-size:0.85em;color:#6b7280;">Tu materia: <strong>${state.perfil.materiaNombre}</strong></p>` : ''}
   </div>
   ${renderMaterias()}
+  ${renderAlumnos()}
   <div class="placeholder-card card">
-    Los módulos de alumnos, calificaciones, tareas y boletas se agregan en la siguiente fase de construcción.
+    Los módulos de calificaciones, tareas y boletas se agregan en la siguiente fase de construcción.
   </div>
   ${puedeGestionarUsuarios() ? `<button class="btn btn-outline" onclick="state.escuelaActual='__usuarios__';setVista('usuarios')">👥 Gestionar usuarios</button>` : ''}`;
 }
@@ -621,6 +677,67 @@ function renderMaterias() {
       <button class="btn btn-dark" style="margin-top:10px;" onclick="crearMateria()">Agregar materia</button>
     </div>`;
   }
+  return html;
+}
+
+function renderAlumnos() {
+  const lista = Object.entries(state.alumnos || {}).sort((a,b) => (a[1].nombreCompleto||'').localeCompare(b[1].nombreCompleto||''));
+  const puedeAdmin = tieneAccesoTotal();
+
+  let html = `<p class="section-title">Alumnos</p><div class="card">`;
+
+  if (lista.length === 0) {
+    html += `<p style="color:#9ca3af;font-size:0.85em;">Aún no hay alumnos registrados.</p>`;
+  } else {
+    lista.forEach(([id, a]) => {
+      if (a.activo === false && !puedeAdmin) return;
+      const puedoEditar = puedeEditarAlumno(a);
+      if (state.alumnoEnEdicion === id) {
+        html += `
+        <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
+          <div class="field"><input type="text" placeholder="Nombre completo" id="ea-nombre-${id}" value="${a.nombreCompleto}"></div>
+          <div class="row-flex">
+            <div class="field"><input type="text" placeholder="Grado" id="ea-grado-${id}" value="${a.grado||''}"></div>
+            <div class="field"><input type="text" placeholder="Grupo" id="ea-grupo-${id}" value="${a.grupo||''}"></div>
+          </div>
+          <div class="field"><input type="date" id="ea-fecha-${id}" value="${a.fechaNacimiento||''}"></div>
+          <div class="field"><input type="tel" placeholder="Teléfono del alumno" id="ea-tel-${id}" value="${a.telefonoAlumno||''}"></div>
+          <div class="row-flex" style="margin-top:4px;">
+            <button class="btn btn-dark" onclick="guardarEdicionAlumno('${id}', document.getElementById('ea-nombre-${id}').value, document.getElementById('ea-grado-${id}').value, document.getElementById('ea-grupo-${id}').value, document.getElementById('ea-fecha-${id}').value, document.getElementById('ea-tel-${id}').value)">Guardar</button>
+            <button class="btn btn-gray" onclick="cancelarEdicionAlumno()">Cancelar</button>
+          </div>
+        </div>`;
+      } else {
+        html += `
+        <div class="userlist-item">
+          <div>
+            <p class="name">${a.nombreCompleto} ${a.activo===false ? '<span style="color:#dc2626;">(archivado)</span>' : ''}</p>
+            <p class="meta">${[a.grado, a.grupo].filter(Boolean).join(' · ') || 'Sin grado/grupo'}${a.telefonoAlumno ? ' · ' + a.telefonoAlumno : ''} · agregó ${a.creadoPorNombre||'—'}</p>
+          </div>
+          <div style="display:flex;gap:10px;">
+            ${puedoEditar ? `<button class="linklike" style="margin:0;" onclick="editarAlumno('${id}')">Editar</button>` : ''}
+            ${puedeAdmin ? `<button class="linklike" style="margin:0;" onclick="archivarAlumno('${id}', ${a.activo===false})">${a.activo===false?'Reactivar':'Archivar'}</button>` : ''}
+          </div>
+        </div>`;
+      }
+    });
+  }
+  html += `</div>`;
+
+  const na = state.nuevoAlumno;
+  html += `
+  <div class="card">
+    <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Agregar alumno</p>
+    <div class="field"><input type="text" placeholder="Nombre completo" value="${na.nombreCompleto}" oninput="setNuevoAlumnoField('nombreCompleto', this.value, false)"></div>
+    <div class="row-flex">
+      <div class="field"><input type="text" placeholder="Grado" value="${na.grado}" oninput="setNuevoAlumnoField('grado', this.value, false)"></div>
+      <div class="field"><input type="text" placeholder="Grupo" value="${na.grupo}" oninput="setNuevoAlumnoField('grupo', this.value, false)"></div>
+    </div>
+    <div class="field"><input type="date" placeholder="Fecha de nacimiento" value="${na.fechaNacimiento}" oninput="setNuevoAlumnoField('fechaNacimiento', this.value, false)"></div>
+    <div class="field"><input type="tel" placeholder="Teléfono del alumno (opcional)" value="${na.telefonoAlumno}" oninput="setNuevoAlumnoField('telefonoAlumno', this.value, false)"></div>
+    <button class="btn btn-dark" style="margin-top:6px;" onclick="crearAlumno()">Agregar alumno</button>
+    <p style="font-size:0.72em;color:#9ca3af;margin-top:8px;">Por seguridad, una vez agregado un alumno no se puede eliminar — solo editar sus datos, o el director puede archivarlo.</p>
+  </div>`;
   return html;
 }
 
