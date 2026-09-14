@@ -114,7 +114,10 @@ let state = {
   authMode: 'login',    // 'login' | 'signup-admin'
   loginEmail: '', loginPass: '', loginError: '',
   escuelaActual: null,  // 'eco' | 'ministerios' | null
-  vista: 'inicio',      // 'inicio' | 'usuarios'
+  vista: 'inicio',      // 'inicio' | 'usuarios' | 'materias'
+  materias: {},          // materias de la escuela abierta actualmente
+  nuevaMateria: { nombre: '', maestroUid: '' },
+  materiaEnEdicion: null, // id de la materia que se está renombrando/reasignando
   usuarios: {},
   nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
   toast: null
@@ -167,8 +170,8 @@ function initFirebase() {
 function cargarListaUsuariosSiAplica() {
   const p = state.perfil;
   if (!p) return;
-  const puedeGestionar = p.rol === 'director' || (p.rol === 'subadmin' && p.puedeGestionarUsuarios);
-  if (!puedeGestionar) return;
+  // Todos los roles necesitan ver nombres de maestros (para materias); las reglas de
+  // seguridad ya solo permiten leer esto a usuarios autenticados y activos.
   db.ref('usuarios').on('value', snap => { state.usuarios = snap.val() || {}; render(); });
 }
 
@@ -339,10 +342,59 @@ function compartirWhatsapp() {
 }
 
 /* =========================================================
+   MATERIAS
+   ========================================================= */
+function setNuevaMateriaField(f, v, doRender) { state.nuevaMateria[f] = v; if (doRender !== false) render(); }
+
+function maestrosDeEscuela(escuela) {
+  return Object.entries(state.usuarios || {}).filter(([uid, u]) =>
+    u.rol === 'maestro' && u.activo !== false && u.escuelas && u.escuelas[escuela]
+  );
+}
+
+async function crearMateria() {
+  const nm = state.nuevaMateria;
+  if (!nm.nombre.trim()) { showToast('❌ Ponle un nombre a la materia.'); return; }
+  const ref = db.ref(state.escuelaActual + '/materias').push();
+  await ref.set({
+    nombre: nm.nombre.trim(),
+    maestroUid: nm.maestroUid || null,
+    activo: true,
+    creado: Date.now()
+  });
+  state.nuevaMateria = { nombre: '', maestroUid: '' };
+  showToast('✅ Materia agregada');
+  render();
+}
+
+function editarMateria(id) { state.materiaEnEdicion = id; render(); }
+function cancelarEdicionMateria() { state.materiaEnEdicion = null; render(); }
+
+async function guardarEdicionMateria(id, nombre, maestroUid) {
+  if (!nombre.trim()) { showToast('❌ El nombre no puede quedar vacío.'); return; }
+  await db.ref(state.escuelaActual + '/materias/' + id).update({ nombre: nombre.trim(), maestroUid: maestroUid || null });
+  state.materiaEnEdicion = null;
+  showToast('✅ Materia actualizada');
+  render();
+}
+
+async function archivarMateria(id, activo) {
+  await db.ref(state.escuelaActual + '/materias/' + id + '/activo').set(activo);
+  showToast(activo ? '✅ Materia reactivada' : '🗄️ Materia archivada');
+}
+
+/* =========================================================
    NAVEGACIÓN
    ========================================================= */
-function abrirEscuela(key) { state.escuelaActual = key; state.vista = 'inicio'; render(); }
-function volverInicio() { state.escuelaActual = null; render(); }
+function abrirEscuela(key) {
+  state.escuelaActual = key; state.vista = 'inicio'; render();
+  db.ref(key + '/materias').off();
+  db.ref(key + '/materias').on('value', snap => { state.materias = snap.val() || {}; render(); });
+}
+function volverInicio() {
+  if (state.escuelaActual && state.escuelaActual !== '__usuarios__') db.ref(state.escuelaActual + '/materias').off();
+  state.escuelaActual = null; state.materias = {}; render();
+}
 function setVista(v) { state.vista = v; render(); }
 
 /* =========================================================
@@ -503,10 +555,73 @@ function renderInicioEscuela() {
     ${badgeRol()}
     ${esMaestro() && state.perfil.materiaNombre ? `<p style="font-size:0.85em;color:#6b7280;">Tu materia: <strong>${state.perfil.materiaNombre}</strong></p>` : ''}
   </div>
+  ${renderMaterias()}
   <div class="placeholder-card card">
-    Los módulos de materias, alumnos, calificaciones, tareas y boletas se agregan en la siguiente fase de construcción.
+    Los módulos de alumnos, calificaciones, tareas y boletas se agregan en la siguiente fase de construcción.
   </div>
-  ${puedeGestionarUsuarios() ? `<button class="btn btn-outline" onclick="setVista('usuarios')">👥 Gestionar usuarios</button>` : ''}`;
+  ${puedeGestionarUsuarios() ? `<button class="btn btn-outline" onclick="state.escuelaActual='__usuarios__';setVista('usuarios')">👥 Gestionar usuarios</button>` : ''}`;
+}
+
+function renderMaterias() {
+  const lista = Object.entries(state.materias || {}).sort((a,b) => (a[1].creado||0)-(b[1].creado||0));
+  const maestrosDisponibles = maestrosDeEscuela(state.escuelaActual);
+  const puedeEditar = tieneAccesoTotal();
+
+  let html = `<p class="section-title">Materias${state.escuelaActual === 'ministerios' ? ' (mínimo 5 recomendado)' : ''}</p><div class="card">`;
+
+  if (lista.length === 0) {
+    html += `<p style="color:#9ca3af;font-size:0.85em;">Aún no hay materias registradas.</p>`;
+  } else {
+    lista.forEach(([id, m]) => {
+      if (m.activo === false && !puedeEditar) return; // maestros no ven archivadas
+      const maestro = m.maestroUid ? state.usuarios[m.maestroUid] : null;
+      const esMiPropia = esMaestro() && m.maestroUid === state.user.uid;
+      if (state.materiaEnEdicion === id) {
+        html += `
+        <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
+          <div class="field"><input type="text" id="edit-nombre-${id}" value="${m.nombre}"></div>
+          <select id="edit-maestro-${id}">
+            <option value="">— Sin maestro asignado —</option>
+            ${maestrosDisponibles.map(([uid,u]) => `<option value="${uid}" ${m.maestroUid===uid?'selected':''}>${u.nombre}</option>`).join('')}
+          </select>
+          <div class="row-flex" style="margin-top:8px;">
+            <button class="btn btn-dark" onclick="guardarEdicionMateria('${id}', document.getElementById('edit-nombre-${id}').value, document.getElementById('edit-maestro-${id}').value)">Guardar</button>
+            <button class="btn btn-gray" onclick="cancelarEdicionMateria()">Cancelar</button>
+          </div>
+        </div>`;
+      } else {
+        html += `
+        <div class="userlist-item">
+          <div>
+            <p class="name">${m.nombre} ${m.activo===false ? '<span style="color:#dc2626;">(archivada)</span>' : ''} ${esMiPropia ? '<span style="color:#4f46e5;">· tuya</span>' : ''}</p>
+            <p class="meta">${maestro ? maestro.nombre : 'Sin maestro asignado'}</p>
+          </div>
+          ${puedeEditar ? `
+          <div style="display:flex;gap:10px;">
+            <button class="linklike" style="margin:0;" onclick="editarMateria('${id}')">Editar</button>
+            <button class="linklike" style="margin:0;" onclick="archivarMateria('${id}', ${m.activo===false})">${m.activo===false?'Reactivar':'Archivar'}</button>
+          </div>` : ''}
+        </div>`;
+      }
+    });
+  }
+  html += `</div>`;
+
+  if (puedeEditar) {
+    const nm = state.nuevaMateria;
+    html += `
+    <div class="card">
+      <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Agregar materia</p>
+      <div class="field"><input type="text" placeholder="Nombre de la materia" value="${nm.nombre}" oninput="setNuevaMateriaField('nombre', this.value, false)"></div>
+      <select onchange="setNuevaMateriaField('maestroUid', this.value)">
+        <option value="">— Sin maestro asignado por ahora —</option>
+        ${maestrosDisponibles.map(([uid,u]) => `<option value="${uid}" ${nm.maestroUid===uid?'selected':''}>${u.nombre}</option>`).join('')}
+      </select>
+      ${maestrosDisponibles.length === 0 ? `<p style="font-size:0.72em;color:#9ca3af;margin-top:6px;">No hay maestros creados todavía para esta escuela — puedes crear la materia y asignar el maestro después desde "Gestionar usuarios".</p>` : ''}
+      <button class="btn btn-dark" style="margin-top:10px;" onclick="crearMateria()">Agregar materia</button>
+    </div>`;
+  }
+  return html;
 }
 
 function renderUsuarios() {
