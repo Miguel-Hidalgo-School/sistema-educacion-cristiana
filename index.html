@@ -272,6 +272,9 @@ async function crearUsuario() {
       perfil.escuelas = { [nu.escuela]: true };
       perfil.materiaNombre = nu.materia.trim() || 'Sin materia asignada';
     }
+    perfil.telefono = nu.telefono.trim() || null;
+    perfil.passwordActual = tempPass;
+    perfil.mustChangePassword = true;
     await db.ref('usuarios/' + uid).set(perfil);
     await secAuth.signOut();
 
@@ -302,6 +305,19 @@ function textoCredenciales() {
   return `Tu acceso al Sistema Escolar — Secretaría de Educación Cristiana\n\nUsuario: ${c.correoInterno}\nContraseña temporal: ${c.tempPass}\n\nEntra aquí: ${link}\n\n(Te recomendamos cambiar la contraseña en cuanto entres.)`;
 }
 
+function copiarTexto(t) {
+  navigator.clipboard.writeText(t).then(() => showToast('✅ Copiado')).catch(() => showToast('❌ No se pudo copiar'));
+}
+
+function reenviarWhatsapp(uid) {
+  const u = state.usuarios[uid];
+  if (!u) return;
+  const link = location.href.split('#')[0];
+  const texto = `Tu acceso al Sistema Escolar — Secretaría de Educación Cristiana\n\nUsuario: ${u.correoInterno}\nContraseña: ${u.passwordActual}\n\nEntra aquí: ${link}`;
+  const numero = numeroWhatsappLimpio(u.telefono);
+  const url = (numero ? `https://wa.me/${numero}` : 'https://wa.me/') + '?text=' + encodeURIComponent(texto);
+  window.open(url, '_blank');
+}
 function copiarCredenciales() {
   navigator.clipboard.writeText(textoCredenciales())
     .then(() => showToast('✅ Copiado'))
@@ -339,6 +355,7 @@ function renderApp() {
   if (state.loading) return `<div class="center-screen"><p style="color:#9ca3af;">Cargando…</p></div>`;
   if (!state.user) return renderLogin();
   if (!state.perfil || state.perfil.activo === false) return renderSinAcceso();
+  if (state.perfil.mustChangePassword) return renderCambiarPassword();
   return renderShell();
 }
 
@@ -379,6 +396,37 @@ function renderSinAcceso() {
       </div>
     </div>
   </div>`;
+}
+
+function renderCambiarPassword() {
+  return `
+  <div class="center-screen">
+    <div class="login-card">
+      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
+      <div class="login-body">
+        <h1>Cambia tu contraseña</h1>
+        <p class="sub">Por seguridad, antes de continuar debes poner una contraseña nueva que solo tú conozcas.</p>
+        <div class="field"><input type="password" placeholder="Contraseña nueva" value="${state.newPass1||''}" oninput="setLoginField('newPass1', this.value)"></div>
+        <div class="field"><input type="password" placeholder="Repite la contraseña" value="${state.newPass2||''}" oninput="setLoginField('newPass2', this.value)"></div>
+        ${state.loginError ? `<p class="errtext">${state.loginError}</p>` : ''}
+        <button class="btn btn-dark" onclick="doCambiarPassword()">Guardar y continuar</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function doCambiarPassword() {
+  const p1 = state.newPass1 || '', p2 = state.newPass2 || '';
+  if (p1.length < 6) { state.loginError = 'La contraseña debe tener al menos 6 caracteres.'; render(); return; }
+  if (p1 !== p2) { state.loginError = 'Las contraseñas no coinciden.'; render(); return; }
+  try {
+    await state.user.updatePassword(p1);
+    await db.ref('usuarios/' + state.user.uid).update({ mustChangePassword: false, passwordActual: p1 });
+    state.newPass1 = ''; state.newPass2 = ''; state.loginError = '';
+  } catch (e) {
+    state.loginError = 'No se pudo cambiar (' + (e.code || e.message) + '). Vuelve a entrar e intenta de nuevo.';
+    render();
+  }
 }
 
 function renderShell() {
@@ -494,12 +542,23 @@ function renderUsuarios() {
   <p class="section-title">Usuarios del sistema</p>
   <div class="card">
     ${lista.length === 0 ? '<p style="color:#9ca3af;font-size:0.85em;">Aún no hay usuarios.</p>' : lista.map(([uid, u]) => `
-      <div class="userlist-item">
-        <div>
-          <p class="name">${u.nombre || u.correoInterno} ${u.activo===false ? '<span style="color:#dc2626;">(desactivado)</span>' : ''}</p>
-          <p class="meta">${u.rol === 'director' ? 'Director(a)' : u.rol === 'subadmin' ? 'Subadministrador' : 'Maestro(a)' }${u.materiaNombre ? ' · ' + u.materiaNombre : ''} · ${u.correoInterno}</p>
+      <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <p class="name">${u.nombre || u.correoInterno} ${u.activo===false ? '<span style="color:#dc2626;">(desactivado)</span>' : ''}</p>
+            <p class="meta">${u.rol === 'director' ? 'Director(a)' : u.rol === 'subadmin' ? 'Subadministrador' : 'Maestro(a)' }${u.materiaNombre ? ' · ' + u.materiaNombre : ''} · ${u.correoInterno}</p>
+          </div>
+          ${uid !== state.user.uid && u.rol !== 'director' ? `<button class="linklike" style="margin:0;white-space:nowrap;" onclick="desactivarUsuario('${uid}', ${u.activo===false})">${u.activo===false?'Reactivar':'Desactivar'}</button>` : ''}
         </div>
-        ${uid !== state.user.uid && u.rol !== 'director' ? `<button class="linklike" style="margin:0;" onclick="desactivarUsuario('${uid}', ${u.activo===false})">${u.activo===false?'Reactivar':'Desactivar'}</button>` : ''}
+        ${u.passwordActual ? `
+        <div class="cred-box" style="margin:8px 0 0;">
+          <b>Contraseña actual:</b> ${u.passwordActual}
+          ${u.mustChangePassword ? '<br><span style="color:#b45309;">⏳ Aún no la ha cambiado</span>' : '<br><span style="color:#059669;">✅ Ya la cambió (esta es la nueva)</span>'}
+        </div>
+        <div class="row-flex" style="margin-top:6px;">
+          <button class="btn btn-outline" style="font-size:0.8em;padding:8px;" onclick="copiarTexto('${u.passwordActual}')">📋 Copiar</button>
+          <button class="btn btn-green" style="font-size:0.8em;padding:8px;" onclick="reenviarWhatsapp('${uid}')">📲 WhatsApp</button>
+        </div>` : ''}
       </div>
     `).join('')}
   </div>`;
