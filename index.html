@@ -187,7 +187,7 @@ async function doLogin() {
   try {
     await auth.signInWithEmailAndPassword(email, pass);
   } catch (e) {
-    state.loginError = 'No se pudo entrar. Revisa tu usuario y contraseña.';
+    state.loginError = 'No se pudo entrar (' + (e.code || e.message) + ').';
     render();
   }
 }
@@ -208,7 +208,7 @@ async function doSignupAdmin() {
   } catch (e) {
     state.loginError = e.code === 'auth/email-already-in-use'
       ? 'Esa cuenta ya existe — usa "Entrar" en vez de crear cuenta.'
-      : 'No se pudo crear la cuenta. Intenta de nuevo.';
+      : 'No se pudo crear la cuenta (' + (e.code || e.message) + ').';
     render();
   }
 }
