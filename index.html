@@ -117,7 +117,7 @@ let state = {
   authMode: 'login',    // 'login' | 'signup-admin'
   loginEmail: '', loginPass: '', loginError: '',
   escuelaActual: null,  // 'eco' | 'ministerios' | null
-  vista: 'inicio',      // 'inicio' | 'usuarios' | 'materias' | 'calificaciones'
+  vista: 'inicio',      // 'inicio' | 'usuarios' | 'materias' | 'calificaciones' | 'tareas'
   materias: {},          // materias de la escuela abierta actualmente
   nuevaMateria: { nombre: '', maestroUid: '' },
   materiaEnEdicion: null, // id de la materia que se está renombrando/reasignando
@@ -126,6 +126,9 @@ let state = {
   alumnoEnEdicion: null,
   materiaCalificaciones: null, // id de la materia cuya tabla de calificaciones se está viendo
   calificaciones: {},
+  materiaTareas: null,
+  tareas: {},
+  nuevaTarea: { titulo: '', fecha: '' },
   usuarios: {},
   nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
   toast: null
@@ -478,6 +481,38 @@ async function guardarCalificacion(alumnoId, periodoIdx, valorTexto) {
 }
 
 /* =========================================================
+   TAREAS
+   ========================================================= */
+function abrirTareas(materiaId) {
+  state.materiaTareas = materiaId;
+  state.vista = 'tareas';
+  db.ref(state.escuelaActual + '/tareas/' + materiaId).off();
+  db.ref(state.escuelaActual + '/tareas/' + materiaId).on('value', snap => { state.tareas = snap.val() || {}; render(); });
+  render();
+}
+
+function cerrarTareas() {
+  if (state.escuelaActual && state.materiaTareas) db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas).off();
+  state.materiaTareas = null; state.tareas = {}; state.vista = 'inicio'; render();
+}
+
+function setNuevaTareaField(f, v, doRender) { state.nuevaTarea[f] = v; if (doRender !== false) render(); }
+
+async function crearTarea() {
+  const nt = state.nuevaTarea;
+  if (!nt.titulo.trim()) { showToast('❌ Ponle un título a la tarea.'); return; }
+  const ref = db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas).push();
+  await ref.set({ titulo: nt.titulo.trim(), fecha: nt.fecha || null, creado: Date.now(), creadoPor: state.user.uid });
+  state.nuevaTarea = { titulo: '', fecha: '' };
+  showToast('✅ Tarea agregada');
+  render();
+}
+
+async function marcarCumplimiento(tareaId, alumnoId, valorActual) {
+  await db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas + '/' + tareaId + '/cumplimiento/' + alumnoId).set(!valorActual);
+}
+
+/* =========================================================
    NAVEGACIÓN
    ========================================================= */
 function abrirEscuela(key) {
@@ -586,6 +621,7 @@ function renderShell() {
   if (!state.escuelaActual) body = renderSelectorEscuelas();
   else if (state.vista === 'usuarios') body = renderUsuarios();
   else if (state.vista === 'calificaciones') body = renderTablaCalificaciones();
+  else if (state.vista === 'tareas') body = renderTareas();
   else body = renderInicioEscuela();
 
   return `
@@ -698,7 +734,8 @@ function renderMaterias() {
             <p class="meta">${maestro ? maestro.nombre : 'Sin maestro asignado'}</p>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
-            ${puedeVerCalif ? `<button class="linklike" style="margin:0;" onclick="abrirCalificaciones('${id}')">📊 Calificar</button>` : ''}
+            ${puedeVerCalif ? `<button class="linklike" style="margin:0;" onclick="abrirCalificaciones('${id}')">📊 Calificar</button>
+            <button class="linklike" style="margin:0;" onclick="abrirTareas('${id}')">📋 Tareas</button>` : ''}
             ${puedeEditar ? `
             <button class="linklike" style="margin:0;" onclick="editarMateria('${id}')">Editar</button>
             <button class="linklike" style="margin:0;" onclick="archivarMateria('${id}', ${m.activo===false})">${m.activo===false?'Reactivar':'Archivar'}</button>
@@ -744,9 +781,10 @@ function renderAlumnos() {
         <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
           <div class="field"><input type="text" placeholder="Nombre completo" id="ea-nombre-${id}" value="${a.nombreCompleto}"></div>
           <div class="row-flex">
-            <div class="field"><input type="text" placeholder="Grado" id="ea-grado-${id}" value="${a.grado||''}"></div>
+            <div class="field"><input type="text" placeholder="Módulo" id="ea-grado-${id}" value="${a.grado||''}"></div>
             <div class="field"><input type="text" placeholder="Grupo" id="ea-grupo-${id}" value="${a.grupo||''}"></div>
           </div>
+          <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de nacimiento</p>
           <div class="field"><input type="date" id="ea-fecha-${id}" value="${a.fechaNacimiento||''}"></div>
           <div class="field"><input type="tel" placeholder="Teléfono del alumno" id="ea-tel-${id}" value="${a.telefonoAlumno||''}"></div>
           <div class="row-flex" style="margin-top:4px;">
@@ -777,10 +815,11 @@ function renderAlumnos() {
     <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Agregar alumno</p>
     <div class="field"><input type="text" placeholder="Nombre completo" value="${na.nombreCompleto}" oninput="setNuevoAlumnoField('nombreCompleto', this.value, false)"></div>
     <div class="row-flex">
-      <div class="field"><input type="text" placeholder="Grado" value="${na.grado}" oninput="setNuevoAlumnoField('grado', this.value, false)"></div>
+      <div class="field"><input type="text" placeholder="Módulo" value="${na.grado}" oninput="setNuevoAlumnoField('grado', this.value, false)"></div>
       <div class="field"><input type="text" placeholder="Grupo" value="${na.grupo}" oninput="setNuevoAlumnoField('grupo', this.value, false)"></div>
     </div>
-    <div class="field"><input type="date" placeholder="Fecha de nacimiento" value="${na.fechaNacimiento}" oninput="setNuevoAlumnoField('fechaNacimiento', this.value, false)"></div>
+    <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de nacimiento</p>
+    <div class="field"><input type="date" value="${na.fechaNacimiento}" oninput="setNuevoAlumnoField('fechaNacimiento', this.value, false)"></div>
     <div class="field"><input type="tel" placeholder="Teléfono del alumno (opcional)" value="${na.telefonoAlumno}" oninput="setNuevoAlumnoField('telefonoAlumno', this.value, false)"></div>
     <button class="btn btn-dark" style="margin-top:6px;" onclick="crearAlumno()">Agregar alumno</button>
     <p style="font-size:0.72em;color:#9ca3af;margin-top:8px;">Por seguridad, una vez agregado un alumno no se puede eliminar — solo editar sus datos, o el director puede archivarlo.</p>
@@ -831,6 +870,74 @@ function renderTablaCalificaciones() {
           </td>`;
         }).join('')}
         <td style="padding:6px;text-align:center;font-weight:700;color:${reprobado?'#dc2626':'#111827'};">${promTxt}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>
+  </div>`;
+  return html;
+}
+
+function renderTareas() {
+  const materia = state.materias[state.materiaTareas];
+  const soyElMaestro = esMaestro() && materia && materia.maestroUid === state.user.uid;
+  const puedoEditar = tieneAccesoTotal() || soyElMaestro;
+  const tareasArr = Object.entries(state.tareas || {}).sort((a,b) => (a[1].creado||0)-(b[1].creado||0));
+  const alumnos = Object.entries(state.alumnos || {})
+    .filter(([id, a]) => a.activo !== false)
+    .sort((a,b) => (a[1].nombreCompleto||'').localeCompare(b[1].nombreCompleto||''));
+
+  let html = `
+  <button class="linklike" style="margin-bottom:10px;" onclick="cerrarTareas()">← Volver a materias</button>
+  <div class="card">
+    <p style="font-weight:700;font-size:1.05em;">${materia ? materia.nombre : ''} — Tareas</p>
+    <p style="font-size:0.8em;color:#6b7280;">${puedoEditar ? 'Toca una casilla para marcar cumplida ✅ o pendiente ⬜.' : 'Solo lectura — esta materia no está asignada a ti.'}</p>
+  </div>`;
+
+  if (puedoEditar) {
+    const nt = state.nuevaTarea;
+    html += `
+    <div class="card">
+      <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Nueva tarea</p>
+      <div class="field"><input type="text" placeholder="Título de la tarea" value="${nt.titulo}" oninput="setNuevaTareaField('titulo', this.value, false)"></div>
+      <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de entrega (opcional)</p>
+      <div class="field"><input type="date" value="${nt.fecha}" oninput="setNuevaTareaField('fecha', this.value, false)"></div>
+      <button class="btn btn-dark" style="margin-top:6px;" onclick="crearTarea()">Agregar tarea</button>
+    </div>`;
+  }
+
+  if (alumnos.length === 0) {
+    html += `<div class="placeholder-card card">Todavía no hay alumnos registrados en esta escuela.</div>`;
+    return html;
+  }
+  if (tareasArr.length === 0) {
+    html += `<div class="placeholder-card card">Todavía no hay tareas registradas para esta materia.</div>`;
+    return html;
+  }
+
+  html += `<div class="card" style="overflow-x:auto;padding:14px 10px;">
+  <table style="width:100%;border-collapse:collapse;font-size:0.8em;">
+    <thead><tr>
+      <th style="text-align:left;padding:6px;">Alumno</th>
+      ${tareasArr.map(([tid, t]) => `<th style="padding:6px;min-width:70px;">${t.titulo}${t.fecha ? `<br><span style="font-weight:400;color:#9ca3af;font-size:0.85em;">${t.fecha}</span>` : ''}</th>`).join('')}
+      <th style="padding:6px;">Cumplidas</th>
+    </tr></thead>
+    <tbody>
+    ${alumnos.map(([aid, a]) => {
+      let cumplidas = 0;
+      const celdas = tareasArr.map(([tid, t]) => {
+        const val = !!(t.cumplimiento && t.cumplimiento[aid]);
+        if (val) cumplidas++;
+        return `<td style="padding:4px;text-align:center;">
+          ${puedoEditar
+            ? `<button onclick="marcarCumplimiento('${tid}', '${aid}', ${val})" style="border:none;background:none;font-size:1.2em;cursor:pointer;">${val ? '✅' : '⬜'}</button>`
+            : (val ? '✅' : '⬜')}
+        </td>`;
+      }).join('');
+      return `<tr style="border-top:1px solid #f3f4f6;">
+        <td style="padding:6px;white-space:nowrap;">${a.nombreCompleto}</td>
+        ${celdas}
+        <td style="padding:6px;text-align:center;font-weight:700;">${cumplidas}/${tareasArr.length}</td>
       </tr>`;
     }).join('')}
     </tbody>
