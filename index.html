@@ -64,6 +64,10 @@ label.chk { display: flex; align-items: center; gap: 8px; font-size: 0.82em; mar
 .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 0.82em; z-index: 100; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
 .section-title { font-size: 0.78em; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; margin: 18px 0 8px; }
 .placeholder-card { text-align: center; padding: 40px 20px; color: #9ca3af; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
+.modal-card { background: #fff; border-radius: 16px; padding: 22px; max-width: 360px; width: 100%; }
+.cred-box { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 10px; padding: 12px; font-size: 0.85em; margin: 12px 0; line-height: 1.6; word-break: break-all; }
+.cred-box b { color: #111; }
 </style>
 </head>
 <body>
@@ -112,7 +116,7 @@ let state = {
   escuelaActual: null,  // 'eco' | 'ministerios' | null
   vista: 'inicio',      // 'inicio' | 'usuarios'
   usuarios: {},
-  nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
+  nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
   toast: null
 };
 
@@ -271,8 +275,9 @@ async function crearUsuario() {
     await db.ref('usuarios/' + uid).set(perfil);
     await secAuth.signOut();
 
-    showToast('✅ Usuario creado. Contraseña temporal: ' + tempPass);
-    state.nuevoUsuario = { nombre: '', correoInterno: '', correoContacto: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false };
+    showToast('✅ Usuario creado');
+    state.nuevoUsuario = { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false };
+    state.credencialesGeneradas = { nombre: perfil.nombre, correoInterno: email, tempPass, telefono: nu.telefono.trim() };
     render();
   } catch (e) {
     showToast(e.code === 'auth/email-already-in-use' ? '❌ Ese usuario ya existe.' : '❌ No se pudo crear el usuario.');
@@ -287,6 +292,34 @@ async function desactivarUsuario(uid, activo) {
 
 async function cambiarPermisoGestion(uid, val) {
   await db.ref('usuarios/' + uid + '/puedeGestionarUsuarios').set(val);
+}
+
+function cerrarCredenciales() { state.credencialesGeneradas = null; render(); }
+
+function textoCredenciales() {
+  const c = state.credencialesGeneradas;
+  const link = location.href.split('#')[0];
+  return `Tu acceso al Sistema Escolar — Secretaría de Educación Cristiana\n\nUsuario: ${c.correoInterno}\nContraseña temporal: ${c.tempPass}\n\nEntra aquí: ${link}\n\n(Te recomendamos cambiar la contraseña en cuanto entres.)`;
+}
+
+function copiarCredenciales() {
+  navigator.clipboard.writeText(textoCredenciales())
+    .then(() => showToast('✅ Copiado'))
+    .catch(() => showToast('❌ No se pudo copiar'));
+}
+
+function numeroWhatsappLimpio(telefono) {
+  let d = (telefono || '').replace(/\D/g, '');
+  if (!d) return '';
+  if (d.length === 10) d = '52' + d; // asume México si son 10 dígitos sin código de país
+  return d;
+}
+
+function compartirWhatsapp() {
+  const c = state.credencialesGeneradas;
+  const numero = numeroWhatsappLimpio(c.telefono);
+  const url = (numero ? `https://wa.me/${numero}` : 'https://wa.me/') + '?text=' + encodeURIComponent(textoCredenciales());
+  window.open(url, '_blank');
 }
 
 /* =========================================================
@@ -366,7 +399,26 @@ function renderShell() {
     </div>
   </header>
   <main>${body}</main>
+  ${state.credencialesGeneradas ? renderModalCredenciales() : ''}
   ${state.toast ? `<div class="toast">${state.toast}</div>` : ''}`;
+}
+
+function renderModalCredenciales() {
+  const c = state.credencialesGeneradas;
+  return `
+  <div class="modal-backdrop">
+    <div class="modal-card">
+      <p style="font-weight:700;font-size:1em;margin-bottom:4px;">✅ Usuario creado</p>
+      <p style="font-size:0.8em;color:#6b7280;">Comparte estos datos con ${c.nombre}:</p>
+      <div class="cred-box">
+        <b>Usuario:</b> ${c.correoInterno}<br>
+        <b>Contraseña temporal:</b> ${c.tempPass}
+      </div>
+      <button class="btn btn-green" onclick="compartirWhatsapp()">📲 ${c.telefono ? 'Enviar por WhatsApp a ' + c.nombre : 'Compartir por WhatsApp'}</button>
+      <button class="btn btn-outline" style="margin-top:8px;" onclick="copiarCredenciales()">📋 Copiar datos</button>
+      <button class="linklike" onclick="cerrarCredenciales()">Cerrar</button>
+    </div>
+  </div>`;
 }
 
 function badgeRol() {
@@ -420,6 +472,7 @@ function renderUsuarios() {
     <div class="field"><input type="text" placeholder="Usuario (ej. maria.perez)" value="${nu.correoInterno}" oninput="setNuevoUsuarioField('correoInterno', this.value, false)"></div>
     <p style="font-size:0.72em;color:#9ca3af;margin:-4px 0 10px;">Se guardará como ${nu.correoInterno || '(usuario)'}${REQUIRED_EMAIL_DOMAIN} — ese correo no recibe mensajes reales.</p>
     <div class="field"><input type="text" placeholder="Correo real de contacto (privado, opcional)" value="${nu.correoContacto}" oninput="setNuevoUsuarioField('correoContacto', this.value, false)"></div>
+    <div class="field"><input type="tel" placeholder="Teléfono WhatsApp (opcional, ej. 3312345678)" value="${nu.telefono}" oninput="setNuevoUsuarioField('telefono', this.value, false)"></div>
     <p class="section-title" style="margin-top:4px;">Rol</p>
     <select onchange="setNuevoUsuarioField('rol', this.value)">
       <option value="maestro" ${nu.rol==='maestro'?'selected':''}>Maestro(a) — solo su materia</option>
