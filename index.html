@@ -2,1023 +2,1769 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Secretaría de Educación Cristiana</title>
-<meta name="theme-color" content="#111111">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1A1423">
+<link rel="manifest" href="data:application/manifest+json,{%22name%22:%22Asedio%20Tecalitl%C3%A1n%22,%22short_name%22:%22Tecalitl%C3%A1n%22,%22display%22:%22fullscreen%22,%22orientation%22:%22landscape%22,%22start_url%22:%22.%22,%22background_color%22:%22%231A1423%22,%22theme_color%22:%22%231A1423%22}">
+<title>Asedio Tecalitlán</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { overflow-x: hidden; max-width: 100vw; }
-body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #f9fafb; color: #1f2937; }
-.hidden { display: none !important; }
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rubik:wght@400;600;800&display=swap');
 
-/* ---------- Login ---------- */
-.center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: #eef0f4; }
-.login-card { background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); width: 100%; max-width: 380px; overflow: hidden; text-align: center; }
-.login-hero { background: #111111; padding: 28px 20px 22px; }
-.login-hero img { max-width: 220px; width: 100%; height: auto; }
-.login-body { padding: 28px 28px 32px; }
-.login-body h1 { font-size: 1.05em; margin-bottom: 4px; color: #1f2937; }
-.login-body p.sub { color: #6b7280; font-size: 0.82em; margin-bottom: 22px; line-height: 1.4; }
-.field { border: 1px solid #d1d5db; border-radius: 10px; padding: 11px 12px; margin-bottom: 10px; text-align: left; }
-.field input { border: none; outline: none; width: 100%; font-size: 0.9em; background: transparent; }
-.btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95em; cursor: pointer; }
-.btn-dark { background: #111111; color: #fff; }
-.btn-blue { background: #2563eb; color: #fff; }
-.btn-gray { background: #f3f4f6; color: #374151; }
-.btn-green { background: #16a34a; color: #fff; }
-.btn-red { background: #fee2e2; color: #dc2626; }
-.btn-outline { background: #fff; color: #374151; border: 1px solid #d1d5db; }
-.linklike { background: none; border: none; color: #4f46e5; font-size: 0.8em; cursor: pointer; margin-top: 14px; text-decoration: underline; }
-.errtext { font-size: 0.78em; color: #dc2626; margin-top: 10px; text-align: left; }
-.hint { font-size: 0.72em; color: #9ca3af; margin-top: 16px; line-height: 1.4; }
+  :root{
+    --sunset:#FF6B35;
+    --gold:#FFB627;
+    --turquoise:#2EC4B6;
+    --dusk:#6A0572;
+    --shadow:#1A1423;
+    --paper:#F7F1E6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none;}
+  html,body{margin:0; padding:0; width:100%; height:100%; height:100dvh; overflow:hidden; background:var(--shadow); font-family:'Rubik',sans-serif; position:fixed;}
+  #wrap{position:relative; width:100vw; height:100vh; height:100dvh;}
+  canvas{display:block; width:100%; height:100%; background:linear-gradient(180deg,#3a1f4d 0%, #7a2f4a 35%, #d9612f 75%, #b4491f 100%);}
 
-/* ---------- Shell ---------- */
-header.topbar { background: #111111; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
-header.topbar .brand { display: flex; align-items: center; gap: 8px; }
-header.topbar .brand img { height: 26px; width: auto; }
-header.topbar .brand span { color: #fff; font-weight: 700; font-size: 0.95em; }
-.userchip { display: flex; align-items: center; gap: 8px; font-size: 0.78em; color: rgba(255,255,255,0.85); }
-.userchip .av { width: 30px; height: 30px; border-radius: 999px; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75em; }
-.userchip button { border: none; background: rgba(255,255,255,0.15); color: #fff; font-size: 0.78em; cursor: pointer; padding: 5px 10px; border-radius: 999px; }
-main { max-width: 640px; width: 100%; margin: 0 auto; padding: 16px; }
-.card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 12px; }
-.rolebadge { display: inline-block; font-size: 0.7em; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px; }
-.rolebadge.director { background: #ede9fe; color: #6d28d9; }
-.rolebadge.subadmin { background: #dbeafe; color: #1d4ed8; }
-.rolebadge.maestro { background: #dcfce7; color: #15803d; }
-.escuela-card { cursor: pointer; border-radius: 18px; padding: 28px; text-align: center; color: #fff; margin-bottom: 14px; }
-.escuela-card.eco { background: linear-gradient(135deg,#2563eb,#4f46e5); }
-.escuela-card.ministerios { background: linear-gradient(135deg,#059669,#065f46); }
-.escuela-card p.title { font-weight: 700; font-size: 1.15em; margin-top: 6px; }
-.escuela-card p.desc { font-size: 0.78em; opacity: 0.85; margin-top: 4px; }
-.row-flex { display: flex; gap: 8px; }
-.row-flex .field { flex: 1; }
-.userlist-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid #f3f4f6; }
-.userlist-item p.name { font-weight: 600; font-size: 0.88em; }
-.userlist-item p.meta { font-size: 0.72em; color: #9ca3af; margin-top: 2px; }
-select { border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 0.9em; width: 100%; outline: none; background: #fff; }
-label.chk { display: flex; align-items: center; gap: 8px; font-size: 0.82em; margin: 10px 0; }
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #111; color: #fff; padding: 10px 18px; border-radius: 999px; font-size: 0.82em; z-index: 100; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-.section-title { font-size: 0.78em; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.03em; margin: 18px 0 8px; }
-.placeholder-card { text-align: center; padding: 40px 20px; color: #9ca3af; }
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 200; }
-.modal-card { background: #fff; border-radius: 16px; padding: 22px; max-width: 360px; width: 100%; }
-.cred-box { background: #f9fafb; border: 1px dashed #d1d5db; border-radius: 10px; padding: 12px; font-size: 0.85em; margin: 12px 0; line-height: 1.6; word-break: break-all; }
-.cred-box b { color: #111; }
+  .hud{position:absolute; top:0; left:0; width:100%; padding:12px 16px; display:flex; justify-content:space-between; align-items:flex-start; pointer-events:none; z-index:5;}
+  .hud-block{background:rgba(26,20,35,0.72); border:2px solid var(--gold); border-radius:10px; padding:8px 14px; color:var(--paper); font-family:'Bebas Neue',sans-serif; letter-spacing:1px;}
+  .hud-title{font-size:22px; color:var(--gold);}
+  .hud-row{display:flex; align-items:center; gap:8px; margin-top:2px;}
+  .bar{width:130px; height:12px; background:rgba(0,0,0,0.5); border-radius:6px; overflow:hidden; border:1px solid rgba(255,255,255,0.3);}
+  .bar-fill{height:100%; background:linear-gradient(90deg,var(--turquoise),#7fe9df);}
+  .bar-fill.base{background:linear-gradient(90deg,var(--sunset),var(--gold));}
+  .bar-fill.power{background:linear-gradient(90deg,#ffe27a,var(--gold));}
+  .label{font-size:13px; font-family:'Rubik',sans-serif; font-weight:600;}
+
+  #powerTimer{position:absolute; top:80px; left:50%; transform:translateX(-50%); color:var(--gold); font-family:'Bebas Neue'; font-size:20px; text-shadow:0 0 8px rgba(255,182,39,0.9); display:none; z-index:6;}
+  #coachHint{position:absolute; top:14%; left:50%; transform:translateX(-50%); background:rgba(20,10,20,0.88); border:2px solid var(--gold); border-radius:14px; padding:9px 20px; color:#fff; font-family:'Bebas Neue'; font-size:19px; letter-spacing:0.5px; text-align:center; display:none; z-index:9; box-shadow:0 4px 16px rgba(0,0,0,0.4); pointer-events:none; animation:coachPop 0.25s ease;}
+  @keyframes coachPop{from{transform:translateX(-50%) scale(0.85); opacity:0;} to{transform:translateX(-50%) scale(1); opacity:1;}}
+
+  #waveBanner{position:absolute; top:40%; left:50%; transform:translate(-50%,-50%); font-family:'Bebas Neue'; color:var(--paper); font-size:15vw; text-shadow:0 4px 20px rgba(0,0,0,0.6); opacity:0; pointer-events:none; z-index:6; text-align:center; line-height:0.9;}
+  #waveBanner span{display:block; font-size:0.28em; color:var(--gold); letter-spacing:3px;}
+
+  #startScreen,#endScreen{position:absolute; inset:0; background:radial-gradient(ellipse at center, #7a2f4a 0%, #241326 80%); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:20; text-align:center; padding:20px; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  #startScreen{overflow:hidden;}
+  #startBgPhoto{position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity .6s ease; z-index:-1;}
+  #startBgPhoto.loaded{opacity:0.4;}
+  #startBgPhoto::after{content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, rgba(122,47,74,0.55) 0%, rgba(36,19,38,0.85) 80%);}
+  #startScreen h1{font-family:'Bebas Neue'; font-size:min(14vw,72px); color:var(--gold); margin:0; letter-spacing:2px; text-shadow:0 4px 0 rgba(0,0,0,0.4);}
+  #startScreen h2{font-family:'Rubik'; font-weight:400; color:var(--paper); opacity:0.85; margin:6px 0 28px; font-size:15px;}
+  .chars{display:flex; gap:14px; flex-wrap:wrap; justify-content:center; max-width:520px; margin-bottom:26px;}
+  .charCard{width:96px; padding:12px 6px; background:rgba(0,0,0,0.35); border:3px solid transparent; border-radius:12px; cursor:pointer; transition:.15s; color:var(--paper);}
+  .charCard.selected{border-color:var(--gold); background:rgba(255,182,39,0.18); transform:translateY(-4px);}
+  .charDot{width:34px; height:34px; border-radius:50%; margin:0 auto 8px; border:2px solid rgba(255,255,255,0.5);}
+  .charName{font-family:'Bebas Neue'; font-size:15px; letter-spacing:1px;}
+  .charPower{font-size:10px; opacity:0.75; margin-top:2px; line-height:1.2;}
+
+  #charBio{position:absolute; left:14px; top:50%; transform:translateY(-50%); width:clamp(140px,26vw,190px); max-height:64vh; overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; padding:10px 12px; background:rgba(0,0,0,0.45); border:1px solid rgba(255,182,39,0.35); border-radius:10px; color:var(--paper); font-family:'Rubik',sans-serif; font-size:11.5px; line-height:1.5; opacity:0.92; transition:opacity .2s ease; text-align:left; z-index:2; pointer-events:auto;}
+  #charBio::-webkit-scrollbar{width:5px;}
+  #charBio::-webkit-scrollbar-thumb{background:rgba(255,182,39,0.5); border-radius:3px;}
+  #charBio .bioName{font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:15px; letter-spacing:1px; display:block; margin-bottom:3px;}
+
+  button.playBtn{font-family:'Bebas Neue'; font-size:24px; letter-spacing:2px; background:var(--sunset); color:var(--paper); border:none; padding:14px 40px; border-radius:40px; cursor:pointer; box-shadow:0 6px 0 #a8401c; transition:.1s;}
+  button.playBtn:active{transform:translateY(4px); box-shadow:0 2px 0 #a8401c;}
+
+  .mapLabel{font-family:'Rubik'; color:var(--turquoise); font-size:12px; letter-spacing:2px; text-transform:uppercase; margin-bottom:2px;}
+
+  .credit{position:absolute; bottom:14px; left:0; right:0; text-align:center; font-family:'Rubik'; font-size:11px; letter-spacing:2px; color:rgba(247,241,230,0.5);}
+  #inGameCredit{position:absolute; bottom:6px; right:10px; font-family:'Rubik'; font-size:10px; letter-spacing:1px; color:rgba(247,241,230,0.35); z-index:5; pointer-events:none;}
+
+  #endScreen{display:none;}
+  .leaderboardBox{margin-top:16px; width:280px; max-width:85vw; max-height:220px; overflow-y:auto; background:rgba(20,10,20,0.55); border:1.5px solid var(--gold); border-radius:12px; padding:10px 14px;}
+  .leaderboardBox .lbTitle{font-family:'Bebas Neue',sans-serif; color:var(--gold); font-size:13px; letter-spacing:2px; margin-bottom:6px;}
+  .leaderboardBox .lbRow{display:flex; justify-content:space-between; gap:8px; font-family:'Bebas Neue',sans-serif; color:var(--paper); font-size:14px; padding:3px 0; border-bottom:1px solid rgba(247,241,230,0.12);}
+  .leaderboardBox .lbRow:last-child{border-bottom:none;}
+  .leaderboardBox .lbRank{color:var(--gold); width:22px; flex-shrink:0; text-align:left;}
+  .leaderboardBox .lbName{flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .leaderboardBox .lbEmpty{color:rgba(247,241,230,0.6); font-size:13px; padding:6px 0;}
+  .leaderboardBoxBig{width:340px; max-width:92vw; max-height:none; border-width:2.5px; box-shadow:0 0 22px rgba(255,182,39,0.25); margin:16px 0 4px;}
+  .leaderboardBoxBig .lbTitle{font-size:16px; margin-bottom:8px; text-align:center;}
+  .leaderboardBoxBig .lbRow{font-size:15px; padding:5px 2px;}
+  .leaderboardBoxBig .lbRank{width:26px; font-size:15px;}
+  #endScreen h1{font-family:'Bebas Neue'; font-size:min(12vw,60px); color:var(--gold);}
+  #endStats{color:var(--paper); font-size:16px; margin:10px 0 24px;}
+
+  /* touch controls */
+  #touchLayer{position:absolute; inset:0; z-index:8; display:none;}
+  .touchZone{position:absolute; top:0; bottom:0; width:55%;}
+  #moveZone{left:0;}
+  #aimZone{right:0;}
+  .stick-base{position:absolute; width:110px; height:110px; border-radius:50%; background:rgba(247,241,230,0.12); border:2px solid rgba(247,241,230,0.4); transform:translate(-50%,-50%); display:none;}
+  .stick-nub{position:absolute; width:50px; height:50px; border-radius:50%; background:rgba(255,182,39,0.6); border:2px solid var(--gold); left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:none;}
+  #powerBtn{position:absolute; right:24px; bottom:150px; width:64px; height:64px; border-radius:50%; background:rgba(46,196,182,0.3); border:2px solid var(--turquoise); color:var(--paper); font-family:'Bebas Neue'; font-size:11px; display:flex; align-items:center; justify-content:center; text-align:center; pointer-events:auto; z-index:9;}
+
+  #ctrlHint{position:absolute; bottom:10px; left:50%; transform:translateX(-50%); color:rgba(247,241,230,0.55); font-size:11px; z-index:5; letter-spacing:0.5px;}
+  #fsBtn{position:absolute; top:10px; right:10px; z-index:9; width:34px; height:34px; border-radius:8px; background:rgba(26,20,35,0.6); border:1px solid rgba(255,182,39,0.5); color:var(--gold); font-size:16px; display:none; align-items:center; justify-content:center;}
+  #muteBtn{position:absolute; top:10px; right:52px; z-index:9; width:34px; height:34px; border-radius:8px; background:rgba(26,20,35,0.6); border:1px solid rgba(255,182,39,0.5); color:var(--gold); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  #muteBtnStart{position:absolute; top:10px; right:10px; z-index:21; width:34px; height:34px; border-radius:8px; background:rgba(26,20,35,0.6); border:1px solid rgba(255,182,39,0.5); color:var(--gold); font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+  #rotateOverlay{position:fixed; inset:0; background:var(--shadow); z-index:100; display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px;}
+  #rotateOverlay .icon{font-size:54px; margin-bottom:14px; animation:rotateHint 1.6s ease-in-out infinite;}
+  #rotateOverlay h2{font-family:'Bebas Neue'; color:var(--gold); font-size:28px; letter-spacing:1px; margin:0 0 8px;}
+  #rotateOverlay p{color:var(--paper); opacity:0.8; font-size:14px; max-width:320px; margin:0;}
+  @keyframes rotateHint{ 0%,100%{transform:rotate(0deg);} 50%{transform:rotate(90deg);} }
+  @media (max-width:900px){
+    body.is-touch #rotateOverlay.active{ display:flex; }
+  }
+
+  #mapIntro{position:fixed; inset:0; z-index:50; display:none; flex-direction:column; align-items:center; justify-content:flex-end; background:#241326 center/cover no-repeat; padding:0 20px 40px;}
+  #mapIntro.active{display:flex;}
+  #mapIntro::before{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(26,20,35,0.3) 0%, rgba(26,20,35,0.9) 85%);}
+  #mapIntro .mapIntroInner{position:relative; text-align:center;}
+  #mapIntro .mapIntroLabel{font-family:'Rubik'; color:var(--turquoise); font-size:12px; letter-spacing:3px; text-transform:uppercase;}
+  #mapIntro h1{font-family:'Bebas Neue'; color:var(--gold); font-size:min(11vw,52px); margin:4px 0; letter-spacing:1px;}
+  #mapIntro .mapIntroBoss{color:var(--paper); font-size:13px; opacity:0.85;}
 </style>
 </head>
 <body>
+<div id="wrap">
+  <canvas id="game"></canvas>
 
-<div id="app"></div>
+  <div class="hud" id="hud" style="display:none;">
+    <div class="hud-block">
+      <div class="mapLabel" id="mapLabelHud">Mapa 1 · Centro de Tecalitlán</div>
+      <div class="hud-title" id="waveLabel">OLEADA 1</div>
+      <div class="hud-row"><span class="label">BASE</span><div class="bar"><div class="bar-fill base" id="baseBar" style="width:100%"></div></div></div>
+      <div class="hud-row"><span class="label" id="charNameHud">XÓLOTL</span><div class="bar"><div class="bar-fill" id="hpBar" style="width:100%"></div></div></div>
+    </div>
+    <div class="hud-block" style="text-align:right;">
+      <div class="label" style="color:var(--gold)">KILLS</div>
+      <div class="hud-title" id="killLabel">0</div>
+    </div>
+  </div>
+
+  <div id="powerTimer"></div>
+  <div id="waveBanner"></div>
+  <div id="coachHint"></div>
+
+  <div id="startScreen">
+    <div id="startBgPhoto"></div>
+    <button id="muteBtnStart" title="Silenciar música">🔊</button>
+    <div class="mapLabel" id="startMapLabel">Mapa 1 de 8 · Prototipo</div>
+    <h1>ASEDIO TECALITLÁN</h1>
+    <h2>Elige a tu guerrero y defiende la plaza</h2>
+    <div style="display:flex; align-items:center; justify-content:center; gap:18px; flex-wrap:wrap;">
+      <div class="chars" id="charSelect"></div>
+      <div id="charPreviewWrap" style="position:relative; width:110px; height:130px; flex-shrink:0; display:flex; align-items:center; justify-content:center;">
+        <div id="charPreviewGlow" style="position:absolute; width:85px; height:85px; border-radius:50%; filter:blur(18px); opacity:0.5; transition:background .25s ease;"></div>
+        <canvas id="charPreviewCanvas" width="110" height="130" style="position:relative;"></canvas>
+      </div>
+    </div>
+    <div id="charBio"></div>
+    <div id="leaderboardStart" class="leaderboardBox leaderboardBoxBig"></div>
+    <input id="playerNameInput" maxlength="14" placeholder="Tu nombre o alias (para el récord)" style="font-family:'Bebas Neue',sans-serif; font-size:16px; letter-spacing:1px; text-align:center; padding:10px 16px; border-radius:30px; border:2px solid var(--gold); background:rgba(20,10,20,0.55); color:var(--paper); width:240px; max-width:80vw; margin:14px 0 4px; outline:none;">
+    <button class="playBtn" id="playBtn">JUGAR</button>
+    <div id="fsHint" style="color:rgba(247,241,230,0.55); font-size:11px; margin-top:14px; max-width:280px; line-height:1.4;"></div>
+    <div class="credit">CHAVARRÍA PRODUCTION</div>
+  </div>
+
+  <div id="endScreen">
+    <h1 id="endTitle">BASE DESTRUIDA</h1>
+    <div id="endStats"></div>
+    <div id="endScoreSaved" style="color:var(--gold); font-family:'Bebas Neue'; font-size:14px; letter-spacing:1px; margin-bottom:6px; min-height:18px;"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+      <button class="playBtn" id="retryBtn">REINTENTAR</button>
+      <button id="backToSelectBtn" style="font-family:'Bebas Neue'; font-size:18px; letter-spacing:1px; background:transparent; color:var(--paper); border:2px solid var(--paper); padding:12px 26px; border-radius:40px; cursor:pointer; opacity:0.85;">ELEGIR OTRO GUERRERO</button>
+    </div>
+    <div id="leaderboardEnd" class="leaderboardBox"></div>
+    <div class="credit">CHAVARRÍA PRODUCTION</div>
+  </div>
+
+  <div id="touchLayer">
+    <div class="touchZone" id="moveZone">
+      <div class="stick-base" id="moveStick"><div class="stick-nub" id="moveNub"></div></div>
+    </div>
+    <div class="touchZone" id="aimZone">
+      <div class="stick-base" id="aimStick"><div class="stick-nub" id="aimNub"></div></div>
+    </div>
+    <div id="powerBtn">PODER</div>
+  </div>
+
+  <div id="ctrlHint"></div>
+  <div id="inGameCredit">©AARÓN CHAVARRÍA</div>
+  <button id="fsBtn" title="Pantalla completa">⛶</button>
+  <button id="muteBtn" title="Silenciar música">🔊</button>
+
+  <div id="rotateOverlay">
+    <div class="icon">📱</div>
+    <h2>GIRA TU TELÉFONO</h2>
+    <p>Asedio Tecalitlán se juega en horizontal, para que sostengas el celular cómodo con ambas manos en los joysticks.</p>
+  </div>
+
+  <div id="mapIntro">
+    <div class="mapIntroInner">
+      <div class="mapIntroLabel" id="mapIntroLabel">Mapa 1 de 8</div>
+      <h1 id="mapIntroName">Centro de Tecalitlán</h1>
+      <div class="mapIntroBoss" id="mapIntroBoss">Jefe: El Mariachi Caído</div>
+    </div>
+  </div>
+</div>
 
 <script>
-/* =========================================================
-   CONFIGURACIÓN — Secretaría de Educación Cristiana
-   ========================================================= */
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyAl_B-G2G9uX8sTbrNu3r2S7Wip8Vsd_0g",
-  authDomain: "educacion-cristiana-3ra-iafcj.firebaseapp.com",
-  // ⚠️ Falta este dato: entra a Firebase → Realtime Database → créala →
-  // copia la URL que empieza con https://...firebaseio.com y pégala aquí.
-  databaseURL: "https://educacion-cristiana-3ra-iafcj-default-rtdb.firebaseio.com",
-  projectId: "educacion-cristiana-3ra-iafcj",
-  storageBucket: "educacion-cristiana-3ra-iafcj.firebasestorage.app",
-  messagingSenderId: "365212309149",
-  appId: "1:365212309149:web:f9006858a9971698c2a674"
-};
+(function(){
+"use strict";
 
-// Dominio interno de acceso (no recibe ni envía correos reales; es solo
-// el "usuario" con el que cada persona entra al sistema).
-const REQUIRED_EMAIL_DOMAIN = '@secretaria.educacion.iafcj';
-// Única cuenta que puede auto-registrarse como Director la primera vez.
-const ADMIN_EMAIL = 'director@secretaria.educacion.iafcj';
+// ---------- setup ----------
+const canvas = document.getElementById('game');
+let ctx = canvas.getContext('2d');
+function resize(){
+  const vv = window.visualViewport;
+  const w = vv ? vv.width : window.innerWidth;
+  const h = vv ? vv.height : window.innerHeight;
+  canvas.width = w; canvas.height = h;
+  document.getElementById('wrap').style.width = w+'px';
+  document.getElementById('wrap').style.height = h+'px';
+}
+resize(); window.addEventListener('resize', resize);
+if(window.visualViewport){ window.visualViewport.addEventListener('resize', resize); window.visualViewport.addEventListener('scroll', resize); }
 
-const LOGO_B64 = "/9j/4QEeRXhpZgAATU0AKgAAAAgABwEAAAQAAAABAAACgQEQAAIAAAAIAAAAYgEBAAQAAAABAAAAvwEPAAIAAAABAAAAAIdpAAQAAAABAAAAfgESAAMAAAABAAAAAAEyAAIAAAAUAAAAagAAAABBTFQtTFgzADIwMjY6MDk6MTMgMjI6NDc6MDMAAAOQAwACAAAAFAAAAKiQBAACAAAAFAAAALySCAAEAAAAAQAAAAAAAAAAMjAyNjowOToxMyAyMjo0NzowMwAyMDI2OjA5OjEzIDIyOjQ3OjAzAAADARAAAgAAAAgAAAD6AQ8AAgAAAAEAAAAAATIAAgAAABQAAAECAAAAAEFMVC1MWDMAMjAyNjowOToxMyAyMjo0NzowMwD/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/2wBDAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAC/AoEDASIAAhEBAxEB/8QAHwABAAICAgMBAQAAAAAAAAAAAAgKBwkGCwIEBQMB/8QAYBAAAAUDAgIECgMJBw0QAwAAAQIDBAUABgcIEQkSExQhWAoZGjFBV5eY1tgVIlEWFyMyYXF3kfAYOJahtcHUJCc0OUJSgbGzttHh8SUoMzdHVVZydHaHlLLT1ddThrf/xAAeAQEAAQQDAQEAAAAAAAAAAAAABwMFBggBBAkCCv/EADsRAAEDAgQFAgUCAwcFAQAAAAEAAgMEBQYREmEHEyFTkjFBCBQiUfBxgTLR4RUWIySRobEJM0LB8VL/2gAMAwEAAhEDEQA/AK2njEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKp8mLts8RttsFU50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLts8RttsE50vcf5HbfYKYvjEeID36NYvvN5r+NqeMR4gPfo1i+83mv42qHVKcmLt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";
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+document.getElementById('ctrlHint').textContent = isTouch
+  ? 'Joystick izq: moverte · Joystick der: apuntar/disparar · Botón: poder'
+  : 'WASD: moverte · Ratón: apuntar y disparar · Barra espaciadora: poder';
 
-const PERIODOS = ['1er periodo', '2do periodo', '3er periodo'];
-const CALIF_MINIMA_APROBATORIA = 6;
+// ---------- audio (música y efectos generados por código, 100% original) ----------
+const GameAudio = (function(){
+  let ctx=null, master=null, musicGain=null, sfxGain=null;
+  let muted = false;
+  let musicTimer = null;
+  let currentTrack = null;
+  let step = 0;
+  const bpm = 96;
 
-const ESCUELAS = {
-  eco: { label: 'ECO', desc: 'Educación Cristiana Organizada · Registro y calificaciones' },
-  ministerios: { label: 'Escuela de Ministerios', desc: 'Materias por maestro · Registro y calificaciones' }
-};
-
-/* =========================================================
-   ESTADO
-   ========================================================= */
-let auth, db, secondaryApp = null;
-let state = {
-  loading: true,
-  user: null,          // objeto de Firebase Auth
-  perfil: null,         // /usuarios/{uid}
-  authMode: 'login',    // 'login' | 'signup-admin'
-  loginEmail: '', loginPass: '', loginError: '',
-  escuelaActual: null,  // 'eco' | 'ministerios' | null
-  vista: 'inicio',      // 'inicio' | 'usuarios' | 'materias' | 'calificaciones' | 'tareas'
-  materias: {},          // materias de la escuela abierta actualmente
-  nuevaMateria: { nombre: '', maestroUid: '' },
-  materiaEnEdicion: null, // id de la materia que se está renombrando/reasignando
-  alumnos: {},            // alumnos de la escuela abierta actualmente
-  nuevoAlumno: { nombreCompleto: '', grado: '', grupo: '', fechaNacimiento: '', telefonoAlumno: '' },
-  alumnoEnEdicion: null,
-  materiaCalificaciones: null, // id de la materia cuya tabla de calificaciones se está viendo
-  calificaciones: {},
-  materiaTareas: null,
-  tareas: {},
-  nuevaTarea: { titulo: '', fecha: '' },
-  usuarios: {},
-  nuevoUsuario: { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false },
-  toast: null
-};
-
-function render() { document.getElementById('app').innerHTML = renderApp(); }
-function showToast(msg) { state.toast = msg; render(); setTimeout(() => { state.toast = null; render(); }, 3200); }
-
-/* =========================================================
-   FIREBASE INIT + SESIÓN
-   ========================================================= */
-function initFirebase() {
-  firebase.initializeApp(FIREBASE_CONFIG);
-  auth = firebase.auth();
-  db = firebase.database();
-
-  auth.onAuthStateChanged(async u => {
-    if (!u) {
-      state.user = null; state.perfil = null; state.loading = false; render();
-      return;
+  function ensureCtx(){
+    if(!ctx){
+      ctx = new (window.AudioContext||window.webkitAudioContext)();
+      master = ctx.createGain(); master.gain.value = 1; master.connect(ctx.destination);
+      musicGain = ctx.createGain(); musicGain.gain.value = 0.32; musicGain.connect(master);
+      sfxGain = ctx.createGain(); sfxGain.gain.value = 0.5; sfxGain.connect(master);
     }
-    state.user = u;
-    const email = (u.email || '').toLowerCase();
+    if(ctx.state==='suspended'){ ctx.resume(); }
+    return ctx;
+  }
 
-    // Bootstrap: si es la cuenta oficial del director y aún no tiene perfil, se crea.
-    if (email === ADMIN_EMAIL) {
-      const snap = await db.ref('usuarios/' + u.uid).once('value');
-      if (!snap.exists()) {
-        await db.ref('usuarios/' + u.uid).set({
-          nombre: 'Director(a)', correoInterno: email, rol: 'director',
-          activo: true, escuelas: { eco: true, ministerios: true }, creado: Date.now()
-        });
+  function tone(freq, start, dur, type, dest, vol, glideTo){
+    const osc = ctx.createOscillator();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, start);
+    if(glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, start+dur);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.0001, start);
+    g.gain.linearRampToValueAtTime(vol, start+0.015);
+    g.gain.exponentialRampToValueAtTime(0.001, start+dur);
+    osc.connect(g); g.connect(dest);
+    osc.start(start); osc.stop(start+dur+0.05);
+  }
+
+  function noiseHit(start, dur, vol, dest){
+    const size = Math.max(1, Math.floor(ctx.sampleRate*dur));
+    const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<size;i++){ data[i] = (Math.random()*2-1) * (1-i/size); }
+    const src = ctx.createBufferSource(); src.buffer = buf;
+    const g = ctx.createGain(); g.gain.value = vol;
+    src.connect(g); g.connect(dest);
+    src.start(start);
+  }
+
+  // Riff propio en La menor (escala menor armónica para dar aire de mariachi),
+  // con frase de 16 pasos en vez de 8 para que no se sienta tan repetitivo.
+  const BASS = [110,110,130.81,98, 110,110,146.83,130.81, 110,110,164.81,146.83, 110,98,110,110];
+  const LEAD_MENU = [440,0,523.25,493.88, 440,0,392,440, 523.25,0,587.33,523.25, 493.88,0,440,0];
+  const LEAD_GAME = [440,523.25,440,392, 349.23,392,440,523.25, 587.33,523.25,440,392, 349.23,392,440,440];
+  const BRASS_ACCENT = [0,0,0,659.25, 0,0,0,0, 0,0,0,783.99, 0,0,0,698.46]; // "trompeta" en los golpes fuertes
+
+  function scheduleLoop(mode){
+    ensureCtx();
+    stopMusic();
+    currentTrack = mode;
+    const loopBpm = mode==='game' ? bpm*1.12 : bpm*0.88; // partida: más urgente; menú: más relajado
+    const stepDur = 60/loopBpm/2;
+    const lead = mode==='game' ? LEAD_GAME : LEAD_MENU;
+    step = 0;
+    (function scheduleStep(){
+      if(!muted){
+        // pequeña variación de tiempo (humanización) para que no suene a metrónomo robótico
+        const jitter = (Math.random()-0.5)*0.012;
+        const t = ctx.currentTime + 0.05 + jitter;
+        tone(BASS[step % BASS.length], t, stepDur*1.9, 'triangle', musicGain, 0.42);
+        const leadNote = lead[step % lead.length];
+        if(leadNote>0) tone(leadNote, t, stepDur*0.85, 'square', musicGain, 0.13);
+        const brassNote = BRASS_ACCENT[step % BRASS_ACCENT.length];
+        if(brassNote>0) tone(brassNote, t, stepDur*1.3, 'sawtooth', musicGain, 0.10, brassNote*0.985);
+        if(mode==='game' && step % 4 === 2) noiseHit(t, 0.07, 0.12, musicGain);
       }
+      musicTimer = setTimeout(scheduleStep, stepDur*1000);
+      step++;
+    })();
+  }
+  function stopMusic(){ if(musicTimer){ clearTimeout(musicTimer); musicTimer=null; } }
+
+  let lastGrowl=0, lastScream=0, lastAmbient=0;
+
+  function sfx(type, opts){
+    if(!ctx || muted) return;
+    const t = ctx.currentTime;
+    opts = opts || {};
+    if(type==='shoot')       tone(880,t,0.05,'square',sfxGain,0.10,620);
+    else if(type==='hit')    tone(240,t,0.06,'sawtooth',sfxGain,0.12,140);
+    else if(type==='death'){ noiseHit(t,0.16,0.22,sfxGain); tone(150,t,0.15,'sawtooth',sfxGain,0.14,55); }
+    else if(type==='pickup') tone(660,t,0.09,'sine',sfxGain,0.2,990);
+    else if(type==='power')  tone(220,t,0.35,'sawtooth',sfxGain,0.22,880);
+    else if(type==='wave'){  tone(330,t,0.12,'square',sfxGain,0.2,440); tone(440,t+0.12,0.14,'square',sfxGain,0.2,554); }
+    else if(type==='gameover') tone(392,t,0.35,'sawtooth',sfxGain,0.2,180);
+    else if(type==='zombieGrowl'){
+      if(t-lastGrowl<0.35) return; lastGrowl=t;
+      const p = 85+Math.random()*45;
+      tone(p, t, 0.2, 'sawtooth', sfxGain, 0.09, p*0.55);
+      noiseHit(t, 0.14, 0.04, sfxGain);
     }
+    else if(type==='zombieScream'){
+      if(t-lastScream<0.2) return; lastScream=t;
+      const p = 260+Math.random()*130;
+      tone(p, t, 0.3, 'sawtooth', sfxGain, 0.15, p*0.35);
+      tone(p*1.4, t+0.03, 0.2, 'square', sfxGain, 0.07, p*0.5);
+      noiseHit(t, 0.18, 0.09, sfxGain);
+    }
+    else if(type==='bossRoar'){
+      const p = opts.pitch || 90;
+      tone(p, t, 0.55, 'sawtooth', sfxGain, 0.26, p*0.5);
+      tone(p*1.5, t+0.05, 0.4, 'sawtooth', sfxGain, 0.13, p*0.7);
+      noiseHit(t, 0.4, 0.16, sfxGain);
+    }
+    else if(type==='bossDeathRoar'){
+      const p = opts.pitch || 80;
+      tone(p, t, 0.9, 'sawtooth', sfxGain, 0.3, p*0.25);
+      tone(p*0.6, t+0.1, 0.8, 'sawtooth', sfxGain, 0.18, p*0.2);
+      noiseHit(t, 0.7, 0.2, sfxGain);
+    }
+    else if(type==='battleCry'){
+      const p = opts.pitch || 180;
+      tone(p, t, 0.28, 'sawtooth', sfxGain, 0.18, p*1.3);
+      tone(p*0.6, t+0.02, 0.22, 'square', sfxGain, 0.1, p*0.9);
+      noiseHit(t, 0.15, 0.08, sfxGain);
+    }
+    else if(type==='owl'){
+      tone(720, t, 0.18, 'sine', sfxGain, 0.06, 520);
+      tone(510, t+0.24, 0.24, 'sine', sfxGain, 0.05, 370);
+    }
+    else if(type==='ambientScream'){
+      const p = 480+Math.random()*220;
+      tone(p, t, 0.55, 'sawtooth', sfxGain, 0.06, p*0.4);
+      tone(p*1.3, t+0.05, 0.3, 'square', sfxGain, 0.03, p*0.6);
+    }
+  }
 
-    db.ref('usuarios/' + u.uid).on('value', snap => {
-      state.perfil = snap.val();
-      state.loading = false;
-      if (!state.perfil || state.perfil.activo === false) {
-        // Cuenta sin perfil o desactivada: no entra al sistema.
-        render();
-        return;
-      }
-      cargarListaUsuariosSiAplica();
-      render();
-    });
+  function setMuted(v){
+    muted = v;
+    if(musicGain) musicGain.gain.value = muted?0:0.32;
+    if(sfxGain) sfxGain.gain.value = muted?0:0.5;
+  }
+  function toggleMute(){ setMuted(!muted); return muted; }
+  function isMuted(){ return muted; }
+
+  return { ensureCtx, scheduleLoop, stopMusic, sfx, toggleMute, isMuted };
+})();
+
+// Los navegadores exigen un gesto del usuario antes de reproducir audio:
+// arrancamos la música de menú en la primera interacción.
+let audioStarted = false;
+function startAudioOnce(){
+  if(audioStarted) return;
+  audioStarted = true;
+  GameAudio.ensureCtx();
+  GameAudio.scheduleLoop('menu');
+  window.removeEventListener('pointerdown', startAudioOnce);
+  window.removeEventListener('keydown', startAudioOnce);
+}
+window.addEventListener('pointerdown', startAudioOnce);
+window.addEventListener('keydown', startAudioOnce);
+
+// ---------- characters ----------
+const CHARACTERS = [
+  {id:'xolotl', name:'Súper Xólotl', color:'#FF8A3D', power:'Aliento del Cráter: rayo perforante', powerColor:'#8CE6FF', hair:'#1a1a1a', hairStyle:'spiky', skin:'#e8b48a', accessory:'gi', powerType:'blast',
+    powerFx:'fire', voiceLine:'¡Aliento del cráter!', voicePitch:0.75, voiceRate:0.95, cryPitch:130,
+    legend:'Cuentan los abuelos de Tecalitlán que Xólotl, el perro-relámpago que guía a los muertos, despertó la noche en que la plaza empezó a llenarse de cadáveres caminantes. Ahora pelea del lado de los vivos, escupiendo fuego del inframundo contra quienes ya no deberían caminar.'},
+  {id:'tonatiuh', name:'Tonatiuh', color:'#3D6BFF', power:'Resplandor Solar: ráfaga frontal', powerColor:'#FFD86B', hair:'#1a1a1a', hairStyle:'spikyShort', skin:'#e8b48a', accessory:'gi', powerType:'blast',
+    powerFx:'solar', voiceLine:'¡Resplandor solar!', voicePitch:1.05, voiceRate:1.05, cryPitch:210,
+    legend:'Hijo del sol que nunca se pone sobre Tecalitlán, Tonatiuh convierte su furia en resplandor puro. Dicen que cuando alza los brazos, hasta los zombies bajan la mirada, cegados por su luz.'},
+  {id:'mixcoatl', name:'Mixcóatl', color:'#6A0572', power:'Corte de energía potenciado', powerColor:'#B98CFF', hair:'#8a6b3d', hairStyle:'long', skin:'#e8b48a', accessory:'sword', powerType:'blast',
+    powerFx:'comet', voiceLine:'¡Corte estelar!', voicePitch:0.85, voiceRate:0.9, cryPitch:160,
+    legend:'Cazador de estrellas y guardián de los caminos, Mixcóatl llegó al pueblo siguiendo el rastro de los primeros ataques. Su espada de energía corta la niebla y a los muertos por igual, sin dejarlos levantarse otra vez.'},
+  {id:'metralla', name:'Metralla', color:'#FFD400', power:'Ráfagas de alta cadencia', powerColor:'#FFF3A0', hair:'#e8d840', hairStyle:'bob', skin:'#f0c8a0', accessory:'none', powerType:'blast',
+    powerFx:'spark', voiceLine:'¡A la carga!', voicePitch:1.25, voiceRate:1.15, cryPitch:260,
+    legend:'Antes reparaba camionetas en el taller junto al mercado; ahora convirtió su ingenio en una de las armas más temidas de la resistencia. Dispara tan rápido que los zombies la reconocen por el sonido antes de verla.'},
+  {id:'torbellino', name:'Torbellino', color:'#E4322B', power:'Torbellino: jala y golpea zombies a su alrededor', powerColor:'#FF9C8C', hair:'#2a2018', hairStyle:'short', skin:'#e8b48a', accessory:'bandana', powerType:'whirlwind',
+    powerFx:'wind', voiceLine:'¡Torbellino!', voicePitch:0.95, voiceRate:1.1, cryPitch:190,
+    legend:'Con su sombrero de petate y el viento como aliado, Torbellino aprendió a jalar a los zombies hacia su remolino antes de que se acerquen a la plaza. Nadie corre más rápido entre las calles de Tecalitlán.'},
+  {id:'tepoztli', name:'Tepoztli', color:'#2EC4B6', power:'Tajo en abanico', powerColor:'#B6FFF3', hair:'#3a7a5a', hairStyle:'short', skin:'#e8b48a', accessory:'sword', headband:'#1a3a2a', powerType:'blast',
+    powerFx:'blade', voiceLine:'¡Tajo en abanico!', voicePitch:0.8, voiceRate:0.9, cryPitch:145,
+    legend:'Nombrado como el antiguo señor del metal, Tepoztli forjó su propia espada con los restos de la herrería del pueblo. Pelea en silencio, cortando en abanico a cualquier zombie que se atreva a cruzar su camino.'},
+];
+let selectedChar = CHARACTERS[0];
+
+const charSelectEl = document.getElementById('charSelect');
+CHARACTERS.forEach((c,i)=>{
+  const card = document.createElement('div');
+  card.className = 'charCard' + (i===0?' selected':'');
+  card.innerHTML = `<div class="charDot" style="background:${c.color}"></div><div class="charName">${c.name}</div><div class="charPower">${c.power}</div>`;
+  card.addEventListener('click', ()=>{
+    selectedChar = c;
+    [...charSelectEl.children].forEach(el=>{ if(el.classList.contains('charCard')) el.classList.remove('selected'); });
+    card.classList.add('selected');
+    renderCharPreview(c);
+    renderCharBio(c);
+  });
+  charSelectEl.appendChild(card);
+});
+
+// Vista previa grande del personaje elegido, para decidir antes de tocar JUGAR
+const previewCanvas = document.getElementById('charPreviewCanvas');
+const previewCtx = previewCanvas.getContext('2d');
+function renderCharPreview(c){
+  document.getElementById('charPreviewGlow').style.background = c.color;
+  previewCtx.clearRect(0,0,previewCanvas.width,previewCanvas.height);
+  const savedCtx = ctx;
+  ctx = previewCtx;
+  drawHumanoid(previewCanvas.width/2, previewCanvas.height*0.78, 0, {
+    skin: c.skin, outfit: c.color, headR: 13, bodyW: 26, bodyH: 40, gunLen: 0, arms:true,
+    hairStyle: c.hairStyle, hairColor: c.hair, accessory: c.accessory, headband: c.headband
+  });
+  ctx = savedCtx;
+}
+// Leyenda/biografía del guerrero elegido, se muestra al abrir el juego y al cambiar de personaje
+const charBioEl = document.getElementById('charBio');
+function renderCharBio(c){
+  charBioEl.style.opacity='0';
+  requestAnimationFrame(()=>{
+    charBioEl.innerHTML = `<span class="bioName">${c.name}</span>${c.legend}`;
+    charBioEl.style.opacity='0.92';
   });
 }
+renderCharPreview(selectedChar);
+renderCharBio(selectedChar);
+// Botón de pantalla completa como una tarjeta más de la cuadrícula (junto a Tepoztli),
+// así siempre queda visible y fácil de tocar en Android.
+const fsCard = document.createElement('button');
+fsCard.id = 'fsBtnStart';
+fsCard.className = 'charCard';
+fsCard.style.cssText = 'background:rgba(46,196,182,0.2); border-color:var(--turquoise); color:var(--paper); cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; font-family:inherit;';
+fsCard.innerHTML = `<div style="font-size:28px; margin-bottom:6px;">⛶</div><div class="charName" style="font-size:13px;">PANTALLA<br>COMPLETA</div>`;
+charSelectEl.appendChild(fsCard);
 
-function cargarListaUsuariosSiAplica() {
-  const p = state.perfil;
-  if (!p) return;
-  // Todos los roles necesitan ver nombres de maestros (para materias); las reglas de
-  // seguridad ya solo permiten leer esto a usuarios autenticados y activos.
-  db.ref('usuarios').on('value', snap => { state.usuarios = snap.val() || {}; render(); });
+// ---------- mapas ----------
+const MAPS = [
+  {name:'Centro de Tecalitlán', ground:'#8a4a2f', accent:'#FFB627', bossName:'El Mariachi Caído', ability:'summon', structure:'kiosco', label:'KIOSKO', photo:'mapa1-centro.jpg'},
+  {name:'San Isidro', ground:'#5a5a3a', accent:'#8CE6FF', bossName:'Enjambre', ability:'swarm', structure:'barricada', label:'BARRICADA', photo:'mapa2-sanisidro.jpg'},
+  {name:'Real de Minas', ground:'#4a5a5a', accent:'#B98CFF', bossName:'Muro Viviente', ability:'shield', structure:'muro', label:'MURO', photo:'mapa3-realdeminas.jpg'},
+  {name:'Eduardo Romero', ground:'#7a5a3a', accent:'#FF9C8C', bossName:'Excavador', ability:'charge', structure:'obra', label:'OBRA', photo:'mapa4-eduardoromero.jpg'},
+  {name:'Acueducto', ground:'#2f5a6a', accent:'#7fe9df', bossName:'Corriente', ability:'slow', structure:'acueducto', label:'ACUEDUCTO', photo:'mapa5-acueducto.jpg'},
+  {name:'Secundaria 32', ground:'#5a4a6a', accent:'#FFD86B', bossName:'Director Zombie', ability:'stun', structure:'escuela', label:'ESCUELA', photo:'mapa6-secundaria32.jpg'},
+  {name:'La Purísima', ground:'#4a2f4a', accent:'#e0a8ff', bossName:'Penitente', ability:'curse', structure:'capilla', label:'CAPILLA', photo:'mapa7-lapurisima.jpg'},
+  {name:'Santiago', ground:'#3a2a2a', accent:'#FF6B35', bossName:'El Patrón', ability:'combo', structure:'cancha', label:'CANCHA TECHADA', photo:'mapa8-santiago.jpg'},
+];
+let mapIndex = 0;
+let loopCount = 0; // cuántas veces ya se completaron los 8 mapas — sube la dificultad en modo infinito
+function currentMap(){ return MAPS[mapIndex]; }
+function loadStartBgPhoto(){
+  const bgEl = document.getElementById('startBgPhoto');
+  bgEl.classList.remove('loaded');
+  const m = currentMap();
+  document.getElementById('startMapLabel').textContent = 'Mapa ' + (mapIndex+1) + ' de 8 · ' + m.name;
+  const path = m.photo;
+  const img = new Image();
+  img.onload = ()=>{ bgEl.style.backgroundImage = `url('${path}')`; bgEl.classList.add('loaded'); };
+  img.onerror = ()=>{ bgEl.style.backgroundImage = 'none'; }; // no pasa nada si no subiste la foto todavía
+  img.src = path;
 }
 
-/* =========================================================
-   LOGIN / SIGNUP
-   ========================================================= */
-function setAuthMode(m) { state.authMode = m; state.loginError = ''; render(); }
+// ---------- game state ----------
+let state = 'menu'; // menu | playing | over
+let wave = 1;
+let kills = 0;
+let baseHP = 100, baseMaxHP = 100;
+let playerHP = 100, playerMaxHP = 100;
+let zombies = [];
+let bullets = [];
+let particles = [];
+let pickups = []; // {type:'rifle'|'ammo'|'orb', x,y}
+let ammo = 18, maxAmmo = 18, hasRifle = false;
+let fireCooldown = 0;
+let powerActive = false, powerTimeLeft = 0, POWER_DURATION = 60;
+let bossActive = false, boss = null;
+let waveInProgress = false, zombiesToSpawn = 0, spawnTimer = 0;
+let lastTime = 0;
+let ambientTimer = 14;
 
-function correoCompleto() {
-  const e = (state.loginEmail || '').trim().toLowerCase();
-  if (!e) return '';
-  return e.includes('@') ? e : e + REQUIRED_EMAIL_DOMAIN;
+const BASE_X_RATIO = 0.5, BASE_Y_RATIO = 0.5;
+let baseX=0, baseY=0, baseRadius=70;
+
+const player = {x:0,y:0,radius:16,speed:230,angle:0};
+
+function mapLabelText(){
+  const prefix = loopCount>0 ? ('Ronda ' + (loopCount+1) + ' · ') : '';
+  return prefix + 'Mapa ' + (mapIndex+1) + ' · ' + currentMap().name;
+}
+function resetGame(){
+  wave = 1; kills = 0; baseHP = baseMaxHP; playerHP = playerMaxHP;
+  mapIndex = 0; loopCount = 0;
+  zombies = []; bullets = []; particles = []; pickups = [];
+  ammo = maxAmmo; hasRifle = false;
+  powerActive = false; powerTimeLeft = 0;
+  bossActive = false; boss = null;
+  waveInProgress = false;
+  ambientTimer = 10 + Math.random()*8;
+  baseX = canvas.width*BASE_X_RATIO; baseY = canvas.height*BASE_Y_RATIO;
+  player.x = baseX; player.y = baseY - 120;
+  spawnPickup('rifle', baseX+140, baseY-40);
 }
 
-async function doLogin() {
-  const email = correoCompleto();
-  const pass = state.loginPass || '';
-  if (!email || !pass) { state.loginError = 'Escribe tu usuario y tu contraseña.'; render(); return; }
-  state.loginError = '';
-  try {
-    await auth.signInWithEmailAndPassword(email, pass);
-  } catch (e) {
-    state.loginError = 'No se pudo entrar (' + (e.code || e.message) + ').';
-    render();
-  }
-}
+// ---------- input ----------
+const keys = {};
+window.addEventListener('keydown', e=>{ keys[e.key.toLowerCase()]=true; if(e.key===' ') activatePower(); });
+window.addEventListener('keyup', e=>{ keys[e.key.toLowerCase()]=false; });
 
-async function doSignupAdmin() {
-  const email = correoCompleto();
-  const pass = state.loginPass || '';
-  if (email !== ADMIN_EMAIL) {
-    state.loginError = 'Este acceso de primera vez es solo para la cuenta oficial del director.';
-    render(); return;
-  }
-  if (!pass || pass.length < 6) {
-    state.loginError = 'La contraseña debe tener al menos 6 caracteres.';
-    render(); return;
-  }
-  try {
-    await auth.createUserWithEmailAndPassword(email, pass);
-  } catch (e) {
-    state.loginError = e.code === 'auth/email-already-in-use'
-      ? 'Esa cuenta ya existe — usa "Entrar" en vez de crear cuenta.'
-      : 'No se pudo crear la cuenta (' + (e.code || e.message) + ').';
-    render();
-  }
-}
+let mouse = {x:0,y:0,down:false};
+canvas.addEventListener('mousemove', e=>{ const r=canvas.getBoundingClientRect(); mouse.x=e.clientX-r.left; mouse.y=e.clientY-r.top; });
+canvas.addEventListener('mousedown', ()=>{ mouse.down=true; });
+window.addEventListener('mouseup', ()=>{ mouse.down=false; });
 
-function doLogout() { auth.signOut(); state = { ...state, escuelaActual: null, vista: 'inicio' }; }
-
-/* =========================================================
-   PERMISOS
-   ========================================================= */
-function esDirector() { return state.perfil && state.perfil.rol === 'director'; }
-function esSubadmin() { return state.perfil && state.perfil.rol === 'subadmin'; }
-function esMaestro() { return state.perfil && state.perfil.rol === 'maestro'; }
-function tieneAccesoTotal() { return esDirector() || esSubadmin(); }
-function puedeGestionarUsuarios() { return esDirector() || (esSubadmin() && !!state.perfil.puedeGestionarUsuarios); }
-function tieneAccesoEscuela(key) {
-  if (tieneAccesoTotal()) return true;
-  return !!(state.perfil && state.perfil.escuelas && state.perfil.escuelas[key]);
-}
-
-/* =========================================================
-   GESTIÓN DE USUARIOS
-   ========================================================= */
-function setNuevoUsuarioField(f, v, doRender) { state.nuevoUsuario[f] = v; if (doRender !== false) render(); }
-
-function generarPasswordTemporal() {
-  return Math.random().toString(36).slice(-6) + '@' + Math.floor(Math.random()*90+10);
-}
-
-async function crearUsuario() {
-  const nu = state.nuevoUsuario;
-  const local = (nu.correoInterno || '').trim().toLowerCase();
-  if (!nu.nombre.trim() || !local) { showToast('❌ Falta nombre o usuario.'); return; }
-  const email = local.includes('@') ? local : local + REQUIRED_EMAIL_DOMAIN;
-  const tempPass = generarPasswordTemporal();
-
-  try {
-    if (!secondaryApp) {
-      secondaryApp = firebase.initializeApp(FIREBASE_CONFIG, 'CuentaSecundaria' + Date.now());
+// touch sticks — joystick flotante: aparece donde pongas el dedo, responde
+// de inmediato (deadzone mínima) y no necesita mantenerse "girado".
+let moveVec = {x:0,y:0}, aimVec = {x:0,y:0}, aimActive=false;
+function setupFloatingStick(zoneEl, baseEl, nubEl, onMove, onEnd){
+  let touchId = null, ox=0, oy=0;
+  const MAX = 42; // qué tan lejos hay que mover el dedo para llegar al 100%
+  zoneEl.addEventListener('touchstart', e=>{
+    e.preventDefault();
+    const t = e.changedTouches[0]; touchId = t.identifier;
+    ox = t.clientX; oy = t.clientY;
+    baseEl.style.left = ox+'px'; baseEl.style.top = oy+'px'; baseEl.style.display='block';
+    nubEl.style.left='50%'; nubEl.style.top='50%';
+  }, {passive:false});
+  zoneEl.addEventListener('touchmove', e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier===touchId){
+        let dx=t.clientX-ox, dy=t.clientY-oy;
+        const dist=Math.hypot(dx,dy);
+        const clamped = Math.min(dist, MAX);
+        const nx = dist>0 ? dx/dist : 0, ny = dist>0 ? dy/dist : 0;
+        nubEl.style.left = (55+nx*clamped)+'px'; nubEl.style.top = (55+ny*clamped)+'px';
+        if(dist > 4){ onMove(dx/MAX, dy/MAX, dist/MAX); }
+        else { onMove(0,0,0); }
+      }
     }
-    const secAuth = secondaryApp.auth();
-    const cred = await secAuth.createUserWithEmailAndPassword(email, tempPass);
-    const uid = cred.user.uid;
-
-    const perfil = {
-      nombre: nu.nombre.trim(),
-      correoInterno: email,
-      correoContacto: nu.correoContacto.trim() || null,
-      rol: nu.rol,
-      activo: true,
-      creado: Date.now(),
-      creadoPor: state.user.uid
-    };
-    if (nu.rol === 'subadmin') {
-      perfil.escuelas = { eco: true, ministerios: true };
-      perfil.puedeGestionarUsuarios = !!nu.puedeGestionarUsuarios && esDirector();
-    } else if (nu.rol === 'maestro') {
-      perfil.escuelas = { [nu.escuela]: true };
-      perfil.materiaNombre = nu.materia.trim() || 'Sin materia asignada';
+  }, {passive:false});
+  const endHandler = e=>{
+    for(const t of e.changedTouches){
+      if(t.identifier===touchId){
+        touchId=null; baseEl.style.display='none'; onEnd();
+      }
     }
-    perfil.telefono = nu.telefono.trim() || null;
-    perfil.passwordActual = tempPass;
-    perfil.mustChangePassword = true;
-    await db.ref('usuarios/' + uid).set(perfil);
-    await secAuth.signOut();
-
-    showToast('✅ Usuario creado');
-    state.nuevoUsuario = { nombre: '', correoInterno: '', correoContacto: '', telefono: '', rol: 'maestro', escuela: 'eco', materia: '', puedeGestionarUsuarios: false };
-    state.credencialesGeneradas = { nombre: perfil.nombre, correoInterno: email, tempPass, telefono: nu.telefono.trim() };
-    render();
-  } catch (e) {
-    showToast(e.code === 'auth/email-already-in-use' ? '❌ Ese usuario ya existe.' : '❌ No se pudo crear el usuario.');
-  }
+  };
+  zoneEl.addEventListener('touchend', endHandler);
+  zoneEl.addEventListener('touchcancel', endHandler);
 }
-
-async function desactivarUsuario(uid, activo) {
-  if (uid === state.user.uid) { showToast('No puedes desactivar tu propia cuenta.'); return; }
-  await db.ref('usuarios/' + uid + '/activo').set(activo);
-  showToast(activo ? '✅ Usuario reactivado' : '🚫 Usuario desactivado');
-}
-
-async function cambiarPermisoGestion(uid, val) {
-  await db.ref('usuarios/' + uid + '/puedeGestionarUsuarios').set(val);
-}
-
-function cerrarCredenciales() { state.credencialesGeneradas = null; render(); }
-
-function textoCredenciales() {
-  const c = state.credencialesGeneradas;
-  const link = location.href.split('#')[0];
-  return `Tu acceso al Sistema Escolar — Secretaría de Educación Cristiana\n\nUsuario: ${c.correoInterno}\nContraseña temporal: ${c.tempPass}\n\nEntra aquí: ${link}\n\n(Te recomendamos cambiar la contraseña en cuanto entres.)`;
-}
-
-function copiarTexto(t) {
-  navigator.clipboard.writeText(t).then(() => showToast('✅ Copiado')).catch(() => showToast('❌ No se pudo copiar'));
-}
-
-function reenviarWhatsapp(uid) {
-  const u = state.usuarios[uid];
-  if (!u) return;
-  const link = location.href.split('#')[0];
-  const texto = `Tu acceso al Sistema Escolar — Secretaría de Educación Cristiana\n\nUsuario: ${u.correoInterno}\nContraseña: ${u.passwordActual}\n\nEntra aquí: ${link}`;
-  const numero = numeroWhatsappLimpio(u.telefono);
-  const url = (numero ? `https://wa.me/${numero}` : 'https://wa.me/') + '?text=' + encodeURIComponent(texto);
-  window.open(url, '_blank');
-}
-function copiarCredenciales() {
-  navigator.clipboard.writeText(textoCredenciales())
-    .then(() => showToast('✅ Copiado'))
-    .catch(() => showToast('❌ No se pudo copiar'));
-}
-
-function numeroWhatsappLimpio(telefono) {
-  let d = (telefono || '').replace(/\D/g, '');
-  if (!d) return '';
-  if (d.length === 10) d = '52' + d; // asume México si son 10 dígitos sin código de país
-  return d;
-}
-
-function compartirWhatsapp() {
-  const c = state.credencialesGeneradas;
-  const numero = numeroWhatsappLimpio(c.telefono);
-  const url = (numero ? `https://wa.me/${numero}` : 'https://wa.me/') + '?text=' + encodeURIComponent(textoCredenciales());
-  window.open(url, '_blank');
-}
-
-/* =========================================================
-   MATERIAS
-   ========================================================= */
-function setNuevaMateriaField(f, v, doRender) { state.nuevaMateria[f] = v; if (doRender !== false) render(); }
-
-function maestrosDeEscuela(escuela) {
-  return Object.entries(state.usuarios || {}).filter(([uid, u]) =>
-    u.rol === 'maestro' && u.activo !== false && u.escuelas && u.escuelas[escuela]
+if(isTouch){
+  document.body.classList.add('is-touch');
+  document.getElementById('touchLayer').style.display='block';
+  setupFloatingStick(document.getElementById('moveZone'), document.getElementById('moveStick'), document.getElementById('moveNub'),
+    (x,y,mag)=>{
+      const len=Math.hypot(x,y);
+      if(len>0){ const clampedLen=Math.min(1,len); moveVec.x=(x/len)*clampedLen; moveVec.y=(y/len)*clampedLen; }
+      else { moveVec.x=0; moveVec.y=0; }
+    },
+    ()=>{ moveVec.x=0; moveVec.y=0; }
   );
+  setupFloatingStick(document.getElementById('aimZone'), document.getElementById('aimStick'), document.getElementById('aimNub'),
+    (x,y,mag)=>{
+      aimVec.x=x; aimVec.y=y;
+      aimActive = mag>0.06; // umbral muy bajo: casi cualquier toque direccional dispara
+    },
+    ()=>{ aimActive=false; }
+  );
+  document.getElementById('powerBtn').addEventListener('touchstart', e=>{ e.preventDefault(); e.stopPropagation(); activatePower(); });
 }
 
-async function crearMateria() {
-  const nm = state.nuevaMateria;
-  if (!nm.nombre.trim()) { showToast('❌ Ponle un nombre a la materia.'); return; }
-  const ref = db.ref(state.escuelaActual + '/materias').push();
-  await ref.set({
-    nombre: nm.nombre.trim(),
-    maestroUid: nm.maestroUid || null,
-    activo: true,
-    creado: Date.now()
-  });
-  state.nuevaMateria = { nombre: '', maestroUid: '' };
-  showToast('✅ Materia agregada');
-  render();
+// ---------- orientation lock (mobile) ----------
+const rotateOverlay = document.getElementById('rotateOverlay');
+function isPortrait(){ return window.innerHeight > window.innerWidth; }
+function updateOrientationOverlay(){
+  if(isTouch && isPortrait()){ rotateOverlay.classList.add('active'); }
+  else { rotateOverlay.classList.remove('active'); }
 }
-
-function editarMateria(id) { state.materiaEnEdicion = id; render(); }
-function cancelarEdicionMateria() { state.materiaEnEdicion = null; render(); }
-
-async function guardarEdicionMateria(id, nombre, maestroUid) {
-  if (!nombre.trim()) { showToast('❌ El nombre no puede quedar vacío.'); return; }
-  await db.ref(state.escuelaActual + '/materias/' + id).update({ nombre: nombre.trim(), maestroUid: maestroUid || null });
-  state.materiaEnEdicion = null;
-  showToast('✅ Materia actualizada');
-  render();
-}
-
-async function archivarMateria(id, activo) {
-  await db.ref(state.escuelaActual + '/materias/' + id + '/activo').set(activo);
-  showToast(activo ? '✅ Materia reactivada' : '🗄️ Materia archivada');
-}
-
-/* =========================================================
-   ALUMNOS
-   ========================================================= */
-function setNuevoAlumnoField(f, v, doRender) { state.nuevoAlumno[f] = v; if (doRender !== false) render(); }
-
-async function crearAlumno() {
-  const na = state.nuevoAlumno;
-  if (!na.nombreCompleto.trim()) { showToast('❌ Falta el nombre del alumno.'); return; }
-  const ref = db.ref(state.escuelaActual + '/alumnos').push();
-  await ref.set({
-    nombreCompleto: na.nombreCompleto.trim(),
-    grado: na.grado.trim(),
-    grupo: na.grupo.trim(),
-    fechaNacimiento: na.fechaNacimiento || null,
-    telefonoAlumno: na.telefonoAlumno.trim() || null,
-    activo: true,
-    creadoPor: state.user.uid,
-    creadoPorNombre: state.perfil.nombre || state.user.email,
-    creado: Date.now()
-  });
-  state.nuevoAlumno = { nombreCompleto: '', grado: '', grupo: '', fechaNacimiento: '', telefonoAlumno: '' };
-  showToast('✅ Alumno agregado');
-  render();
-}
-
-function puedeEditarAlumno(a) {
-  return tieneAccesoTotal() || (esMaestro() && a.creadoPor === state.user.uid);
-}
-
-function editarAlumno(id) { state.alumnoEnEdicion = id; render(); }
-function cancelarEdicionAlumno() { state.alumnoEnEdicion = null; render(); }
-
-async function guardarEdicionAlumno(id, nombreCompleto, grado, grupo, fechaNacimiento, telefonoAlumno) {
-  if (!nombreCompleto.trim()) { showToast('❌ El nombre no puede quedar vacío.'); return; }
-  await db.ref(state.escuelaActual + '/alumnos/' + id).update({
-    nombreCompleto: nombreCompleto.trim(), grado: grado.trim(), grupo: grupo.trim(),
-    fechaNacimiento: fechaNacimiento || null, telefonoAlumno: telefonoAlumno.trim() || null
-  });
-  state.alumnoEnEdicion = null;
-  showToast('✅ Alumno actualizado');
-  render();
-}
-
-async function archivarAlumno(id, activo) {
-  await db.ref(state.escuelaActual + '/alumnos/' + id + '/activo').set(activo);
-  showToast(activo ? '✅ Alumno reactivado' : '🗄️ Alumno archivado');
-}
-
-/* =========================================================
-   CALIFICACIONES
-   ========================================================= */
-function puedeCalificarMateria(materiaId) {
-  if (tieneAccesoTotal()) return true;
-  const m = state.materias[materiaId];
-  return esMaestro() && m && m.maestroUid === state.user.uid;
-}
-
-function abrirCalificaciones(materiaId) {
-  state.materiaCalificaciones = materiaId;
-  state.vista = 'calificaciones';
-  db.ref(state.escuelaActual + '/calificaciones/' + materiaId).off();
-  db.ref(state.escuelaActual + '/calificaciones/' + materiaId).on('value', snap => { state.calificaciones = snap.val() || {}; render(); });
-  render();
-}
-
-function cerrarCalificaciones() {
-  if (state.escuelaActual && state.materiaCalificaciones) db.ref(state.escuelaActual + '/calificaciones/' + state.materiaCalificaciones).off();
-  state.materiaCalificaciones = null; state.calificaciones = {}; state.vista = 'inicio'; render();
-}
-
-function promedioAlumno(alumnoId) {
-  const c = state.calificaciones[alumnoId];
-  if (!c) return null;
-  const vals = PERIODOS.map((_, i) => c[i]).filter(v => typeof v === 'number');
-  return vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
-}
-
-async function guardarCalificacion(alumnoId, periodoIdx, valorTexto) {
-  const v = valorTexto.trim();
-  const ref = db.ref(state.escuelaActual + '/calificaciones/' + state.materiaCalificaciones + '/' + alumnoId + '/' + periodoIdx);
-  if (v === '') { await ref.remove(); return; }
-  const num = parseFloat(v);
-  if (isNaN(num) || num < 0 || num > 10) { showToast('❌ La calificación debe ser de 0 a 10.'); render(); return; }
-  await ref.set(num);
-}
-
-/* =========================================================
-   TAREAS
-   ========================================================= */
-function abrirTareas(materiaId) {
-  state.materiaTareas = materiaId;
-  state.vista = 'tareas';
-  db.ref(state.escuelaActual + '/tareas/' + materiaId).off();
-  db.ref(state.escuelaActual + '/tareas/' + materiaId).on('value', snap => { state.tareas = snap.val() || {}; render(); });
-  render();
-}
-
-function cerrarTareas() {
-  if (state.escuelaActual && state.materiaTareas) db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas).off();
-  state.materiaTareas = null; state.tareas = {}; state.vista = 'inicio'; render();
-}
-
-function setNuevaTareaField(f, v, doRender) { state.nuevaTarea[f] = v; if (doRender !== false) render(); }
-
-async function crearTarea() {
-  const nt = state.nuevaTarea;
-  if (!nt.titulo.trim()) { showToast('❌ Ponle un título a la tarea.'); return; }
-  const ref = db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas).push();
-  await ref.set({ titulo: nt.titulo.trim(), fecha: nt.fecha || null, creado: Date.now(), creadoPor: state.user.uid });
-  state.nuevaTarea = { titulo: '', fecha: '' };
-  showToast('✅ Tarea agregada');
-  render();
-}
-
-async function marcarCumplimiento(tareaId, alumnoId, valorActual) {
-  await db.ref(state.escuelaActual + '/tareas/' + state.materiaTareas + '/' + tareaId + '/cumplimiento/' + alumnoId).set(!valorActual);
-}
-
-/* =========================================================
-   NAVEGACIÓN
-   ========================================================= */
-function abrirEscuela(key) {
-  state.escuelaActual = key; state.vista = 'inicio'; render();
-  db.ref(key + '/materias').off(); db.ref(key + '/alumnos').off();
-  db.ref(key + '/materias').on('value', snap => { state.materias = snap.val() || {}; render(); });
-  db.ref(key + '/alumnos').on('value', snap => { state.alumnos = snap.val() || {}; render(); });
-}
-function volverInicio() {
-  if (state.escuelaActual && state.escuelaActual !== '__usuarios__') {
-    db.ref(state.escuelaActual + '/materias').off();
-    db.ref(state.escuelaActual + '/alumnos').off();
+async function tryLockLandscape(){
+  const hint = document.getElementById('fsHint');
+  let fsOk = false;
+  try{
+    if(document.documentElement.requestFullscreen){
+      await document.documentElement.requestFullscreen({navigationUI:'hide'});
+      fsOk = true;
+    } else if(document.documentElement.webkitRequestFullscreen){
+      document.documentElement.webkitRequestFullscreen();
+      fsOk = true;
+    }
+  }catch(err){ fsOk = false; }
+  try{
+    if(screen.orientation && screen.orientation.lock){ await screen.orientation.lock('landscape'); }
+  }catch(err){ /* algunos navegadores solo permiten esto en pantalla completa o PWA instalada */ }
+  // Truco clásico: si el Fullscreen API no funcionó, forzar scroll oculta
+  // la barra de direcciones en muchos navegadores móviles aunque no sea 100% real.
+  if(!fsOk){
+    document.body.style.height = '120vh';
+    window.scrollTo(0, 1);
+    setTimeout(()=>{ window.scrollTo(0,1); document.body.style.height=''; resize(); }, 300);
   }
-  state.escuelaActual = null; state.materias = {}; state.alumnos = {}; render();
-}
-function setVista(v) { state.vista = v; render(); }
-
-/* =========================================================
-   RENDER
-   ========================================================= */
-function renderApp() {
-  if (state.toast) {
-    // el toast se agrega al final, no aquí
-  }
-  if (state.loading) return `<div class="center-screen"><p style="color:#9ca3af;">Cargando…</p></div>`;
-  if (!state.user) return renderLogin();
-  if (!state.perfil || state.perfil.activo === false) return renderSinAcceso();
-  if (state.perfil.mustChangePassword) return renderCambiarPassword();
-  return renderShell();
-}
-
-function renderLogin() {
-  const esSignup = state.authMode === 'signup-admin';
-  return `
-  <div class="center-screen">
-    <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
-      <div class="login-body">
-        <h1>Secretaría de Educación Cristiana</h1>
-        <p class="sub">${esSignup ? 'Crear la cuenta oficial del director (solo la primera vez)' : 'Distrito de Guadalajara · Sistema Escolar'}</p>
-        <div class="field"><input type="text" placeholder="Usuario" value="${state.loginEmail}" oninput="setLoginField('loginEmail', this.value)"></div>
-        <div class="field"><input type="password" placeholder="Contraseña" value="${state.loginPass}" oninput="setLoginField('loginPass', this.value)"></div>
-        ${state.loginError ? `<p class="errtext">${state.loginError}</p>` : ''}
-        ${esSignup
-          ? `<button class="btn btn-dark" onclick="doSignupAdmin()">Crear cuenta de director</button>
-             <button class="linklike" onclick="setAuthMode('login')">Ya tengo cuenta — Entrar</button>`
-          : `<button class="btn btn-dark" onclick="doLogin()">Entrar al sistema</button>
-             <button class="linklike" onclick="setAuthMode('signup-admin')">¿Primera vez? Crear cuenta de director</button>`}
-        <p class="hint">Tu usuario es el que te asignó tu director(a). Si no tienes uno, pídeselo — este sistema no acepta registro libre.</p>
-      </div>
-    </div>
-  </div>`;
-}
-
-function setLoginField(f, v) { state[f] = v; }
-
-function renderSinAcceso() {
-  return `
-  <div class="center-screen">
-    <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
-      <div class="login-body">
-        <h1>Sin acceso</h1>
-        <p class="sub">Tu cuenta existe pero no tiene un perfil activo en el sistema. Pide a tu director(a) que la habilite.</p>
-        <button class="btn btn-gray" onclick="doLogout()">Salir</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-function renderCambiarPassword() {
-  return `
-  <div class="center-screen">
-    <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
-      <div class="login-body">
-        <h1>Cambia tu contraseña</h1>
-        <p class="sub">Por seguridad, antes de continuar debes poner una contraseña nueva que solo tú conozcas.</p>
-        <div class="field"><input type="password" placeholder="Contraseña nueva" value="${state.newPass1||''}" oninput="setLoginField('newPass1', this.value)"></div>
-        <div class="field"><input type="password" placeholder="Repite la contraseña" value="${state.newPass2||''}" oninput="setLoginField('newPass2', this.value)"></div>
-        ${state.loginError ? `<p class="errtext">${state.loginError}</p>` : ''}
-        <button class="btn btn-dark" onclick="doCambiarPassword()">Guardar y continuar</button>
-      </div>
-    </div>
-  </div>`;
-}
-
-async function doCambiarPassword() {
-  const p1 = state.newPass1 || '', p2 = state.newPass2 || '';
-  if (p1.length < 6) { state.loginError = 'La contraseña debe tener al menos 6 caracteres.'; render(); return; }
-  if (p1 !== p2) { state.loginError = 'Las contraseñas no coinciden.'; render(); return; }
-  try {
-    await state.user.updatePassword(p1);
-    await db.ref('usuarios/' + state.user.uid).update({ mustChangePassword: false, passwordActual: p1 });
-    state.newPass1 = ''; state.newPass2 = ''; state.loginError = '';
-  } catch (e) {
-    state.loginError = 'No se pudo cambiar (' + (e.code || e.message) + '). Vuelve a entrar e intenta de nuevo.';
-    render();
+  if(!fsOk && hint){
+    hint.textContent = 'Si la barra sigue visible, es una restricción de tu navegador. Prueba con el menú ⋮ de Chrome → "Agregar a pantalla de inicio" y ábrelo desde ahí — así sí abre sin ninguna barra.';
   }
 }
+window.addEventListener('resize', updateOrientationOverlay);
+window.addEventListener('orientationchange', updateOrientationOverlay);
+updateOrientationOverlay();
 
-function renderShell() {
-  const nombre = state.perfil.nombre || state.user.email;
-  const inicial = (nombre || '?').trim().charAt(0).toUpperCase();
-  let body = '';
-  if (!state.escuelaActual) body = renderSelectorEscuelas();
-  else if (state.vista === 'usuarios') body = renderUsuarios();
-  else if (state.vista === 'calificaciones') body = renderTablaCalificaciones();
-  else if (state.vista === 'tareas') body = renderTareas();
-  else body = renderInicioEscuela();
-
-  return `
-  <header class="topbar">
-    <div class="brand"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="logo"></div>
-    <div class="userchip">
-      <div class="av">${inicial}</div>
-      <span>${nombre}</span>
-      <button onclick="doLogout()">Salir</button>
-    </div>
-  </header>
-  <main>${body}</main>
-  ${state.credencialesGeneradas ? renderModalCredenciales() : ''}
-  ${state.toast ? `<div class="toast">${state.toast}</div>` : ''}`;
+// Activa pantalla completa en el primer toque del usuario (ej. al elegir personaje),
+// sin necesidad de un botón dedicado — los navegadores exigen un gesto real del usuario.
+if(isTouch){
+  const firstTouchFS = ()=>{ tryLockLandscape(); };
+  document.addEventListener('touchstart', firstTouchFS, {once:true, passive:true});
 }
 
-function renderModalCredenciales() {
-  const c = state.credencialesGeneradas;
-  return `
-  <div class="modal-backdrop">
-    <div class="modal-card">
-      <p style="font-weight:700;font-size:1em;margin-bottom:4px;">✅ Usuario creado</p>
-      <p style="font-size:0.8em;color:#6b7280;">Comparte estos datos con ${c.nombre}:</p>
-      <div class="cred-box">
-        <b>Usuario:</b> ${c.correoInterno}<br>
-        <b>Contraseña temporal:</b> ${c.tempPass}
-      </div>
-      <button class="btn btn-green" onclick="compartirWhatsapp()">📲 ${c.telefono ? 'Enviar por WhatsApp a ' + c.nombre : 'Compartir por WhatsApp'}</button>
-      <button class="btn btn-outline" style="margin-top:8px;" onclick="copiarCredenciales()">📋 Copiar datos</button>
-      <button class="linklike" onclick="cerrarCredenciales()">Cerrar</button>
-    </div>
-  </div>`;
+// ---------- helpers ----------
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx, ay-by); }
+function spawnPickup(type,x,y){ pickups.push({type,x,y,bob:Math.random()*Math.PI*2}); }
+
+// Voz de invocación: usa la síntesis de voz nativa del navegador (sin
+// archivos de audio, sin derechos de autor), eligiendo una voz en español
+// si está disponible y ajustando tono/velocidad para diferenciar a cada héroe.
+let spanishVoice = null;
+function pickSpanishVoice(){
+  if(!('speechSynthesis' in window)) return;
+  const voices = window.speechSynthesis.getVoices();
+  spanishVoice = voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('es')) || null;
+}
+if('speechSynthesis' in window){
+  pickSpanishVoice();
+  window.speechSynthesis.onvoiceschanged = pickSpanishVoice;
+}
+function speakLine(text, pitch, rate){
+  if(!('speechSynthesis' in window) || GameAudio.isMuted()) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-MX';
+    if(spanishVoice) u.voice = spanishVoice;
+    u.pitch = pitch || 1;
+    u.rate = rate || 1;
+    u.volume = 0.9;
+    window.speechSynthesis.speak(u);
+  }catch(err){ /* algunos navegadores móviles restringen esto sin gesto reciente */ }
 }
 
-function badgeRol() {
-  const r = state.perfil.rol;
-  const lbl = r === 'director' ? 'Director(a)' : r === 'subadmin' ? 'Subadministrador' : 'Maestro(a)';
-  return `<span class="rolebadge ${r}">${lbl}</span>`;
+function activatePower(){
+  if(powerActive || bossIntroLock) return;
+  powerActive = true; powerTimeLeft = POWER_DURATION;
+  document.getElementById('powerTimer').style.display='block';
+  GameAudio.sfx('power');
+  GameAudio.sfx('battleCry', {pitch: selectedChar.cryPitch});
+  speakLine(selectedChar.voiceLine, selectedChar.voicePitch, selectedChar.voiceRate);
 }
 
-function renderSelectorEscuelas() {
-  let html = `<div style="text-align:center;margin-bottom:8px;">${badgeRol()}</div>`;
-  if (Object.keys(ESCUELAS).some(k => tieneAccesoEscuela(k))) {
-    Object.entries(ESCUELAS).forEach(([key, info]) => {
-      if (!tieneAccesoEscuela(key)) return;
-      html += `<div class="escuela-card ${key}" onclick="abrirEscuela('${key}')">
-        <p class="title">${info.label}</p>
-        <p class="desc">${info.desc}</p>
-      </div>`;
-    });
+// ---------- zombie / boss factories ----------
+function spawnZombie(kind){
+  const edge = Math.floor(Math.random()*4);
+  let x,y;
+  const W=canvas.width, H=canvas.height;
+  if(edge===0){ x=Math.random()*W; y=-30; }
+  else if(edge===1){ x=W+30; y=Math.random()*H; }
+  else if(edge===2){ x=Math.random()*W; y=H+30; }
+  else { x=-30; y=Math.random()*H; }
+  const tier = kind || 'normal';
+  const baseHpZ = 30 + (wave-1)*6 + loopCount*10;
+  const decayRoll = Math.random();
+  const decayTone = decayRoll>0.66 ? 'muyDesgastado' : (decayRoll>0.33 ? 'desgastado' : 'bueno');
+  zombies.push({
+    x,y, radius:15, speed: 55+Math.random()*20+wave*1.5+loopCount*4,
+    hp: baseHpZ, maxHp: baseHpZ, dmg: 6+wave*0.5+loopCount*0.8,
+    kind: tier, decay: decayTone, wobble: Math.random()*Math.PI*2
+  });
+}
+
+function spawnMariachiZombie(){
+  const decayRoll = Math.random();
+  let decay = 'bueno';
+  if(decayRoll>0.66) decay='muyDesgastado';
+  else if(decayRoll>0.33) decay='desgastado';
+  const edge = Math.floor(Math.random()*4);
+  const W=canvas.width, H=canvas.height;
+  let x,y;
+  if(edge===0){ x=Math.random()*W; y=-30; } else if(edge===1){ x=W+30; y=Math.random()*H; }
+  else if(edge===2){ x=Math.random()*W; y=H+30; } else { x=-30; y=Math.random()*H; }
+  const baseHpZ = 26 + (wave-1)*5;
+  zombies.push({x,y,radius:15,speed:60+Math.random()*15,hp:baseHpZ,maxHp:baseHpZ,dmg:6,kind:'mariachi',decay,wobble:Math.random()*Math.PI*2});
+}
+
+let bossIntroLock = false;
+let bossDefeatHandled = false;
+function spawnBoss(){
+  bossActive = true;
+  bossDefeatHandled = false;
+  const m = currentMap();
+  boss = {
+    x: canvas.width/2, y: -80, radius:34, speed:38,
+    hp: 900 + wave*40 + mapIndex*120 + loopCount*350, maxHp: 900+wave*40+mapIndex*120+loopCount*350,
+    phase:'approach', summonTimer:3, bellTimer:6, chargeTimer:4, slowTimer:4.5, curseTimer:3,
+    ability: m.ability, shielded:false, shieldTimer:5, comboStep:0, comboTimer:4,
+    targetY: canvas.height*0.28, roarPitch: 62 + mapIndex*15
+  };
+  bossIntroLock = true;
+  showBanner('¡' + m.bossName.toUpperCase() + '!', 'JEFE DE ' + m.name.toUpperCase());
+  GameAudio.sfx('bossRoar', {pitch: boss.roarPitch});
+  setTimeout(()=>{ bossIntroLock=false; }, 1800);
+}
+
+// ---------- wave management ----------
+const WAVES_BEFORE_BOSS = 4;
+function startWave(){
+  waveInProgress = true;
+  if(wave <= WAVES_BEFORE_BOSS){
+    zombiesToSpawn = 5 + wave*3 + loopCount*6;
+    spawnTimer = 0;
+    showBanner('OLEADA ' + wave, wave===1 ? 'DEFIENDE LA PLAZA' : 'MÁS ZOMBIES SE ACERCAN');
+    GameAudio.sfx('wave');
   } else {
-    html += `<div class="placeholder-card">Tu cuenta no tiene ninguna escuela asignada todavía. Pide a tu director(a) que la configure.</div>`;
+    spawnBoss();
   }
-  if (puedeGestionarUsuarios()) {
-    html += `<button class="btn btn-outline" style="margin-top:6px;" onclick="state.escuelaActual='__usuarios__';setVista('usuarios')">👥 Gestionar usuarios</button>`;
-  }
-  return html;
 }
 
-function renderInicioEscuela() {
-  const info = ESCUELAS[state.escuelaActual];
-  return `
-  <button class="linklike" style="margin-bottom:10px;" onclick="volverInicio()">← Volver</button>
-  <div class="card">
-    <p style="font-weight:700;font-size:1.05em;">${info ? info.label : ''}</p>
-    ${badgeRol()}
-    ${esMaestro() && state.perfil.materiaNombre ? `<p style="font-size:0.85em;color:#6b7280;">Tu materia: <strong>${state.perfil.materiaNombre}</strong></p>` : ''}
-  </div>
-  ${renderMaterias()}
-  ${renderAlumnos()}
-  <div class="placeholder-card card">
-    Los módulos de calificaciones, tareas y boletas se agregan en la siguiente fase de construcción.
-  </div>
-  ${puedeGestionarUsuarios() ? `<button class="btn btn-outline" onclick="state.escuelaActual='__usuarios__';setVista('usuarios')">👥 Gestionar usuarios</button>` : ''}`;
+function showMapIntro(afterCb){
+  const m = currentMap();
+  const el = document.getElementById('mapIntro');
+  document.getElementById('mapIntroLabel').textContent = 'Mapa ' + (mapIndex+1) + ' de 8';
+  document.getElementById('mapIntroName').textContent = m.name;
+  document.getElementById('mapIntroBoss').textContent = 'Jefe: ' + m.bossName;
+  let shown = false;
+  const reveal = ()=>{
+    if(shown) return; shown = true;
+    el.classList.add('active');
+    setTimeout(()=>{ el.classList.remove('active'); afterCb(); }, 2200);
+  };
+  const img = new Image();
+  img.onload = ()=>{ el.style.backgroundImage = `url('${m.photo}')`; reveal(); };
+  img.onerror = ()=>{ el.style.backgroundImage = 'none'; reveal(); };
+  img.src = m.photo;
+  setTimeout(reveal, 500); // si la foto tarda demasiado, igual se muestra el nombre del mapa
+}
+function showBanner(main, sub){
+  const el = document.getElementById('waveBanner');
+  el.innerHTML = main + (sub ? `<span>${sub}</span>` : '');
+  el.style.transition = 'none'; el.style.opacity='1'; el.style.transform='translate(-50%,-50%) scale(1.08)';
+  requestAnimationFrame(()=>{
+    el.style.transition = 'opacity 1.2s ease, transform 1.2s ease';
+    setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translate(-50%,-50%) scale(1)'; }, 900);
+  });
 }
 
-function renderMaterias() {
-  const lista = Object.entries(state.materias || {}).sort((a,b) => (a[1].creado||0)-(b[1].creado||0));
-  const maestrosDisponibles = maestrosDeEscuela(state.escuelaActual);
-  const puedeEditar = tieneAccesoTotal();
+// ---------- combat ----------
+function shoot(angle){
+  if(fireCooldown>0) return;
+  if(!powerActive){
+    if(hasRifle){ if(ammo<=0) return; ammo--; }
+  }
+  const dmg = powerActive ? 55 : (hasRifle ? 22 : 12);
+  const speedB = 620;
+  const pierce = powerActive ? 3 : (hasRifle?1:0);
+  bullets.push({
+    x: player.x + Math.cos(angle)*player.radius, y: player.y+Math.sin(angle)*player.radius,
+    vx: Math.cos(angle)*speedB, vy: Math.sin(angle)*speedB,
+    dmg, life: 1.1, pierce, power: powerActive,
+    fx: powerActive ? (selectedChar.powerFx || 'energy') : null,
+    fxColor: powerActive ? selectedChar.powerColor : null,
+    trailTimer: 0, seed: Math.random()*100
+  });
+  fireCooldown = powerActive ? 0.07 : (hasRifle? 0.14 : 0.32);
+  GameAudio.sfx('shoot');
+}
 
-  let html = `<p class="section-title">Materias${state.escuelaActual === 'ministerios' ? ' (mínimo 5 recomendado)' : ''}</p><div class="card">`;
+function damageZombie(z, dmg, idx){
+  z.hp -= dmg;
+  particles.push({x:z.x,y:z.y,life:0.2,type:'hit'});
+  GameAudio.sfx('hit');
+  if(Math.random()<0.45) GameAudio.sfx('zombieGrowl');
+  if(z.hp<=0){
+    kills++;
+    particles.push({x:z.x,y:z.y,life:0.4,type:'death', color: z.kind==='mariachi' ? '#FFB627':'#ff5b5b'});
+    if(Math.random()<0.22){
+      const roll = Math.random();
+      spawnPickup(roll<0.5?'ammo':(roll<0.8?'orb':'health'), z.x, z.y);
+    }
+    zombies.splice(idx,1);
+    GameAudio.sfx('death');
+    GameAudio.sfx('zombieScream');
+  }
+}
 
-  if (lista.length === 0) {
-    html += `<p style="color:#9ca3af;font-size:0.85em;">Aún no hay materias registradas.</p>`;
+// ---------- update ----------
+// ---------- avisos tipo "coach" para jugadores novatos ----------
+let coachCooldowns = {}; // por tipo de aviso, para no repetirlo a cada rato
+let coachHideTimer = null;
+function showCoachHint(text, cooldownKey, cooldownSecs, spokenText){
+  const now = performance.now()/1000;
+  if(coachCooldowns[cooldownKey] && now - coachCooldowns[cooldownKey] < cooldownSecs) return;
+  coachCooldowns[cooldownKey] = now;
+  const el = document.getElementById('coachHint');
+  el.textContent = text;
+  el.style.display = 'block';
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = 'coachPop 0.25s ease';
+  clearTimeout(coachHideTimer);
+  coachHideTimer = setTimeout(()=>{ el.style.display='none'; }, 2600);
+  speakLine(spokenText || text, 1.1, 1.05);
+}
+function updateCoachHints(dt){
+  // Se revisan en orden de prioridad: solo se muestra UNA a la vez, la más
+  // urgente primero, para no saturar la pantalla del jugador nuevo.
+  if(playerHP > 0 && playerHP/playerMaxHP < 0.3){
+    showCoachHint('⚠️ ¡CÚRATE! TU VIDA ESTÁ MUY BAJA', 'health', 9, 'Cuidado, tienes poca vida, cúrate');
+    return;
+  }
+  if(baseHP > 0 && baseHP/baseMaxHP < 0.3){
+    showCoachHint('🛡️ ¡CUIDADO! LA BASE ESTÁ CASI DESTRUIDA', 'base', 9, 'Cuidado, están destruyendo la base');
+    return;
+  }
+  if(bossActive){
+    showCoachHint('💀 ¡CUIDADO, EL JEFE ESTÁ CERCA!', 'boss', 14, 'Cuidado, el jefe está cerca');
+    return;
+  }
+  if(hasRifle && ammo<=0){
+    showCoachHint('🔫 SIN BALAS — RECOGE MUNICIÓN DEL SUELO', 'ammo', 18, 'Sin balas, recoge munición');
+    return;
+  }
+  if(pickups.some(p=>p.type==='orb') && !powerActive){
+    showCoachHint('⚡ ¡HAY UN PODER CERCA, RECÓGELO!', 'power', 12, 'Hay un poder cerca, recógelo');
+    return;
+  }
+}
+
+
+function update(dt){
+  if(state!=='playing') return;
+  updateCoachHints(dt);
+
+  // movement input
+  let mx=0,my=0;
+  if(isTouch){ mx=moveVec.x; my=moveVec.y; }
+  else{
+    if(keys['w']||keys['arrowup']) my-=1;
+    if(keys['s']||keys['arrowdown']) my+=1;
+    if(keys['a']||keys['arrowleft']) mx-=1;
+    if(keys['d']||keys['arrowright']) mx+=1;
+    const len=Math.hypot(mx,my); if(len>0){ mx/=len; my/=len; }
+  }
+  player.x += mx*player.speed*dt;
+  player.y += my*player.speed*dt;
+  player.x = Math.max(20, Math.min(canvas.width-20, player.x));
+  player.y = Math.max(20, Math.min(canvas.height-20, player.y));
+
+  // aim + fire
+  let aimAngle = player.angle;
+  let firing = false;
+  if(isTouch){
+    if(aimActive){ aimAngle = Math.atan2(aimVec.y, aimVec.x); firing = true; }
   } else {
-    lista.forEach(([id, m]) => {
-      if (m.activo === false && !puedeEditar) return; // maestros no ven archivadas
-      const maestro = m.maestroUid ? state.usuarios[m.maestroUid] : null;
-      const esMiPropia = esMaestro() && m.maestroUid === state.user.uid;
-      if (state.materiaEnEdicion === id) {
-        html += `
-        <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
-          <div class="field"><input type="text" id="edit-nombre-${id}" value="${m.nombre}"></div>
-          <select id="edit-maestro-${id}">
-            <option value="">— Sin maestro asignado —</option>
-            ${maestrosDisponibles.map(([uid,u]) => `<option value="${uid}" ${m.maestroUid===uid?'selected':''}>${u.nombre}</option>`).join('')}
-          </select>
-          <div class="row-flex" style="margin-top:8px;">
-            <button class="btn btn-dark" onclick="guardarEdicionMateria('${id}', document.getElementById('edit-nombre-${id}').value, document.getElementById('edit-maestro-${id}').value)">Guardar</button>
-            <button class="btn btn-gray" onclick="cancelarEdicionMateria()">Cancelar</button>
-          </div>
-        </div>`;
-      } else {
-        const puedeVerCalif = puedeCalificarMateria(id);
-        html += `
-        <div class="userlist-item">
-          <div>
-            <p class="name">${m.nombre} ${m.activo===false ? '<span style="color:#dc2626;">(archivada)</span>' : ''} ${esMiPropia ? '<span style="color:#4f46e5;">· tuya</span>' : ''}</p>
-            <p class="meta">${maestro ? maestro.nombre : 'Sin maestro asignado'}</p>
-          </div>
-          <div style="display:flex;gap:10px;align-items:center;">
-            ${puedeVerCalif ? `<button class="linklike" style="margin:0;" onclick="abrirCalificaciones('${id}')">📊 Calificar</button>
-            <button class="linklike" style="margin:0;" onclick="abrirTareas('${id}')">📋 Tareas</button>` : ''}
-            ${puedeEditar ? `
-            <button class="linklike" style="margin:0;" onclick="editarMateria('${id}')">Editar</button>
-            <button class="linklike" style="margin:0;" onclick="archivarMateria('${id}', ${m.activo===false})">${m.activo===false?'Reactivar':'Archivar'}</button>
-            ` : ''}
-          </div>
-        </div>`;
+    aimAngle = Math.atan2(mouse.y-player.y, mouse.x-player.x);
+    firing = mouse.down;
+  }
+  player.angle = aimAngle;
+  fireCooldown -= dt;
+  if(firing && fireCooldown<=0) shoot(aimAngle);
+
+  // power timer
+  if(powerActive){
+    powerTimeLeft -= dt;
+    document.getElementById('powerTimer').textContent = 'PODER · ' + Math.ceil(powerTimeLeft) + 's';
+    if(powerTimeLeft<=0){ powerActive=false; document.getElementById('powerTimer').style.display='none'; }
+  }
+
+  // Torbellino: mientras el poder está activo, jala hacia el jugador y
+  // golpea con daño continuo a todos los zombies atrapados en el remolino.
+  if(powerActive && selectedChar.powerType==='whirlwind'){
+    const WHIRL_RADIUS = 150, WHIRL_PULL = 95, WHIRL_DPS = 42;
+    for(let i=zombies.length-1;i>=0;i--){
+      const z = zombies[i];
+      const d = dist(z.x,z.y,player.x,player.y);
+      if(d < WHIRL_RADIUS && d > player.radius*0.7){
+        const pullAng = Math.atan2(player.y-z.y, player.x-z.x);
+        z.x += Math.cos(pullAng)*WHIRL_PULL*dt;
+        z.y += Math.sin(pullAng)*WHIRL_PULL*dt;
+        if(Math.random()<0.4) particles.push({x:z.x,y:z.y,life:0.15,type:'hit'});
+        damageZombie(z, WHIRL_DPS*dt, i);
       }
-    });
+    }
   }
-  html += `</div>`;
 
-  if (puedeEditar) {
-    const nm = state.nuevaMateria;
-    html += `
-    <div class="card">
-      <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Agregar materia</p>
-      <div class="field"><input type="text" placeholder="Nombre de la materia" value="${nm.nombre}" oninput="setNuevaMateriaField('nombre', this.value, false)"></div>
-      <select onchange="setNuevaMateriaField('maestroUid', this.value)">
-        <option value="">— Sin maestro asignado por ahora —</option>
-        ${maestrosDisponibles.map(([uid,u]) => `<option value="${uid}" ${nm.maestroUid===uid?'selected':''}>${u.nombre}</option>`).join('')}
-      </select>
-      ${maestrosDisponibles.length === 0 ? `<p style="font-size:0.72em;color:#9ca3af;margin-top:6px;">No hay maestros creados todavía para esta escuela — puedes crear la materia y asignar el maestro después desde "Gestionar usuarios".</p>` : ''}
-      <button class="btn btn-dark" style="margin-top:10px;" onclick="crearMateria()">Agregar materia</button>
-    </div>`;
-  }
-  return html;
-}
-
-function renderAlumnos() {
-  const lista = Object.entries(state.alumnos || {}).sort((a,b) => (a[1].nombreCompleto||'').localeCompare(b[1].nombreCompleto||''));
-  const puedeAdmin = tieneAccesoTotal();
-
-  let html = `<p class="section-title">Alumnos</p><div class="card">`;
-
-  if (lista.length === 0) {
-    html += `<p style="color:#9ca3af;font-size:0.85em;">Aún no hay alumnos registrados.</p>`;
-  } else {
-    lista.forEach(([id, a]) => {
-      if (a.activo === false && !puedeAdmin) return;
-      const puedoEditar = puedeEditarAlumno(a);
-      if (state.alumnoEnEdicion === id) {
-        html += `
-        <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
-          <div class="field"><input type="text" placeholder="Nombre completo" id="ea-nombre-${id}" value="${a.nombreCompleto}"></div>
-          <div class="row-flex">
-            <div class="field"><input type="text" placeholder="Módulo" id="ea-grado-${id}" value="${a.grado||''}"></div>
-            <div class="field"><input type="text" placeholder="Grupo" id="ea-grupo-${id}" value="${a.grupo||''}"></div>
-          </div>
-          <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de nacimiento</p>
-          <div class="field"><input type="date" id="ea-fecha-${id}" value="${a.fechaNacimiento||''}"></div>
-          <div class="field"><input type="tel" placeholder="Teléfono del alumno" id="ea-tel-${id}" value="${a.telefonoAlumno||''}"></div>
-          <div class="row-flex" style="margin-top:4px;">
-            <button class="btn btn-dark" onclick="guardarEdicionAlumno('${id}', document.getElementById('ea-nombre-${id}').value, document.getElementById('ea-grado-${id}').value, document.getElementById('ea-grupo-${id}').value, document.getElementById('ea-fecha-${id}').value, document.getElementById('ea-tel-${id}').value)">Guardar</button>
-            <button class="btn btn-gray" onclick="cancelarEdicionAlumno()">Cancelar</button>
-          </div>
-        </div>`;
-      } else {
-        html += `
-        <div class="userlist-item">
-          <div>
-            <p class="name">${a.nombreCompleto} ${a.activo===false ? '<span style="color:#dc2626;">(archivado)</span>' : ''}</p>
-            <p class="meta">${[a.grado, a.grupo].filter(Boolean).join(' · ') || 'Sin grado/grupo'}${a.telefonoAlumno ? ' · ' + a.telefonoAlumno : ''} · agregó ${a.creadoPorNombre||'—'}</p>
-          </div>
-          <div style="display:flex;gap:10px;">
-            ${puedoEditar ? `<button class="linklike" style="margin:0;" onclick="editarAlumno('${id}')">Editar</button>` : ''}
-            ${puedeAdmin ? `<button class="linklike" style="margin:0;" onclick="archivarAlumno('${id}', ${a.activo===false})">${a.activo===false?'Reactivar':'Archivar'}</button>` : ''}
-          </div>
-        </div>`;
+  // bullets
+  for(let i=bullets.length-1;i>=0;i--){
+    const b=bullets[i];
+    b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt;
+    if(b.btype==='fire'){
+      b.trailTimer -= dt;
+      if(b.trailTimer<=0){
+        b.trailTimer = 0.02;
+        particles.push({x:b.x - b.vx*0.01 + (Math.random()-0.5)*4, y:b.y - b.vy*0.01 + (Math.random()-0.5)*4, life:0.22+Math.random()*0.1, type:'ember'});
       }
-    });
-  }
-  html += `</div>`;
-
-  const na = state.nuevoAlumno;
-  html += `
-  <div class="card">
-    <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Agregar alumno</p>
-    <div class="field"><input type="text" placeholder="Nombre completo" value="${na.nombreCompleto}" oninput="setNuevoAlumnoField('nombreCompleto', this.value, false)"></div>
-    <div class="row-flex">
-      <div class="field"><input type="text" placeholder="Módulo" value="${na.grado}" oninput="setNuevoAlumnoField('grado', this.value, false)"></div>
-      <div class="field"><input type="text" placeholder="Grupo" value="${na.grupo}" oninput="setNuevoAlumnoField('grupo', this.value, false)"></div>
-    </div>
-    <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de nacimiento</p>
-    <div class="field"><input type="date" value="${na.fechaNacimiento}" oninput="setNuevoAlumnoField('fechaNacimiento', this.value, false)"></div>
-    <div class="field"><input type="tel" placeholder="Teléfono del alumno (opcional)" value="${na.telefonoAlumno}" oninput="setNuevoAlumnoField('telefonoAlumno', this.value, false)"></div>
-    <button class="btn btn-dark" style="margin-top:6px;" onclick="crearAlumno()">Agregar alumno</button>
-    <p style="font-size:0.72em;color:#9ca3af;margin-top:8px;">Por seguridad, una vez agregado un alumno no se puede eliminar — solo editar sus datos, o el director puede archivarlo.</p>
-  </div>`;
-  return html;
-}
-
-function renderTablaCalificaciones() {
-  const materia = state.materias[state.materiaCalificaciones];
-  const soyElMaestro = esMaestro() && materia && materia.maestroUid === state.user.uid;
-  const puedoEditar = tieneAccesoTotal() || soyElMaestro;
-  const lista = Object.entries(state.alumnos || {})
-    .filter(([id, a]) => a.activo !== false)
-    .sort((a,b) => (a[1].nombreCompleto||'').localeCompare(b[1].nombreCompleto||''));
-
-  let html = `
-  <button class="linklike" style="margin-bottom:10px;" onclick="cerrarCalificaciones()">← Volver a materias</button>
-  <div class="card">
-    <p style="font-weight:700;font-size:1.05em;">${materia ? materia.nombre : ''}</p>
-    <p style="font-size:0.8em;color:#6b7280;">${puedoEditar ? 'Puedes capturar las calificaciones directamente en la tabla (0 a 10).' : 'Solo lectura — esta materia no está asignada a ti.'}</p>
-  </div>`;
-
-  if (lista.length === 0) {
-    html += `<div class="placeholder-card card">Todavía no hay alumnos registrados en esta escuela.</div>`;
-    return html;
+    }
+    if(b.life<=0 || b.x<-20||b.x>canvas.width+20||b.y<-20||b.y>canvas.height+20){ bullets.splice(i,1); continue; }
+    let hitSomething=false;
+    for(let j=zombies.length-1;j>=0;j--){
+      const z=zombies[j];
+      if(dist(b.x,b.y,z.x,z.y) < z.radius+4){
+        damageZombie(z,b.dmg,j);
+        if(b.btype==='fire'){
+          for(let k=0;k<6;k++){ particles.push({x:b.x,y:b.y,life:0.25+Math.random()*0.15,type:'ember'}); }
+        }
+        hitSomething=true;
+        if(b.pierce>0){ b.pierce--; } else { bullets.splice(i,1); }
+        break;
+      }
+    }
+    if(hitSomething && b.pierce<=0) continue;
+    if(boss && dist(b.x,b.y,boss.x,boss.y) < boss.radius+4){
+      boss.hp -= boss.shielded ? b.dmg*0.15 : b.dmg;
+      particles.push({x:b.x,y:b.y,life:0.2,type: boss.shielded ? 'shield' : 'hit'});
+      if(b.btype==='fire'){ for(let k=0;k<6;k++){ particles.push({x:b.x,y:b.y,life:0.25+Math.random()*0.15,type:'ember'}); } }
+      bullets.splice(i,1);
+    }
   }
 
-  html += `<div class="card" style="overflow-x:auto;padding:14px 10px;">
-  <table style="width:100%;border-collapse:collapse;font-size:0.82em;">
-    <thead><tr>
-      <th style="text-align:left;padding:6px;">Alumno</th>
-      ${PERIODOS.map(p => `<th style="padding:6px;">${p}</th>`).join('')}
-      <th style="padding:6px;">Promedio</th>
-    </tr></thead>
-    <tbody>
-    ${lista.map(([id, a]) => {
-      const prom = promedioAlumno(id);
-      const promTxt = prom === null ? '—' : prom.toFixed(1);
-      const reprobado = prom !== null && prom < CALIF_MINIMA_APROBATORIA;
-      return `<tr style="border-top:1px solid #f3f4f6;">
-        <td style="padding:6px;white-space:nowrap;">${a.nombreCompleto}</td>
-        ${PERIODOS.map((_, pi) => {
-          const v = state.calificaciones[id] && state.calificaciones[id][pi];
-          return `<td style="padding:4px;text-align:center;">
-            ${puedoEditar
-              ? `<input type="number" min="0" max="10" step="0.1" value="${v!=null?v:''}" style="width:52px;text-align:center;border:1px solid #d1d5db;border-radius:6px;padding:4px;" onchange="guardarCalificacion('${id}', ${pi}, this.value)">`
-              : (v != null ? v : '—')}
-          </td>`;
-        }).join('')}
-        <td style="padding:6px;text-align:center;font-weight:700;color:${reprobado?'#dc2626':'#111827'};">${promTxt}</td>
-      </tr>`;
-    }).join('')}
-    </tbody>
-  </table>
-  </div>`;
-  return html;
-}
-
-function renderTareas() {
-  const materia = state.materias[state.materiaTareas];
-  const soyElMaestro = esMaestro() && materia && materia.maestroUid === state.user.uid;
-  const puedoEditar = tieneAccesoTotal() || soyElMaestro;
-  const tareasArr = Object.entries(state.tareas || {}).sort((a,b) => (a[1].creado||0)-(b[1].creado||0));
-  const alumnos = Object.entries(state.alumnos || {})
-    .filter(([id, a]) => a.activo !== false)
-    .sort((a,b) => (a[1].nombreCompleto||'').localeCompare(b[1].nombreCompleto||''));
-
-  let html = `
-  <button class="linklike" style="margin-bottom:10px;" onclick="cerrarTareas()">← Volver a materias</button>
-  <div class="card">
-    <p style="font-weight:700;font-size:1.05em;">${materia ? materia.nombre : ''} — Tareas</p>
-    <p style="font-size:0.8em;color:#6b7280;">${puedoEditar ? 'Toca una casilla para marcar cumplida ✅ o pendiente ⬜.' : 'Solo lectura — esta materia no está asignada a ti.'}</p>
-  </div>`;
-
-  if (puedoEditar) {
-    const nt = state.nuevaTarea;
-    html += `
-    <div class="card">
-      <p style="font-weight:700;font-size:0.9em;margin-bottom:10px;">➕ Nueva tarea</p>
-      <div class="field"><input type="text" placeholder="Título de la tarea" value="${nt.titulo}" oninput="setNuevaTareaField('titulo', this.value, false)"></div>
-      <p style="font-size:0.72em;color:#6b7280;margin:4px 0 2px;">Fecha de entrega (opcional)</p>
-      <div class="field"><input type="date" value="${nt.fecha}" oninput="setNuevaTareaField('fecha', this.value, false)"></div>
-      <button class="btn btn-dark" style="margin-top:6px;" onclick="crearTarea()">Agregar tarea</button>
-    </div>`;
+  // spawn logic
+  if(!bossActive && waveInProgress){
+    spawnTimer -= dt;
+    if(zombiesToSpawn>0 && spawnTimer<=0){
+      spawnZombie(); zombiesToSpawn--; spawnTimer = Math.max(0.25, 0.9 - wave*0.05);
+    }
+    if(zombiesToSpawn<=0 && zombies.length===0){
+      waveInProgress = false;
+      wave++;
+      setTimeout(()=>{ if(state==='playing') startWave(); }, 1400);
+    }
   }
 
-  if (alumnos.length === 0) {
-    html += `<div class="placeholder-card card">Todavía no hay alumnos registrados en esta escuela.</div>`;
-    return html;
+  // zombies AI
+  for(let i=zombies.length-1;i>=0;i--){
+    const z=zombies[i];
+    z.wobble += dt*4;
+    // target: base or player, whichever closer-ish (prefer base, like defense objective)
+    const dToBase = dist(z.x,z.y,baseX,baseY);
+    const dToPlayer = dist(z.x,z.y,player.x,player.y);
+    let tx=baseX, ty=baseY;
+    if(dToPlayer < 90 && dToPlayer < dToBase) { tx=player.x; ty=player.y; }
+    z.__tx=tx; z.__ty=ty;
+    const ang = Math.atan2(ty-z.y, tx-z.x);
+    z.x += Math.cos(ang)*z.speed*dt;
+    z.y += Math.sin(ang)*z.speed*dt;
+
+    if(dist(z.x,z.y,player.x,player.y) < z.radius+player.radius){
+      playerHP -= z.dmg*dt*2.2;
+      if(playerHP<0) playerHP=0;
+    }
+    if(dist(z.x,z.y,baseX,baseY) < baseRadius){
+      baseHP -= z.dmg*dt*1.6;
+      if(baseHP<0) baseHP=0;
+      zombies.splice(i,1);
+    }
   }
-  if (tareasArr.length === 0) {
-    html += `<div class="placeholder-card card">Todavía no hay tareas registradas para esta materia.</div>`;
-    return html;
+
+  // boss AI
+  if(boss){
+    if(boss.phase==='approach'){
+      boss.y += boss.speed*dt;
+      if(boss.y>=boss.targetY){ boss.phase='fight'; }
+    } else if(boss.phase==='fight'){
+      boss.x += Math.sin(Date.now()/900)*40*dt;
+      const a = boss.ability;
+
+      // Todos los jefes tienen algo de refuerzo, no solo los de habilidad "invocación"
+      boss.summonTimer -= dt;
+      if(boss.summonTimer<=0){
+        if(a==='swarm'){ spawnZombie(); spawnZombie(); spawnZombie(); boss.summonTimer = 2.2; }
+        else if(a==='summon' || a==='combo'){ spawnMariachiZombie(); spawnMariachiZombie(); boss.summonTimer = 4.5 - Math.min(2,wave*0.05); }
+        else if(a==='stun'){ spawnMariachiZombie(); boss.summonTimer = 4.5 - Math.min(2,wave*0.05); }
+        else { spawnZombie(); boss.summonTimer = 5.5 - Math.min(2,wave*0.05); }
+      }
+      if(a==='summon' || a==='stun' || a==='combo'){
+        boss.bellTimer -= dt;
+        if(boss.bellTimer<=0){
+          if(dist(boss.x,boss.y,player.x,player.y) < 220){ playerHP -= 18; if(playerHP<0) playerHP=0; }
+          particles.push({x:boss.x,y:boss.y,life:0.5,type:'shock'});
+          GameAudio.sfx('bossRoar', {pitch: boss.roarPitch});
+          boss.bellTimer = 5.5;
+        }
+      }
+      if(a==='shield' || a==='combo'){
+        boss.shieldTimer -= dt;
+        if(boss.shieldTimer<=0){ boss.shielded = !boss.shielded; boss.shieldTimer = boss.shielded ? 3.5 : 5; }
+      }
+      if(a==='charge' || a==='combo'){
+        boss.chargeTimer -= dt;
+        if(boss.chargeTimer<=0){
+          const ang = Math.atan2(player.y-boss.y, player.x-boss.x);
+          boss.x += Math.cos(ang)*140*dt*6; boss.y += Math.sin(ang)*140*dt*6;
+          particles.push({x:boss.x,y:boss.y,life:0.35,type:'shock'});
+          GameAudio.sfx('bossRoar', {pitch: boss.roarPitch*1.15});
+          if(dist(boss.x,boss.y,player.x,player.y) < 90){ playerHP -= 22; if(playerHP<0) playerHP=0; }
+          boss.chargeTimer = 4.5;
+        }
+      }
+      if(a==='slow' || a==='combo'){
+        boss.slowTimer -= dt;
+        if(boss.slowTimer<=0){
+          if(dist(boss.x,boss.y,player.x,player.y) < 200){ player.speed = 130; setTimeout(()=>{ player.speed=230; }, 1500); }
+          particles.push({x:boss.x,y:boss.y,life:0.5,type:'shock'});
+          boss.slowTimer = 4.5;
+        }
+      }
+      if(a==='curse' || a==='combo'){
+        if(dist(boss.x,boss.y,player.x,player.y) < 140){ playerHP -= 10*dt; if(playerHP<0) playerHP=0; }
+      }
+      if(dist(boss.x,boss.y,player.x,player.y) < boss.radius+player.radius+6){
+        playerHP -= 10*dt; if(playerHP<0) playerHP=0;
+      }
+    }
+    if(boss.hp<=0 && !bossDefeatHandled){
+      bossDefeatHandled = true;
+      kills+=5;
+      particles.push({x:boss.x,y:boss.y,life:0.6,type:'death',color:'#FFB627'});
+      GameAudio.sfx('bossDeathRoar', {pitch: boss.roarPitch*0.85});
+      boss=null; bossActive=false;
+      const m = currentMap();
+      if(mapIndex >= MAPS.length-1){
+        loopCount++;
+        showBanner('¡ASEDIO SUPERADO! RONDA ' + (loopCount+1), 'Tecalitlán resiste — pero los zombies no paran de llegar');
+        setTimeout(()=>{
+          mapIndex = 0; wave = 1; zombies=[]; bullets=[];
+          waveInProgress = false; zombiesToSpawn = 0; spawnTimer = 0;
+          document.getElementById('mapLabelHud').textContent = mapLabelText();
+          if(state==='playing') showMapIntro(startWave);
+        }, 2200);
+      } else {
+        showBanner('¡' + m.name.toUpperCase() + ' SUPERADO!', 'Avanzando al siguiente mapa');
+        setTimeout(()=>{
+          mapIndex++; wave = 1; zombies=[]; bullets=[];
+          // Limpieza completa del estado de oleada anterior: si algo del mapa
+          // pasado quedó a medio disparar (un temporizador viejo, un conteo
+          // pendiente), aquí se resetea todo para que el mapa nuevo SIEMPRE
+          // empiece en la oleada 1 y no salte directo al jefe.
+          waveInProgress = false; zombiesToSpawn = 0; spawnTimer = 0;
+          document.getElementById('mapLabelHud').textContent = mapLabelText();
+          if(state==='playing') showMapIntro(startWave);
+        }, 2200);
+      }
+    }
   }
 
-  html += `<div class="card" style="overflow-x:auto;padding:14px 10px;">
-  <table style="width:100%;border-collapse:collapse;font-size:0.8em;">
-    <thead><tr>
-      <th style="text-align:left;padding:6px;">Alumno</th>
-      ${tareasArr.map(([tid, t]) => `<th style="padding:6px;min-width:70px;">${t.titulo}${t.fecha ? `<br><span style="font-weight:400;color:#9ca3af;font-size:0.85em;">${t.fecha}</span>` : ''}</th>`).join('')}
-      <th style="padding:6px;">Cumplidas</th>
-    </tr></thead>
-    <tbody>
-    ${alumnos.map(([aid, a]) => {
-      let cumplidas = 0;
-      const celdas = tareasArr.map(([tid, t]) => {
-        const val = !!(t.cumplimiento && t.cumplimiento[aid]);
-        if (val) cumplidas++;
-        return `<td style="padding:4px;text-align:center;">
-          ${puedoEditar
-            ? `<button onclick="marcarCumplimiento('${tid}', '${aid}', ${val})" style="border:none;background:none;font-size:1.2em;cursor:pointer;">${val ? '✅' : '⬜'}</button>`
-            : (val ? '✅' : '⬜')}
-        </td>`;
-      }).join('');
-      return `<tr style="border-top:1px solid #f3f4f6;">
-        <td style="padding:6px;white-space:nowrap;">${a.nombreCompleto}</td>
-        ${celdas}
-        <td style="padding:6px;text-align:center;font-weight:700;">${cumplidas}/${tareasArr.length}</td>
-      </tr>`;
-    }).join('')}
-    </tbody>
-  </table>
-  </div>`;
-  return html;
+  // pickups
+  for(let i=pickups.length-1;i>=0;i--){
+    const p=pickups[i]; p.bob+=dt*3;
+    if(dist(p.x,p.y,player.x,player.y) < player.radius+18){
+      if(p.type==='rifle'){ hasRifle=true; ammo=maxAmmo; GameAudio.sfx('pickup'); }
+      else if(p.type==='ammo'){ ammo=Math.min(maxAmmo, ammo+10); GameAudio.sfx('pickup'); }
+      else if(p.type==='orb'){ activatePower(); }
+      else if(p.type==='health'){ playerHP=Math.min(playerMaxHP, playerHP+30); particles.push({x:p.x,y:p.y,life:0.5,type:'heal'}); GameAudio.sfx('pickup'); }
+      pickups.splice(i,1);
+    }
+  }
+
+  // particles
+  for(let i=particles.length-1;i>=0;i--){ particles[i].life-=dt; if(particles[i].life<=0) particles.splice(i,1); }
+
+  // lose condition
+  if(baseHP<=0 || playerHP<=0){ endGame(false); }
+
+  // ambiente: de repente, un grito lejano o un búho, para dar tensión
+  ambientTimer -= dt;
+  if(ambientTimer<=0){
+    ambientTimer = 13 + Math.random()*15;
+    if(Math.random()<0.5) GameAudio.sfx('owl'); else GameAudio.sfx('ambientScream');
+  }
+
+  // HUD
+  document.getElementById('baseBar').style.width = Math.max(0,(baseHP/baseMaxHP*100))+'%';
+  document.getElementById('hpBar').style.width = Math.max(0,(playerHP/playerMaxHP*100))+'%';
+  document.getElementById('waveLabel').textContent = bossActive ? 'JEFE' : ('OLEADA ' + wave);
+  document.getElementById('killLabel').textContent = kills;
 }
 
-function renderUsuarios() {
-  const lista = Object.entries(state.usuarios || {});
-  const nu = state.nuevoUsuario;
-  return `
-  <button class="linklike" style="margin-bottom:10px;" onclick="state.escuelaActual=null;render()">← Volver</button>
-  <div class="card">
-    <p style="font-weight:700;font-size:0.95em;margin-bottom:12px;">➕ Nuevo usuario</p>
-    <div class="field"><input type="text" placeholder="Nombre completo" value="${nu.nombre}" oninput="setNuevoUsuarioField('nombre', this.value, false)"></div>
-    <div class="field"><input type="text" placeholder="Usuario (ej. maria.perez)" value="${nu.correoInterno}" oninput="setNuevoUsuarioField('correoInterno', this.value, false)"></div>
-    <p style="font-size:0.72em;color:#9ca3af;margin:-4px 0 10px;">Se guardará como ${nu.correoInterno || '(usuario)'}${REQUIRED_EMAIL_DOMAIN} — ese correo no recibe mensajes reales.</p>
-    <div class="field"><input type="text" placeholder="Correo real de contacto (privado, opcional)" value="${nu.correoContacto}" oninput="setNuevoUsuarioField('correoContacto', this.value, false)"></div>
-    <div class="field"><input type="tel" placeholder="Teléfono WhatsApp (opcional, ej. 3312345678)" value="${nu.telefono}" oninput="setNuevoUsuarioField('telefono', this.value, false)"></div>
-    <p class="section-title" style="margin-top:4px;">Rol</p>
-    <select onchange="setNuevoUsuarioField('rol', this.value)">
-      <option value="maestro" ${nu.rol==='maestro'?'selected':''}>Maestro(a) — solo su materia</option>
-      ${esDirector() ? `<option value="subadmin" ${nu.rol==='subadmin'?'selected':''}>Subadministrador — acceso total</option>` : ''}
-    </select>
-    ${nu.rol === 'maestro' ? `
-      <p class="section-title">Escuela</p>
-      <select onchange="setNuevoUsuarioField('escuela', this.value)">
-        ${Object.entries(ESCUELAS).map(([k,v]) => `<option value="${k}" ${nu.escuela===k?'selected':''}>${v.label}</option>`).join('')}
-      </select>
-      <div class="field" style="margin-top:8px;"><input type="text" placeholder="Materia que imparte" value="${nu.materia}" oninput="setNuevoUsuarioField('materia', this.value, false)"></div>
-    ` : ''}
-    ${nu.rol === 'subadmin' && esDirector() ? `
-      <label class="chk"><input type="checkbox" ${nu.puedeGestionarUsuarios?'checked':''} onchange="setNuevoUsuarioField('puedeGestionarUsuarios', this.checked)"> Puede crear y gestionar otros usuarios</label>
-    ` : ''}
-    <button class="btn btn-dark" style="margin-top:8px;" onclick="crearUsuario()">Crear usuario</button>
-  </div>
-
-  <p class="section-title">Usuarios del sistema</p>
-  <div class="card">
-    ${lista.length === 0 ? '<p style="color:#9ca3af;font-size:0.85em;">Aún no hay usuarios.</p>' : lista.map(([uid, u]) => `
-      <div class="userlist-item" style="flex-direction:column;align-items:stretch;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div>
-            <p class="name">${u.nombre || u.correoInterno} ${u.activo===false ? '<span style="color:#dc2626;">(desactivado)</span>' : ''}</p>
-            <p class="meta">${u.rol === 'director' ? 'Director(a)' : u.rol === 'subadmin' ? 'Subadministrador' : 'Maestro(a)' }${u.materiaNombre ? ' · ' + u.materiaNombre : ''} · ${u.correoInterno}</p>
-          </div>
-          ${uid !== state.user.uid && u.rol !== 'director' ? `<button class="linklike" style="margin:0;white-space:nowrap;" onclick="desactivarUsuario('${uid}', ${u.activo===false})">${u.activo===false?'Reactivar':'Desactivar'}</button>` : ''}
-        </div>
-        ${u.passwordActual ? `
-        <div class="cred-box" style="margin:8px 0 0;">
-          <b>Contraseña actual:</b> ${u.passwordActual}
-          ${u.mustChangePassword ? '<br><span style="color:#b45309;">⏳ Aún no la ha cambiado</span>' : '<br><span style="color:#059669;">✅ Ya la cambió (esta es la nueva)</span>'}
-        </div>
-        <div class="row-flex" style="margin-top:6px;">
-          <button class="btn btn-outline" style="font-size:0.8em;padding:8px;" onclick="copiarTexto('${u.passwordActual}')">📋 Copiar</button>
-          <button class="btn btn-green" style="font-size:0.8em;padding:8px;" onclick="reenviarWhatsapp('${uid}')">📲 WhatsApp</button>
-        </div>` : ''}
-      </div>
-    `).join('')}
-  </div>`;
+// ---------- render ----------
+function drawPlaza(){
+  const W=canvas.width,H=canvas.height;
+  const m = currentMap();
+  // ground
+  ctx.fillStyle = m.ground;
+  ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for(let i=0;i<40;i++){
+    ctx.fillRect((i*97)%W, (i*53)%H, 40,3);
+  }
+  // plaza tiled circle
+  ctx.save();
+  ctx.beginPath(); ctx.arc(baseX,baseY, baseRadius+90, 0, Math.PI*2); ctx.fillStyle='rgba(214,159,97,0.35)'; ctx.fill();
+  ctx.restore();
+  // church silhouette (top) — solo existe en el Centro
+  if(mapIndex===0){
+    ctx.fillStyle = 'rgba(58,31,50,0.85)';
+    ctx.fillRect(W*0.42, H*0.02, W*0.16, H*0.22);
+    ctx.beginPath(); ctx.moveTo(W*0.42,H*0.02); ctx.lineTo(W*0.5,H*-0.02); ctx.lineTo(W*0.58,H*0.02); ctx.fill();
+    // museo Vargas block (left)
+    ctx.fillStyle='rgba(90,45,60,0.75)';
+    ctx.fillRect(W*0.04,H*0.06,W*0.18,H*0.14);
+  } else {
+    // siluetas genéricas de casas/edificios para los demás mapas
+    ctx.fillStyle = 'rgba(40,30,35,0.6)';
+    ctx.fillRect(W*0.05,H*0.05,W*0.14,H*0.16);
+    ctx.fillRect(W*0.78,H*0.04,W*0.15,H*0.18);
+  }
+  // base — estructura distinta según el tipo de lugar real
+  ctx.save();
+  ctx.translate(baseX, baseY);
+  if(m.structure==='kiosco'){
+    ctx.beginPath(); ctx.arc(0,0,baseRadius,0,Math.PI*2);
+    ctx.fillStyle=m.accent+'38'; ctx.fill();
+    ctx.strokeStyle=m.accent; ctx.lineWidth=3; ctx.stroke();
+    // techo del kiosko
+    ctx.beginPath(); ctx.moveTo(-baseRadius*0.6,-baseRadius*0.3); ctx.lineTo(0,-baseRadius*0.9); ctx.lineTo(baseRadius*0.6,-baseRadius*0.3); ctx.closePath();
+    ctx.fillStyle=m.accent+'55'; ctx.fill(); ctx.strokeStyle=m.accent; ctx.stroke();
+  } else if(m.structure==='barricada'){
+    ctx.beginPath(); ctx.arc(0,0,baseRadius,0,Math.PI*2); ctx.fillStyle=m.accent+'25'; ctx.fill(); ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='#8a6b4a'; ctx.lineWidth=6;
+    for(let i=-3;i<=3;i++){ ctx.beginPath(); ctx.moveTo(i*16,-baseRadius*0.5); ctx.lineTo(i*16-6,-baseRadius*0.1); ctx.stroke(); }
+  } else if(m.structure==='muro'){
+    ctx.beginPath(); ctx.arc(0,0,baseRadius,0,Math.PI*2); ctx.fillStyle=m.accent+'25'; ctx.fill(); ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle='#8a8a7a';
+    for(let r=0;r<3;r++){ for(let c=-2;c<=2;c++){ ctx.fillRect(c*18-8+(r%2)*9, -baseRadius*0.55+r*14, 16,10); } }
+  } else if(m.structure==='obra'){
+    ctx.beginPath(); ctx.arc(0,0,baseRadius,0,Math.PI*2); ctx.fillStyle=m.accent+'25'; ctx.fill(); ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle='#d4a017'; ctx.lineWidth=4;
+    ctx.strokeRect(-baseRadius*0.55,-baseRadius*0.55,baseRadius*1.1,baseRadius*0.55);
+    ctx.beginPath(); ctx.moveTo(-baseRadius*0.55,-baseRadius*0.55); ctx.lineTo(baseRadius*0.55,0); ctx.stroke();
+  } else if(m.structure==='acueducto'){
+    ctx.strokeStyle=m.accent; ctx.lineWidth=6;
+    for(let i=-2;i<=2;i++){ ctx.beginPath(); ctx.arc(i*30,-baseRadius*0.2,baseRadius*0.35,0,Math.PI,true); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(-baseRadius*1.1,-baseRadius*0.2); ctx.lineTo(baseRadius*1.1,-baseRadius*0.2); ctx.stroke();
+  } else if(m.structure==='escuela'){
+    ctx.fillStyle=m.accent+'30'; ctx.fillRect(-baseRadius*0.6,-baseRadius*0.5,baseRadius*1.2,baseRadius*0.5);
+    ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.strokeRect(-baseRadius*0.6,-baseRadius*0.5,baseRadius*1.2,baseRadius*0.5);
+    ctx.strokeStyle='rgba(255,255,255,0.5)';
+    for(let i=-1;i<=1;i++){ ctx.strokeRect(i*22-8,-baseRadius*0.4,16,20); }
+  } else if(m.structure==='capilla'){
+    ctx.fillStyle=m.accent+'30'; ctx.beginPath(); ctx.moveTo(-baseRadius*0.4,0); ctx.lineTo(-baseRadius*0.4,-baseRadius*0.5); ctx.lineTo(0,-baseRadius*0.85); ctx.lineTo(baseRadius*0.4,-baseRadius*0.5); ctx.lineTo(baseRadius*0.4,0); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.stroke();
+    ctx.strokeStyle=m.accent; ctx.lineWidth=3;
+    ctx.beginPath(); ctx.moveTo(0,-baseRadius*0.95); ctx.lineTo(0,-baseRadius*0.75); ctx.moveTo(-6,-baseRadius*0.88); ctx.lineTo(6,-baseRadius*0.88); ctx.stroke();
+  } else if(m.structure==='cancha'){
+    ctx.fillStyle=m.accent+'25'; ctx.fillRect(-baseRadius*0.7,-baseRadius*0.4,baseRadius*1.4,baseRadius*0.55);
+    ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.strokeRect(-baseRadius*0.7,-baseRadius*0.4,baseRadius*1.4,baseRadius*0.55);
+    // techo triangular de la cancha techada
+    ctx.strokeStyle=m.accent; ctx.beginPath();
+    for(let i=-2;i<=2;i++){ ctx.moveTo(i*22,-baseRadius*0.4); ctx.lineTo(0,-baseRadius*0.75); }
+    ctx.stroke();
+  }
+  ctx.fillStyle=m.accent; ctx.font='bold 12px Rubik'; ctx.textAlign='center';
+  ctx.fillText(m.label, 0, baseRadius*0.15);
+  ctx.restore();
 }
 
-function renderErrorFatal(msg) {
-  document.getElementById('app').innerHTML = `
-  <div class="center-screen"><div class="login-card"><div class="login-body">
-    <h1>No se pudo cargar</h1>
-    <p class="sub" style="color:#dc2626;">${msg}</p>
-    <p class="hint">Si abriste este archivo directo desde el celular o la computadora (sin subirlo a internet), intenta subirlo a GitHub Pages o Firebase Hosting — algunos navegadores bloquean la conexión a la base de datos cuando el archivo se abre así.</p>
-  </div></div></div>`;
+function drawHumanoid(x, y, angle, opts){
+  // opts: {skin, outfit, headR, bodyW, bodyH, limp, arms, gunLen, glow, tattered, hairStyle, hairColor, accessory}
+  const o = Object.assign({skin:'#e0a878', outfit:'#3d5a3d', headR:7, bodyW:14, bodyH:20, limp:0, arms:true, gunLen:16, glow:null, tattered:false, hairStyle:null, hairColor:'#1a1a1a', accessory:'none', headband:null}, opts);
+  const walkPhase = (o.limp ? Math.sin(Date.now()/260 + x*0.02) : Math.sin(Date.now()/140 + x*0.02)) * (o.limp?8:14);
+  ctx.save();
+  ctx.translate(x,y);
+
+  if(o.glow){ ctx.shadowColor=o.glow; ctx.shadowBlur=14; }
+
+  // legs (simple swinging lines) — un poco más oscuras que el torso, como si
+  // quedaran parcialmente en sombra, ayuda a separar visualmente los planos.
+  ctx.strokeStyle = shadeColor(o.outfit, -18); ctx.lineWidth = 5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-4, o.bodyH*0.35); ctx.lineTo(-4+walkPhase*0.3, o.bodyH*0.9); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4, o.bodyH*0.35); ctx.lineTo(4-walkPhase*0.3, o.bodyH*0.9); ctx.stroke();
+
+  // El cuerpo NO gira con el ángulo de puntería (eso era lo que lo hacía
+  // verse "torcido" al voltear). Solo se voltea en espejo según hacia dónde
+  // mira (izquierda/derecha) — el cuerpo se mantiene siempre de pie.
+  const facingLeft = Math.cos(angle) < 0;
+  const flip = facingLeft ? -1 : 1;
+
+  // sombra de contacto en el piso — ayuda mucho a que se sienta "parado"
+  // sobre el suelo en vez de plano, sin necesidad de un motor 3D real.
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(0, o.bodyH*0.92, o.bodyW*0.65, o.bodyW*0.28, 0, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(0,0,0,0.32)';
+  ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.scale(flip, 1);
+
+  // torso con degradado lateral (lado hacia la "luz" más claro, lado
+  // contrario más oscuro) — simula volumen sin necesidad de un modelo 3D.
+  const torsoGrad = ctx.createLinearGradient(-o.bodyW/2, 0, o.bodyW/2, 0);
+  torsoGrad.addColorStop(0, shadeColor(o.outfit, -22));
+  torsoGrad.addColorStop(0.55, o.outfit);
+  torsoGrad.addColorStop(1, shadeColor(o.outfit, 24));
+  ctx.fillStyle = torsoGrad;
+  roundRect(-o.bodyW/2, -o.bodyH*0.55, o.bodyW, o.bodyH*0.9, 4);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+  roundRect(-o.bodyW/2, -o.bodyH*0.55, o.bodyW, o.bodyH*0.9, 4);
+  ctx.stroke();
+  if(o.tattered){
+    ctx.fillStyle = 'rgba(0,0,0,0.25)';
+    for(let i=0;i<3;i++){ ctx.fillRect(-o.bodyW/2 + i*5 - 1, o.bodyH*0.1, 3, 6); }
+  }
+  if(o.accessory==='gi' || o.accessory==='sword'){ drawAccessory(o.accessory, o.headR, o.bodyW, o.bodyH); }
+
+  // arms: el brazo trasero queda quieto; el brazo delantero + arma sí
+  // apuntan hacia el ángulo real de puntería (rotación pequeña, localizada
+  // solo en el brazo, no en todo el cuerpo).
+  if(o.arms){
+    ctx.strokeStyle = shadeColor(o.skin, -14); ctx.lineWidth=4.5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(-o.bodyW/2, -o.bodyH*0.35); ctx.lineTo(-o.bodyW/2-6, o.bodyH*0.05+ (o.limp?4:0)); ctx.stroke();
+
+    ctx.save();
+    ctx.translate(o.bodyW/2-2, -o.bodyH*0.35);
+    // El ángulo de puntería viene en coordenadas del mundo; como el cuerpo
+    // ya está volteado con scale(flip,1), hay que "des-voltear" el ángulo
+    // para que el brazo apunte al lugar correcto en pantalla.
+    const armAngle = facingLeft ? (Math.PI - angle) : angle;
+    ctx.rotate(armAngle);
+    ctx.strokeStyle = o.skin; ctx.lineWidth=4.5; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(o.gunLen,0); ctx.stroke();
+    if(o.gunLen>10){
+      const gunGrad = ctx.createLinearGradient(0,-2,0,2);
+      gunGrad.addColorStop(0,'#f2f2f2'); gunGrad.addColorStop(1,'#8a8a8a');
+      ctx.strokeStyle=gunGrad; ctx.lineWidth=3;
+      ctx.beginPath(); ctx.moveTo(o.gunLen,0); ctx.lineTo(o.gunLen+10,0); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // head con degradado radial (luz arriba-izquierda) para dar volumen esférico real
+  ctx.save(); ctx.translate(0, -o.bodyH*0.72);
+  const headGrad = ctx.createRadialGradient(-o.headR*0.35,-o.headR*0.4,o.headR*0.15, 0,0,o.headR*1.15);
+  headGrad.addColorStop(0, shadeColor(o.skin, 30));
+  headGrad.addColorStop(0.6, o.skin);
+  headGrad.addColorStop(1, shadeColor(o.skin, -20));
+  ctx.beginPath(); ctx.arc(0, 0, o.headR, 0, Math.PI*2);
+  ctx.fillStyle = headGrad; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=1.4; ctx.stroke();
+  if(o.hairStyle){ drawHair(o.headR, o.hairStyle, o.hairColor); }
+  if(o.headband){
+    ctx.strokeStyle = o.headband; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(0,0,o.headR*0.75,-0.4,Math.PI+0.4); ctx.stroke();
+  }
+  ctx.restore();
+  if(o.accessory==='strawhat'){ drawAccessory('strawhat', o.headR, o.bodyW, o.bodyH); }
+  if(o.accessory==='bandana'){ drawAccessory('bandana', o.headR, o.bodyW, o.bodyH); }
+
+  ctx.restore(); // undo flip scale
+  ctx.shadowBlur=0;
+  ctx.restore(); // undo translate
+}
+// Aclara (positivo) u oscurece (negativo) un color hex, para simular luz/sombra sin necesitar sprites nuevos.
+function shadeColor(hex, percent){
+  hex = hex.replace('#','');
+  if(hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+  const num = parseInt(hex,16);
+  let r = (num>>16), g=(num>>8 & 0x00FF), b=(num & 0x0000FF);
+  r = Math.min(255,Math.max(0, r + Math.round(255*(percent/100))));
+  g = Math.min(255,Math.max(0, g + Math.round(255*(percent/100))));
+  b = Math.min(255,Math.max(0, b + Math.round(255*(percent/100))));
+  return '#'+(0x1000000 + r*0x10000 + g*0x100 + b).toString(16).slice(1);
 }
 
-window.addEventListener('error', e => { if (!state.user && state.loading) renderErrorFatal(e.message || 'Error desconocido.'); });
-window.addEventListener('unhandledrejection', e => { if (!state.user && state.loading) renderErrorFatal((e.reason && e.reason.message) || 'Error de conexión.'); });
-
-render(); // muestra "Cargando…" de inmediato en vez de dejar la pantalla en blanco
-try {
-  initFirebase();
-} catch (e) {
-  renderErrorFatal(e.message || 'No se pudo iniciar Firebase.');
+function roundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
 }
+
+function drawHair(headR, style, hairColor){
+  ctx.fillStyle = hairColor;
+  if(style==='spiky'){
+    ctx.beginPath();
+    for(let i=-4;i<=4;i++){
+      const a = i*0.32;
+      ctx.moveTo(0,0);
+      ctx.lineTo(Math.sin(a)*headR*0.6, -headR*0.3);
+      ctx.lineTo(Math.sin(a+0.16)*headR*1.9, -headR*1.9);
+      ctx.lineTo(Math.sin(a+0.32)*headR*0.6, -headR*0.3);
+    }
+    ctx.fill();
+  } else if(style==='spikyShort'){
+    ctx.beginPath();
+    for(let i=-3;i<=3;i++){
+      const a=i*0.34;
+      ctx.moveTo(0,-headR*0.2);
+      ctx.lineTo(Math.sin(a)*headR*0.5,-headR*0.2);
+      ctx.lineTo(Math.sin(a+0.17)*headR*1.3,-headR*1.4);
+      ctx.lineTo(Math.sin(a+0.34)*headR*0.5,-headR*0.2);
+    }
+    ctx.fill();
+  } else if(style==='long'){
+    ctx.beginPath(); ctx.ellipse(0,-headR*0.4,headR*1.05,headR*0.85,0,Math.PI,0); ctx.fill();
+    ctx.fillRect(-headR*1.1,-headR*0.3,headR*0.5,headR*1.6);
+    ctx.fillRect(headR*0.6,-headR*0.3,headR*0.5,headR*1.6);
+  } else if(style==='bob'){
+    ctx.beginPath(); ctx.ellipse(0,-headR*0.25,headR*1.1,headR*0.95,0,Math.PI,0); ctx.fill();
+    ctx.fillRect(-headR*1.15,-headR*0.2,headR*0.4,headR*1.1);
+    ctx.fillRect(headR*0.75,-headR*0.2,headR*0.4,headR*1.1);
+  } else { // short
+    ctx.beginPath(); ctx.ellipse(0,-headR*0.35,headR*1.02,headR*0.8,0,Math.PI,0); ctx.fill();
+  }
+}
+
+function drawAccessory(type, headR, bodyW, bodyH, tint){
+  if(type==='strawhat'){
+    ctx.fillStyle='#e8c878';
+    ctx.beginPath(); ctx.ellipse(0,-bodyH*0.72-headR*0.9,headR*2.1,headR*0.6,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#d4b060'; ctx.beginPath(); ctx.arc(0,-bodyH*0.72-headR*1.5,headR*1.1,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='#a8360c'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.moveTo(-headR,-bodyH*0.72-headR*0.75); ctx.lineTo(headR,-bodyH*0.72-headR*0.75); ctx.stroke();
+  } else if(type==='sword'){
+    ctx.save();
+    ctx.translate(-bodyW*0.3, -bodyH*0.1);
+    ctx.rotate(-0.5);
+    ctx.fillStyle='#d8d8d8'; ctx.fillRect(-2,-26,4,26);
+    ctx.fillStyle='#3a2a1a'; ctx.fillRect(-3,0,6,7);
+    ctx.restore();
+  } else if(type==='gi'){
+    ctx.fillStyle='rgba(0,0,0,0.18)';
+    ctx.beginPath(); ctx.moveTo(-2,-bodyH*0.5); ctx.lineTo(2,-bodyH*0.5); ctx.lineTo(0,bodyH*0.25); ctx.closePath(); ctx.fill();
+  } else if(type==='bandana'){
+    // sombrero de petate/palma: ala ancha y copa baja — silueta de sombrero
+    // campesino mexicano, con diseño propio.
+    const topY = -bodyH*0.72-headR*0.55;
+    // ala ancha, ligeramente ovalada
+    ctx.fillStyle = '#D8B978';
+    ctx.beginPath(); ctx.ellipse(0, topY, headR*2.5, headR*0.85, 0, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#A8834A'; ctx.lineWidth = 1.5; ctx.stroke();
+    // copa baja y ancha
+    ctx.fillStyle = '#E4C98A';
+    ctx.beginPath();
+    ctx.moveTo(-headR*1.1, topY);
+    ctx.quadraticCurveTo(-headR*1.05, topY-headR*1.05, 0, topY-headR*1.15);
+    ctx.quadraticCurveTo(headR*1.05, topY-headR*1.05, headR*1.1, topY);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#A8834A'; ctx.lineWidth = 1.2; ctx.stroke();
+    // cordón/barboquejo colgando, ondeando con el viento (le da movimiento propio)
+    const wave = Math.sin(Date.now()/180)*4;
+    ctx.strokeStyle = '#8a6b3d'; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(-headR*1.3, topY+headR*0.3); ctx.quadraticCurveTo(-headR*1.7+wave, topY+headR*1.1, -headR*1.4+wave*1.3, topY+headR*1.9); ctx.stroke();
+  }
+}
+
+function drawPlayer(){
+  const c = selectedChar;
+  drawHumanoid(player.x, player.y, player.angle, {
+    skin: c.skin,
+    outfit: powerActive ? c.powerColor : c.color,
+    headR: 7.5, bodyW: 15, bodyH: 22,
+    gunLen: hasRifle ? 20 : 12,
+    glow: powerActive ? c.powerColor : null,
+    hairStyle: c.hairStyle, hairColor: powerActive ? '#ffe27a' : c.hair,
+    accessory: c.accessory, headband: c.headband
+  });
+  if(powerActive){
+    ctx.beginPath(); ctx.arc(player.x,player.y-8,player.radius+10,0,Math.PI*2);
+    ctx.strokeStyle=c.powerColor; ctx.lineWidth=2; ctx.globalAlpha=0.55; ctx.stroke(); ctx.globalAlpha=1;
+  }
+}
+
+// tonos de piel según nivel de descomposición
+function decaySkin(decay){
+  if(decay==='bueno') return '#8fae7a';        // verdoso pálido, recién caído
+  if(decay==='desgastado') return '#7a9a6a';    // verde grisáceo, más avanzado
+  return '#6b7a5e';                             // gris verdoso apagado, muy descompuesto
+}
+function decayOutfit(decay, mariachi){
+  if(mariachi){
+    if(decay==='bueno') return '#241f2e';        // traje de charro casi intacto
+    if(decay==='desgastado') return '#3a3230';   // deslucido, manchado
+    return '#4a4038';                            // deshilachado, casi irreconocible
+  }
+  if(decay==='bueno') return '#3d5a3d';
+  if(decay==='desgastado') return '#4a5a3a';
+  return '#5a5a45';
+}
+
+function drawZombieHumanoid(z){
+  const wob = Math.sin(z.wobble)*2;
+  const x = z.x+wob, y = z.y;
+  const angleToTarget = z.__ang || 0;
+  const mariachi = z.kind==='mariachi';
+  const tattered = mariachi ? z.decay!=='bueno' : true;
+  const limp = mariachi ? (z.decay==='muyDesgastado'?1:0.5) : 0.6;
+
+  ctx.save();
+  ctx.translate(x,y);
+  const swing = Math.sin(z.wobble*1.4)* (5+limp*4);
+
+  // legs (uneven, shambling)
+  ctx.strokeStyle = decayOutfit(z.decay, mariachi); ctx.lineWidth=5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-4,8); ctx.lineTo(-4+swing*0.4, 20); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(4,8); ctx.lineTo(4-swing*0.35, 19); ctx.stroke();
+
+  ctx.save();
+  ctx.rotate(angleToTarget);
+  // torso hunched
+  ctx.fillStyle = decayOutfit(z.decay, mariachi);
+  roundRect(-7,-13,14,18,3); ctx.fill();
+  if(tattered){
+    ctx.fillStyle='rgba(0,0,0,0.3)';
+    ctx.fillRect(-6,2,3,5); ctx.fillRect(2,-4,3,6);
+  }
+  // arms reaching forward
+  ctx.strokeStyle = decaySkin(z.decay); ctx.lineWidth=4.2; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-6,-9); ctx.lineTo(-2+10, -2+swing*0.2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(6,-9); ctx.lineTo(2+13, 2+swing*0.15); ctx.stroke();
+  // head, tilted
+  ctx.save(); ctx.translate(0,-17); ctx.rotate(0.25);
+  ctx.beginPath(); ctx.arc(0,0,6.4,0,Math.PI*2); ctx.fillStyle=decaySkin(z.decay); ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=1.2; ctx.stroke();
+  ctx.restore();
+  if(mariachi){
+    ctx.beginPath(); ctx.ellipse(0,-24,12,4.5,0,0,Math.PI*2);
+    ctx.fillStyle= z.decay==='muyDesgastado' ? 'rgba(74,64,56,0.85)' : '#241f18'; ctx.fill();
+  }
+  ctx.restore();
+  ctx.restore();
+
+  // hp bar
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(z.x-16,z.y-32,32,4);
+  ctx.fillStyle= mariachi ? '#FFB627' : '#ff5b5b'; ctx.fillRect(z.x-16,z.y-32,32*(z.hp/z.maxHp),4);
+}
+
+function drawZombies(){
+  for(const z of zombies){
+    z.__ang = Math.atan2((z.__ty||baseY)-z.y, (z.__tx||baseX)-z.x);
+    drawZombieHumanoid(z);
+  }
+}
+
+function drawBoss(){
+  if(!boss) return;
+  const m = currentMap();
+  const bobY = Math.sin(Date.now()/300)*3;
+  ctx.save();
+  ctx.translate(boss.x, boss.y+bobY);
+  // legs
+  ctx.strokeStyle='#241f2e'; ctx.lineWidth=9; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-9,18); ctx.lineTo(-11,40); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(9,18); ctx.lineTo(11,40); ctx.stroke();
+  // torso
+  ctx.fillStyle='#241f2e';
+  roundRect(-18,-22,36,42,6); ctx.fill();
+  ctx.strokeStyle=m.accent; ctx.lineWidth=2;
+  for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(i*10,-20); ctx.lineTo(i*10,18); ctx.stroke(); }
+  // arms
+  ctx.strokeStyle='#6b7a5e'; ctx.lineWidth=8; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-16,-10); ctx.lineTo(-34, 10+Math.sin(Date.now()/400)*8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(16,-10); ctx.lineTo(34, 10-Math.sin(Date.now()/400)*8); ctx.stroke();
+  // head
+  ctx.beginPath(); ctx.arc(0,-30,13,0,Math.PI*2); ctx.fillStyle='#6b7a5e'; ctx.fill();
+  ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=1.6; ctx.stroke();
+  // sombrero solo para jefes con temática de mariachi (invocación)
+  if(boss.ability==='summon' || boss.ability==='combo'){
+    ctx.beginPath(); ctx.ellipse(0,-40,32,10,0,0,Math.PI*2);
+    ctx.fillStyle='#241f18'; ctx.fill();
+    ctx.strokeStyle=m.accent; ctx.lineWidth=2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,-48,9,0,Math.PI*2); ctx.fillStyle='#2e2820'; ctx.fill();
+  } else if(boss.ability==='swarm'){
+    // Enjambre: rodeado de pequeñas siluetas orbitando
+    for(let i=0;i<5;i++){
+      const a = Date.now()/500 + i*(Math.PI*2/5);
+      const ex = Math.cos(a)*40, ey = Math.sin(a)*40*0.6-10;
+      ctx.beginPath(); ctx.arc(ex,ey,5,0,Math.PI*2); ctx.fillStyle=m.accent; ctx.globalAlpha=0.7; ctx.fill(); ctx.globalAlpha=1;
+    }
+  } else if(boss.ability==='shield'){
+    // Muro Viviente: bloques de tabique en el torso
+    ctx.fillStyle='#8a8a7a';
+    for(let r=0;r<3;r++){ for(let c=-1;c<=1;c++){ ctx.fillRect(c*13-6+(r%2)*6.5,-18+r*13,11,9); } }
+  } else if(boss.ability==='charge'){
+    // Excavador: herramienta grande al hombro
+    ctx.save(); ctx.translate(20,-16); ctx.rotate(-0.6);
+    ctx.strokeStyle='#8a6b4a'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-34); ctx.stroke();
+    ctx.fillStyle='#c9c9c9'; ctx.beginPath(); ctx.moveTo(-10,-34); ctx.lineTo(10,-34); ctx.lineTo(0,-46); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  } else if(boss.ability==='slow'){
+    // Corriente: ondas de agua alrededor
+    for(let i=0;i<3;i++){
+      const rad = 20+((Date.now()/300+i*15)%25);
+      ctx.beginPath(); ctx.arc(0,-8,rad,0,Math.PI*2); ctx.strokeStyle=m.accent; ctx.globalAlpha=0.35; ctx.lineWidth=2; ctx.stroke(); ctx.globalAlpha=1;
+    }
+  } else if(boss.ability==='stun'){
+    // Director Zombie: corbata y anteojos
+    ctx.fillStyle='#2a2a2a'; ctx.beginPath(); ctx.moveTo(-3,-22); ctx.lineTo(3,-22); ctx.lineTo(5,0); ctx.lineTo(0,6); ctx.lineTo(-5,0); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2;
+    ctx.beginPath(); ctx.arc(-5,-31,4,0,Math.PI*2); ctx.arc(5,-31,4,0,Math.PI*2); ctx.moveTo(-1,-31); ctx.lineTo(1,-31); ctx.stroke();
+  } else if(boss.ability==='curse'){
+    // Penitente: capucha, sin brazos visibles
+    ctx.fillStyle='#1a0f1a'; ctx.beginPath(); ctx.moveTo(-14,-18); ctx.lineTo(-16,10); ctx.lineTo(16,10); ctx.lineTo(14,-18); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.arc(0,-30,15,Math.PI*0.15,Math.PI*0.85); ctx.fillStyle='#1a0f1a'; ctx.fill();
+  } else {
+    // banda/adorno distintivo con el color del mapa
+    ctx.beginPath(); ctx.ellipse(0,-38,15,4,0,0,Math.PI*2); ctx.fillStyle=m.accent; ctx.globalAlpha=0.8; ctx.fill(); ctx.globalAlpha=1;
+  }
+  if(boss.shielded){
+    ctx.beginPath(); ctx.arc(0,-10,44,0,Math.PI*2); ctx.strokeStyle=m.accent; ctx.lineWidth=3; ctx.globalAlpha=0.6; ctx.stroke(); ctx.globalAlpha=1;
+  }
+  ctx.restore();
+
+  // hp bar top
+  const bw=Math.min(500,canvas.width*0.6);
+  ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(canvas.width/2-bw/2, 14, bw, 10);
+  ctx.fillStyle=m.accent; ctx.fillRect(canvas.width/2-bw/2,14,bw*(boss.hp/boss.maxHp),10);
+  ctx.fillStyle='#fff'; ctx.font='11px Rubik'; ctx.textAlign='center';
+  ctx.fillText(currentMap().bossName.toUpperCase(), canvas.width/2, 12);
+}
+
+function drawBullets(){
+  for(const b of bullets){
+    if(b.btype==='fire'){
+      const ang = Math.atan2(b.vy,b.vx);
+      const flick = 0.85 + Math.sin(Date.now()/40 + b.seed)*0.15;
+      const len = (b.power?15:10)*flick, wid = (b.power?7:4.5)*flick;
+      ctx.save();
+      ctx.translate(b.x,b.y); ctx.rotate(ang);
+      ctx.shadowColor='#FF6B35'; ctx.shadowBlur=16;
+      const grad = ctx.createLinearGradient(-len,0,len*0.5,0);
+      grad.addColorStop(0,'rgba(255,107,53,0)');
+      grad.addColorStop(0.45,'#E4322B');
+      grad.addColorStop(0.8,'#FFB627');
+      grad.addColorStop(1,'#FFE9B0');
+      ctx.beginPath();
+      ctx.moveTo(-len,0);
+      ctx.quadraticCurveTo(-len*0.2,-wid,len*0.6,0);
+      ctx.quadraticCurveTo(-len*0.2,wid,-len,0);
+      ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.shadowBlur=0;
+      ctx.restore();
+    } else {
+      ctx.beginPath(); ctx.arc(b.x,b.y, b.power?6:3.5, 0, Math.PI*2);
+      ctx.fillStyle = b.power ? '#8CE6FF' : '#FFE9B0';
+      ctx.shadowColor = b.power ? '#8CE6FF' : 'transparent'; ctx.shadowBlur = b.power?14:0;
+      ctx.fill(); ctx.shadowBlur=0;
+    }
+  }
+}
+
+function drawPickups(){
+  for(const p of pickups){
+    const y = p.y + Math.sin(p.bob)*4;
+    if(p.type==='health'){
+      // ícono universal de curación: cruz roja sobre círculo blanco, con
+      // resplandor para que se note claramente entre los zombies.
+      ctx.save();
+      ctx.shadowColor='#ff5a5a'; ctx.shadowBlur=14;
+      ctx.beginPath(); ctx.arc(p.x,y,11,0,Math.PI*2);
+      ctx.fillStyle='#fff'; ctx.fill();
+      ctx.strokeStyle='#e23c3c'; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle='#e23c3c';
+      ctx.fillRect(p.x-2.5, y-7, 5, 14);
+      ctx.fillRect(p.x-7, y-2.5, 14, 5);
+      ctx.restore();
+      continue;
+    }
+    ctx.beginPath();
+    if(p.type==='orb'){ ctx.arc(p.x,y,10,0,Math.PI*2); ctx.fillStyle='#8CE6FF'; ctx.shadowColor='#8CE6FF'; ctx.shadowBlur=16; }
+    else if(p.type==='rifle'){ ctx.rect(p.x-12,y-4,24,8); ctx.fillStyle='#c9c9c9'; }
+    else { ctx.rect(p.x-9,y-9,18,18); ctx.fillStyle='#FFB627'; }
+    ctx.fill(); ctx.shadowBlur=0;
+  }
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.globalAlpha = Math.max(0,p.life*2);
+    if(p.type==='hit'){ ctx.beginPath(); ctx.arc(p.x,p.y,4,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill(); }
+    else if(p.type==='death'){ ctx.beginPath(); ctx.arc(p.x,p.y,10*(1-p.life),0,Math.PI*2); ctx.strokeStyle=p.color||'#fff'; ctx.lineWidth=3; ctx.stroke(); }
+    else if(p.type==='shock'){ ctx.beginPath(); ctx.arc(p.x,p.y,220*(1-p.life),0,Math.PI*2); ctx.strokeStyle='#FFB627'; ctx.lineWidth=4; ctx.stroke(); }
+    else if(p.type==='shield'){ ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.strokeStyle='#B98CFF'; ctx.lineWidth=2; ctx.stroke(); }
+    else if(p.type==='heal'){
+      const ry = p.y - (1-p.life)*20;
+      ctx.fillStyle='#3ddc6a';
+      ctx.font='bold 18px sans-serif'; ctx.textAlign='center';
+      ctx.fillText('+', p.x, ry);
+    }
+    else if(p.type==='ember'){
+      ctx.beginPath(); ctx.arc(p.x,p.y, 3.5*p.life+0.5, 0, Math.PI*2);
+      ctx.fillStyle = p.life>0.15 ? '#FFB627' : '#E4322B';
+      ctx.shadowColor='#FF6B35'; ctx.shadowBlur=8;
+      ctx.fill(); ctx.shadowBlur=0;
+    }
+    ctx.globalAlpha=1;
+  }
+}
+
+function render(){
+  if(state!=='playing'){ return; }
+  drawPlaza();
+  drawPickups();
+  drawZombies();
+  drawBoss();
+  drawBullets();
+  drawPlayer();
+  drawParticles();
+}
+
+// ---------- loop ----------
+function loop(t){
+  const dt = Math.min(0.033, (t-lastTime)/1000 || 0);
+  lastTime = t;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+// ---------- Firebase: récord global ----------
+// Proyecto de Firebase dedicado solo a este juego (separado del Sistema Escolar).
+const GAME_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAtyTqcSC55mK7DV6fcqkgsaOZOCNK7WiQ",
+  authDomain: "asedio-tecalitlan.firebaseapp.com",
+  databaseURL: "https://asedio-tecalitlan-default-rtdb.firebaseio.com",
+  projectId: "asedio-tecalitlan",
+  storageBucket: "asedio-tecalitlan.firebasestorage.app",
+  messagingSenderId: "388006729459",
+  appId: "1:388006729459:web:b0da0e1ff430df4b468986"
+};
+let recordsRef = null;
+try{
+  firebase.initializeApp(GAME_FIREBASE_CONFIG);
+  recordsRef = firebase.database().ref('records');
+}catch(e){ console.warn('Firebase del récord no configurado todavía', e); }
+
+const PLAYER_NAME_KEY = 'asedioTecalitlanPlayerName';
+function getPlayerName(){ return (document.getElementById('playerNameInput').value || '').trim().slice(0,14); }
+(function initPlayerName(){
+  const saved = localStorage.getItem(PLAYER_NAME_KEY);
+  if(saved) document.getElementById('playerNameInput').value = saved;
+})();
+document.getElementById('playerNameInput').addEventListener('input', ()=>{
+  localStorage.setItem(PLAYER_NAME_KEY, getPlayerName());
+});
+
+function computeScore(){
+  return kills*10 + mapIndex*500 + Math.floor(wave)*50 + loopCount*4000;
+}
+function submitScore(){
+  const name = getPlayerName() || 'ANÓNIMO';
+  const score = computeScore();
+  const el = document.getElementById('endScoreSaved');
+  if(!recordsRef){ el.textContent = ''; return; }
+  el.textContent = 'Guardando récord...';
+  recordsRef.push({
+    name, score, kills, mapReached: mapIndex+1, wave, charName: selectedChar.name,
+    date: new Date().toISOString()
+  }).then(()=>{
+    el.textContent = '✅ Récord guardado — ' + score + ' pts';
+    renderLeaderboard('leaderboardEnd');
+  }).catch(()=>{ el.textContent = 'No se pudo guardar el récord (revisa tu conexión)'; });
+}
+function renderLeaderboard(containerId, limit){
+  const el = document.getElementById(containerId);
+  if(!recordsRef){
+    el.innerHTML = '<div class="lbTitle">🏆 TOP RÉCORD</div><div class="lbEmpty">El récord en línea aún no está conectado.</div>';
+    return;
+  }
+  el.innerHTML = '<div class="lbTitle">🏆 TOP RÉCORD</div><div class="lbEmpty">Cargando...</div>';
+  recordsRef.orderByChild('score').limitToLast(limit||10).once('value').then(snap=>{
+    const val = snap.val() || {};
+    const rows = Object.values(val).sort((a,b)=>b.score-a.score);
+    if(!rows.length){ el.innerHTML = '<div class="lbTitle">🏆 TOP RÉCORD</div><div class="lbEmpty">Todavía nadie tiene récord — ¡sé el primero!</div>'; return; }
+    el.innerHTML = '<div class="lbTitle">🏆 TOP RÉCORD</div>' + rows.map((r,i)=>
+      `<div class="lbRow"><span class="lbRank">${i+1}°</span><span class="lbName">${escapeHtmlLb(r.name)}</span><span class="lbScore">${r.score}</span></div>`
+    ).join('');
+  }).catch(()=>{ el.innerHTML = '<div class="lbTitle">🏆 TOP RÉCORD</div><div class="lbEmpty">No se pudo cargar el récord.</div>'; });
+}
+function escapeHtmlLb(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// El récord ahora siempre está visible debajo de los personajes, se carga
+// solo al abrir el juego (ya no depende de un botón para desplegarlo).
+renderLeaderboard('leaderboardStart');
+
+// ---------- screen flow ----------
+function startGame(){
+  if(!getPlayerName()){
+    const input = document.getElementById('playerNameInput');
+    input.style.borderColor = '#ff5a5a';
+    input.placeholder = 'Escribe tu nombre o alias para jugar';
+    input.focus();
+    setTimeout(()=>{ input.style.borderColor = 'var(--gold)'; }, 1600);
+    return;
+  }
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('endScreen').style.display='none';
+  document.getElementById('hud').style.display='flex';
+  if(isTouch){ document.getElementById('fsBtn').style.display='flex'; }
+  resetGame();
+  document.getElementById('mapLabelHud').textContent = 'Mapa 1 · ' + currentMap().name;
+  document.getElementById('charNameHud').textContent = selectedChar.name.toUpperCase();
+  state='playing';
+  startAudioOnce();
+  GameAudio.scheduleLoop('game');
+  showMapIntro(startWave);
+}
+function endGame(won, isFinal){
+  state='over';
+  document.getElementById('hud').style.display='none';
+  document.getElementById('powerTimer').style.display='none';
+  document.getElementById('endScreen').style.display='flex';
+  document.getElementById('endTitle').textContent = isFinal ? '¡TECALITLÁN A SALVO!' : (won ? 'MAPA SUPERADO' : 'BASE DESTRUIDA');
+  document.getElementById('endStats').textContent = (loopCount>0 ? `Ronda ${loopCount+1} · ` : '') + `Mapa: ${currentMap().name} · Oleada: ${wave} · Kills: ${kills} · Puntaje: ${computeScore()}`;
+  document.getElementById('endScoreSaved').textContent = '';
+  GameAudio.sfx('gameover');
+  GameAudio.scheduleLoop('menu');
+  submitScore();
+}
+function backToSelect(){
+  document.getElementById('endScreen').style.display='none';
+  document.getElementById('startScreen').style.display='flex';
+  state='menu';
+  mapIndex = 0;
+  loadStartBgPhoto();
+  renderLeaderboard('leaderboardStart');
+}
+loadStartBgPhoto();
+
+document.getElementById('playBtn').addEventListener('click', ()=>{ tryLockLandscape(); startGame(); });
+document.getElementById('retryBtn').addEventListener('click', startGame);
+document.getElementById('fsBtn').addEventListener('click', tryLockLandscape);
+document.getElementById('fsBtnStart').addEventListener('click', tryLockLandscape);
+document.getElementById('backToSelectBtn').addEventListener('click', backToSelect);
+
+function syncMuteButtons(){
+  const icon = GameAudio.isMuted() ? '🔇' : '🔊';
+  document.getElementById('muteBtn').textContent = icon;
+  document.getElementById('muteBtnStart').textContent = icon;
+}
+function onMuteClick(e){
+  e.stopPropagation();
+  startAudioOnce();
+  GameAudio.toggleMute();
+  syncMuteButtons();
+}
+document.getElementById('muteBtn').addEventListener('click', onMuteClick);
+document.getElementById('muteBtnStart').addEventListener('click', onMuteClick);
+
+})();
 </script>
 </body>
 </html>
