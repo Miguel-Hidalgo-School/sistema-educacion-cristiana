@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Secretaría de Educación Cristiana</title>
-<meta name="theme-color" content="#111111">
+<meta name="theme-color" content="#2563eb">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -15,17 +15,18 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #
 .hidden { display: none !important; }
 
 /* ---------- Login ---------- */
-.center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: #eef0f4; }
+.center-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; background: linear-gradient(135deg,#dbeafe,#e0e7ff); }
 .login-card { background: #fff; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); width: 100%; max-width: 380px; overflow: hidden; text-align: center; }
-.login-hero { background: #111111; padding: 28px 20px 22px; }
-.login-hero img { max-width: 220px; width: 100%; height: auto; }
+.login-hero { background: linear-gradient(135deg,#2563eb,#7c3aed); padding: 28px 20px 22px; }
+.login-hero .logo-box { width: 96px; height: 96px; border-radius: 18px; background: rgba(255,255,255,0.2); margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; backdrop-filter: blur(4px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+.login-hero img { max-width: 100%; width: 100%; height: 100%; object-fit: cover; }
 .login-body { padding: 28px 28px 32px; }
 .login-body h1 { font-size: 1.05em; margin-bottom: 4px; color: #1f2937; }
 .login-body p.sub { color: #6b7280; font-size: 0.82em; margin-bottom: 22px; line-height: 1.4; }
 .field { border: 1px solid #d1d5db; border-radius: 10px; padding: 11px 12px; margin-bottom: 10px; text-align: left; }
 .field input { border: none; outline: none; width: 100%; font-size: 0.9em; background: transparent; }
 .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 10px; font-weight: 700; font-size: 0.95em; cursor: pointer; }
-.btn-dark { background: #111111; color: #fff; }
+.btn-dark { background: linear-gradient(135deg,#2563eb,#7c3aed); color: #fff; box-shadow: 0 6px 14px rgba(79,70,229,0.3); }
 .btn-blue { background: #2563eb; color: #fff; }
 .btn-gray { background: #f3f4f6; color: #374151; }
 .btn-green { background: #16a34a; color: #fff; }
@@ -36,12 +37,12 @@ body { font-family: -apple-system, 'Segoe UI', Roboto, sans-serif; background: #
 .hint { font-size: 0.72em; color: #9ca3af; margin-top: 16px; line-height: 1.4; }
 
 /* ---------- Shell ---------- */
-header.topbar { background: #111111; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; }
+header.topbar { background: linear-gradient(120deg,#2563eb,#7c3aed); border-bottom: none; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40; box-shadow: 0 2px 8px rgba(37,99,235,0.25); }
 header.topbar .brand { display: flex; align-items: center; gap: 8px; }
-header.topbar .brand img { height: 26px; width: auto; }
+header.topbar .brand img { height: 30px; width: 30px; border-radius: 8px; object-fit: cover; background: rgba(255,255,255,0.2); }
 header.topbar .brand span { color: #fff; font-weight: 700; font-size: 0.95em; }
 .userchip { display: flex; align-items: center; gap: 8px; font-size: 0.78em; color: rgba(255,255,255,0.85); }
-.userchip .av { width: 30px; height: 30px; border-radius: 999px; background: #4f46e5; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75em; }
+.userchip .av { width: 30px; height: 30px; border-radius: 999px; background: linear-gradient(135deg,#3b82f6,#8b5cf6); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75em; }
 .userchip button { border: none; background: rgba(255,255,255,0.15); color: #fff; font-size: 0.78em; cursor: pointer; padding: 5px 10px; border-radius: 999px; }
 main { max-width: 640px; width: 100%; margin: 0 auto; padding: 16px; }
 .card { background: #fff; border-radius: 14px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 12px; }
@@ -49,9 +50,9 @@ main { max-width: 640px; width: 100%; margin: 0 auto; padding: 16px; }
 .rolebadge.director { background: #ede9fe; color: #6d28d9; }
 .rolebadge.subadmin { background: #dbeafe; color: #1d4ed8; }
 .rolebadge.maestro { background: #dcfce7; color: #15803d; }
-.escuela-card { cursor: pointer; border-radius: 18px; padding: 28px; text-align: center; color: #fff; margin-bottom: 14px; }
+.escuela-card { cursor: pointer; border-radius: 18px; padding: 28px; text-align: center; color: #fff; margin-bottom: 14px; box-shadow: 0 10px 24px rgba(37,99,235,0.2); transition: transform 0.15s; }
 .escuela-card.eco { background: linear-gradient(135deg,#2563eb,#4f46e5); }
-.escuela-card.ministerios { background: linear-gradient(135deg,#059669,#065f46); }
+.escuela-card.ministerios { background: linear-gradient(135deg,#059669,#065f46); box-shadow: 0 10px 24px rgba(5,150,105,0.2); }
 .escuela-card p.title { font-weight: 700; font-size: 1.15em; margin-top: 6px; }
 .escuela-card p.desc { font-size: 0.78em; opacity: 0.85; margin-top: 4px; }
 .row-flex { display: flex; gap: 8px; }
@@ -549,7 +550,7 @@ function renderLogin() {
   return `
   <div class="center-screen">
     <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
+      <div class="login-hero"><div class="logo-box"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div></div>
       <div class="login-body">
         <h1>Secretaría de Educación Cristiana</h1>
         <p class="sub">${esSignup ? 'Crear la cuenta oficial del director (solo la primera vez)' : 'Distrito de Guadalajara · Sistema Escolar'}</p>
@@ -573,7 +574,7 @@ function renderSinAcceso() {
   return `
   <div class="center-screen">
     <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
+      <div class="login-hero"><div class="logo-box"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div></div>
       <div class="login-body">
         <h1>Sin acceso</h1>
         <p class="sub">Tu cuenta existe pero no tiene un perfil activo en el sistema. Pide a tu director(a) que la habilite.</p>
@@ -587,7 +588,7 @@ function renderCambiarPassword() {
   return `
   <div class="center-screen">
     <div class="login-card">
-      <div class="login-hero"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div>
+      <div class="login-hero"><div class="logo-box"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="Así como Jesús"></div></div>
       <div class="login-body">
         <h1>Cambia tu contraseña</h1>
         <p class="sub">Por seguridad, antes de continuar debes poner una contraseña nueva que solo tú conozcas.</p>
@@ -626,7 +627,7 @@ function renderShell() {
 
   return `
   <header class="topbar">
-    <div class="brand"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="logo"></div>
+    <div class="brand"><img src="data:image/jpeg;base64,${LOGO_B64}" alt="logo"><span>Educación Cristiana</span></div>
     <div class="userchip">
       <div class="av">${inicial}</div>
       <span>${nombre}</span>
