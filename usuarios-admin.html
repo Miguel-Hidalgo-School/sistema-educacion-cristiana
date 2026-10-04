@@ -4,170 +4,199 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administración de Usuarios</title>
+  <style>
+    /* Estilos para que se vea bien */
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f0f4f8; }
+    .contenedor { max-width: 800px; margin: 0 auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1, h2 { color: #2c5282; }
+    .campo { margin: 12px 0; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+    input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; }
+    button { background: #2c5282; color: white; border: none; padding: 12px 25px; border-radius: 5px; font-size: 15px; cursor: pointer; margin-top: 10px; }
+    button:hover { background: #2a4365; }
+    .usuario { border-bottom: 1px solid #e2e8f0; padding: 12px 0; }
+    .usuario:last-child { border-bottom: none; }
+    .rol { color: #48bb78; font-size: 13px; margin: 4px 0; }
+    .correo { color: #718096; font-size: 13px; }
+    .mensaje { padding: 10px; border-radius: 5px; margin: 10px 0; }
+    .error { background: #fed7d7; color: #c53030; }
+    .vacio { color: #718096; font-style: italic; }
+    hr { border: none; border-top: 1px solid #e2e8f0; margin: 25px 0; }
+  </style>
 </head>
 <body>
 
+<div class="contenedor">
   <h1>Administración de Usuarios</h1>
 
-  <h3>+ Crear Nuevo Usuario</h3>
-  <div>
-    <label>Nombre completo:</label><br>
-    <input type="text" id="nombreCompleto" placeholder="Nombre completo"><br><br>
-
-    <label>Correo (antes del @):</label><br>
-    <input type="text" id="correoParte" placeholder="felipe.avalos"><br><br>
-
-    <label>WhatsApp (solo números):</label><br>
-    <input type="text" id="whatsapp" placeholder="312..."><br><br>
-
-    <label>
-      <input type="checkbox" id="esSubAdmin"> Subadministrador
-    </label><br>
-    <label>
-      <input type="checkbox" id="esEco"> Escuela de Formación (ECO)
-    </label>
-    <label>
-      <input type="checkbox" id="esEm"> Escuela de Ministros (EM)
-    </label><br><br>
-
-    <button onclick="crearUsuario()">Crear Usuario</button>
+  <h2>Crear Nuevo Usuario</h2>
+  <div class="campo">
+    <label>Nombre completo:</label>
+    <input type="text" id="nombreCompleto" placeholder="Nombre y apellidos">
   </div>
+  <div class="campo">
+    <label>Correo (antes del @):</label>
+    <input type="text" id="correoParte" placeholder="nombre.apellido">
+  </div>
+  <div class="campo">
+    <label>WhatsApp (solo números):</label>
+    <input type="text" id="whatsapp" placeholder="3121234567">
+  </div>
+  <div class="campo">
+    <label style="display:inline-block; margin-right:15px; font-weight:normal;">
+      <input type="checkbox" id="esSubAdmin"> Subadministrador
+    </label>
+    <label style="display:inline-block; margin-right:15px; font-weight:normal;">
+      <input type="checkbox" id="esEco"> ECO
+    </label>
+    <label style="display:inline-block; font-weight:normal;">
+      <input type="checkbox" id="esEm"> EM
+    </label>
+  </div>
+  <button onclick="crearUsuario()">Crear Usuario</button>
 
   <hr>
 
-  <h3>Usuarios del Sistema</h3>
+  <h2>Usuarios del Sistema</h2>
   <div id="listaUsuarios"></div>
 
   <br>
   <button onclick="cerrarSesion()">Cerrar Sesión</button>
+</div>
 
 
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-  <script>
-    // =============================================
-    // PON AQUÍ TUS DATOS DE FIREBASE — VERIFICA ESTO
-    // =============================================
-    const firebaseConfig = {
-      apiKey: "AQUÍ_TU_API_KEY",
-      authDomain: "TU_PROYECTO.firebaseapp.com",
-      projectId: "TU_PROYECTO",
-      storageBucket: "TU_PROYECTO.appspot.com",
-      messagingSenderId: "NUMERO_ID",
-      appId: "TU_APP_ID"
-    };
+<script>
+  // === PON TUS DATOS DE FIREBASE AQUÍ ===
+  const firebaseConfig = {
+    apiKey: "PON_TU_apiKey_AQUI",
+    authDomain: "tu-proyecto.firebaseapp.com",
+    projectId: "tu-proyecto",
+    storageBucket: "tu-proyecto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123:web:abc123"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    // =============================================
-    // CARGAR LISTA — SIN ORDENAR PARA QUE NO FALLE
-    // =============================================
-    async function cargarLista() {
-      const lista = document.getElementById('listaUsuarios');
-      try {
-        // Lee TODOS sin exigir orden — así no falla si falta algún campo
-        const snap = await db.collection('usuarios').get();
-        
-        if (snap.empty) {
-          lista.innerHTML = "<p style='color:#6b7280;'>No hay usuarios registrados</p>";
-          return;
-        }
-        
-        lista.innerHTML = "";
-        snap.forEach(doc => {
-          const u = doc.data();
-          
-          // Detectar rol
-          let rolUsuario = 'Usuario';
-          if (u.roles?.subAdmin === true) rolUsuario = 'Subadministrador';
-          if (u.roles?.superAdmin === true) rolUsuario = 'Administrador';
-          
-          // Mostrar datos — acepta cualquiera de los dos nombres
-          const nombre = u.nombreCompleto || u.nombre || 'Sin nombre';
-          const correo = u.email || u.correo || 'Sin correo';
-          const telefono = u.whatsapp || u.telefono || '';
-          
-          lista.innerHTML += `
-            <div style="border:1px solid #ddd; padding:12px; margin:8px 0; border-radius:6px;">
-              <div><strong>${nombre}</strong></div>
-              <div style="color:#555; margin:4px 0;">${rolUsuario}</div>
-              <div style="font-size:13px; color:#777;">${correo}</div>
-              ${telefono ? `<a href="https://wa.me/${telefono}" target="_blank" style="display:inline-block; margin-top:6px;">📩 Enviar por WhatsApp</a>` : ''}
-            </div>
-          `;
-        });
-      } catch (e) {
-        console.error(e);
-        lista.innerHTML = `<p style='color:red;'>ERROR: ${e.message}</p>`;
-      }
-    }
-
-    // =============================================
-    // CREAR USUARIO
-    // =============================================
-    async function crearUsuario() {
-      const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
-      const correoParte = document.getElementById('correoParte').value.trim();
-      const numWhatsApp = document.getElementById('whatsapp').value.trim();
-      const esSubAdmin = document.getElementById('esSubAdmin').checked;
-      const esEco = document.getElementById('esEco').checked;
-      const esEm = document.getElementById('esEm').checked;
-
-      if (!nombreCompleto || !correoParte || !numWhatsApp) {
-        alert('Llena todos los campos');
+  // =============================================
+  // CARGAR LISTA — LEE TUS CAMPOS TAL CUAL ESTÁN
+  // =============================================
+  async function cargarLista() {
+    const lista = document.getElementById('listaUsuarios');
+    try {
+      const snap = await db.collection('usuarios').get();
+      
+      if (snap.empty) {
+        lista.innerHTML = '<p class="mensaje vacio">No hay usuarios registrados</p>';
         return;
       }
-
-      const correoCompleto = correoParte + '@terceradecolima.edu.iafcj';
-      const contraseñaTemp = Math.random().toString(36).slice(-8);
-
-      try {
-        await auth.createUserWithEmailAndPassword(correoCompleto, contraseñaTemp);
+      
+      lista.innerHTML = "";
+      snap.forEach(doc => {
+        const u = doc.data();
         
-        await db.collection('usuarios').doc(correoCompleto).set({
-          nombreCompleto: nombreCompleto,
-          email: correoCompleto,
-          whatsapp: numWhatsApp,
-          contraseñaTemporal: true,
-          eco: esEco,
-          em: esEm,
-          roles: {
-            subAdmin: esSubAdmin,
-            superAdmin: false
-          },
-          creadoPor: auth.currentUser.email,
-          fechaCreacion: new Date()
-        });
-
-        alert('✅ Usuario creado!\nContraseña temporal: ' + contraseñaTemp);
-        cargarLista();
+        let rolUsuario = 'Usuario';
+        if (u.roles?.superAdmin === true) rolUsuario = 'Administrador';
+        else if (u.roles?.subAdmin === true) rolUsuario = 'Subadministrador';
         
-        // Limpiar formulario
-        document.getElementById('nombreCompleto').value = '';
-        document.getElementById('correoParte').value = '';
-        document.getElementById('whatsapp').value = '';
-        document.getElementById('esSubAdmin').checked = false;
-        document.getElementById('esEco').checked = false;
-        document.getElementById('esEm').checked = false;
+        const nombre = u.nombreCompleto || u.nombre || 'Sin nombre';
+        const correo = u.email || u.correo || 'Sin correo';
+        const telefono = u.whatsapp || u.telefono || '';
+        
+        lista.innerHTML += `
+          <div class="usuario">
+            <div><strong>${nombre}</strong></div>
+            <div class="rol">${rolUsuario}</div>
+            <div class="correo">${correo}</div>
+            ${telefono ? `<a href="https://wa.me/${telefono}" target="_blank" style="font-size:13px;">📩 Enviar WhatsApp</a>` : ''}
+          </div>
+        `;
+      });
+    } catch (e) {
+      console.error(e);
+      lista.innerHTML = `<p class="mensaje error">Error: ${e.message}</p>`;
+    }
+  }
 
-      } catch (e) {
-        alert('Error: ' + e.message);
-      }
+  // =============================================
+  // CREAR USUARIO
+  // =============================================
+  async function crearUsuario() {
+    const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+    const correoParte = document.getElementById('correoParte').value.trim();
+    const numWhatsApp = document.getElementById('whatsapp').value.trim();
+    const esSubAdmin = document.getElementById('esSubAdmin').checked;
+    const esEco = document.getElementById('esEco').checked;
+    const esEm = document.getElementById('esEm').checked;
+
+    if (!nombreCompleto || !correoParte || !numWhatsApp) {
+      alert('Llena todos los campos');
+      return;
     }
 
-    function cerrarSesion() {
-      auth.signOut().then(() => window.location.href = 'index.html');
-    }
+    const correoCompleto = correoParte + '@terceradecolima.edu.iafcj';
+    const contraseñaTemp = Math.random().toString(36).slice(-8);
 
-    auth.onAuthStateChanged(u => {
-      if (!u) window.location.href = 'index.html';
-      else cargarLista();
-    });
-  </script>
+    try {
+      await auth.createUserWithEmailAndPassword(correoCompleto, contraseñaTemp);
+      
+      await db.collection('usuarios').doc(correoCompleto).set({
+        nombreCompleto: nombreCompleto,
+        email: correoCompleto,
+        whatsapp: numWhatsApp,
+        contraseñaTemporal: true,
+        eco: esEco,
+        em: esEm,
+        roles: {
+          subAdmin: esSubAdmin,
+          superAdmin: false
+        },
+        creadoPor: auth.currentUser.email,
+        fechaCreacion: new Date()
+      });
+
+      alert('✅ Usuario creado!\nContraseña temporal: ' + contraseñaTemp);
+      cargarLista();
+      
+      // Limpiar formulario
+      document.getElementById('nombreCompleto').value = '';
+      document.getElementById('correoParte').value = '';
+      document.getElementById('whatsapp').value = '';
+      document.getElementById('esSubAdmin').checked = false;
+      document.getElementById('esEco').checked = false;
+      document.getElementById('esEm').checked = false;
+
+    } catch (e) {
+      alert('Error: ' + e.message);
+    }
+  }
+
+  // =============================================
+  // CERRAR SESIÓN
+  // =============================================
+  function cerrarSesion() {
+    if (confirm('¿Cerrar sesión?')) {
+      auth.signOut().then(() => {
+        window.location.href = 'index.html';
+      });
+    }
+  }
+
+  // =============================================
+  // CARGAR AL INICIAR — YA NO TE REGRESA SOLO
+  // =============================================
+  auth.onAuthStateChanged(u => {
+    if (u) {
+      cargarLista();
+    }
+  });
+</script>
 
 </body>
 </html>
