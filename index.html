@@ -6,10 +6,10 @@
 <title>Sistema de Gestión Escolar</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-html, body{min-height:100%}
 body{background:#1e50c8;padding:30px 20px}
+.oculto{display:none !important}
 
-/* === LOGIN === */
+/* LOGIN */
 #pantallaLogin{max-width:420px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 #pantallaLogin h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
 .campo{margin-bottom:18px}
@@ -21,41 +21,37 @@ body{background:#1e50c8;padding:30px 20px}
 .error{background:#fee2e2;color:#b91c1c}
 .exito{background:#d1fae5;color:#065f46}
 
-/* === PANEL PRINCIPAL === */
+/* PANEL PRINCIPAL */
 #pantallaPrincipal{max-width:500px;margin:0 auto}
 header{text-align:center;color:white;margin-bottom:40px}
 header h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
 header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
-header p{font-size:1rem;opacity:.9}
 .tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block}
 .tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
 .tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
 .tarjeta p{color:#6b7280;font-size:.95rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem;padding-bottom:20px}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 .btn-salir{background:transparent;color:white;border:none;text-decoration:underline;cursor:pointer;margin-top:10px}
-
-/* === OCULTAR DESDE EL INICIO === */
-.oculto{display:none !important}
 </style>
 </head>
 <body>
 
-<!-- LOGIN - Por defecto VISIBLE -->
+<!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="pantallaLogin">
 <h1>🔐 Iniciar Sesión</h1>
 <div class="campo">
 <label>Correo electrónico</label>
-<input type="email" id="correo" required>
+<input type="email" id="correo">
 </div>
 <div class="campo">
 <label>Contraseña</label>
-<input type="password" id="clave" required>
+<input type="password" id="clave">
 </div>
 <button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
 <div id="mensaje" class="mensaje"></div>
 </div>
 
-<!-- PANEL - Por defecto OCULTO -->
+<!-- PANEL PRINCIPAL — YA INCLUYE ADMINISTRAR USUARIOS -->
 <div id="pantallaPrincipal" class="oculto">
 <header>
 <h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
@@ -93,6 +89,13 @@ header p{font-size:1rem;opacity:.9}
 <p>Registro diario</p>
 </a>
 
+<!-- ✅ AQUÍ ESTÁ LA OPCIÓN DE CREAR USUARIOS -->
+<a href="usuarios-admin.html" class="tarjeta">
+<div class="icono">👤</div>
+<h3>Administrar Usuarios</h3>
+<p>Crear nuevos usuarios y asignar permisos</p>
+</a>
+
 <a href="pagos.html" class="tarjeta">
 <div class="icono">💰</div>
 <h3>Pagos</h3>
@@ -113,61 +116,36 @@ firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const login = document.getElementById('pantallaLogin');
 const principal = document.getElementById('pantallaPrincipal');
-const btnEntrar = document.getElementById('btnEntrar');
-const btnSalir = document.getElementById('btnSalir');
-const mensaje = document.getElementById('mensaje');
 
-// Mostrar sin parpadeo
-function mostrarPanel() {
-  login.classList.add('oculto');
-  principal.classList.remove('oculto');
-  window.scrollTo(0,0);
-}
-function mostrarLogin() {
-  login.classList.remove('oculto');
-  principal.classList.add('oculto');
-  window.scrollTo(0,0);
-}
+function mostrarPanel(){login.classList.add('oculto');principal.classList.remove('oculto')}
+function mostrarLogin(){login.classList.remove('oculto');principal.classList.add('oculto')}
 
-// Detectar sesión
-auth.onAuthStateChanged(usuario => {
-  if (usuario) { mostrarPanel(); }
-  else { mostrarLogin(); }
-});
+auth.onAuthStateChanged(u => u ? mostrarPanel() : mostrarLogin());
 
-// Iniciar sesión
-btnEntrar.addEventListener('click', async () => {
-  const correo = document.getElementById('correo').value.trim();
-  const clave = document.getElementById('clave').value;
-  if (!correo || !clave) return mostrarMensaje('Escribe correo y contraseña', 'error');
-  btnEntrar.disabled = true;
-  btnEntrar.textContent = 'Verificando...';
-  mensaje.style.display = 'none';
-  try {
-    await auth.signInWithEmailAndPassword(correo, clave);
-    mostrarMensaje('✅ Acceso correcto...', 'exito');
-  } catch (err) {
-    btnEntrar.disabled = false;
-    btnEntrar.textContent = '✅ Entrar';
-    let texto = 'Error de acceso';
-    if (err.code === 'auth/user-not-found') texto = 'No existe este correo';
-    if (err.code === 'auth/wrong-password') texto = 'Contraseña incorrecta';
-    if (err.code === 'auth/too-many-requests') texto = 'Demasiados intentos — intenta más tarde';
-    mostrarMensaje(texto, 'error');
+document.getElementById('btnEntrar').addEventListener('click', async () => {
+  const c = document.getElementById('correo').value.trim();
+  const p = document.getElementById('clave').value;
+  if(!c || !p) return msj('Escribe correo y contraseña', 'error');
+  const b = document.getElementById('btnEntrar');b.disabled=true;b.textContent='Verificando...';
+  try{
+    await auth.signInWithEmailAndPassword(c,p);
+    msj('✅ Acceso correcto...','exito');
+  }catch(e){
+    b.disabled=false;b.textContent='✅ Entrar';
+    let t='Error de acceso';
+    if(e.code==='auth/user-not-found')t='No existe este correo';
+    if(e.code==='auth/wrong-password')t='Contraseña incorrecta';
+    if(e.code==='auth/too-many-requests')t='Demasiados intentos — intenta más tarde';
+    msj(t,'error');
   }
 });
 
-// Cerrar sesión
-btnSalir.addEventListener('click', () => {
-  auth.signOut().catch(err => alert('Error: ' + err.message));
-});
+document.getElementById('btnSalir').addEventListener('click', () => auth.signOut());
 
-function mostrarMensaje(texto, tipo) {
-  mensaje.textContent = texto;
-  mensaje.className = 'mensaje ' + tipo;
-  mensaje.style.display = 'block';
+function msj(texto,tipo){
+  const m=document.getElementById('mensaje');
+  m.textContent=texto;m.className='mensaje '+tipo;m.style.display='block';
 }
 </script>
-
 </body>
 </html>

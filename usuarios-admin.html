@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Administrar Usuarios</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
+.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
+.volver:hover{text-decoration:underline}
+header{text-align:center;color:white;margin-bottom:30px}
+header h1{font-size:1.5rem;margin-bottom:8px}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px}
+.tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:15px;text-align:center}
+.campo{margin-bottom:15px}
+.campo label{display:block;margin-bottom:5px;font-weight:bold;color:#374151;font-size:.9rem}
+.campo input, .campo select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
+button{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:1rem}
+button:hover{background:#7c2d12}
+button:disabled{background:#9ca3af;cursor:not-allowed}
+.mensaje{margin-top:15px;padding:12px;border-radius:8px;text-align:center;font-weight:bold;display:none}
+.exito{background:#d1fae5;color:#065f46}
+.error{background:#fee2e2;color:#b91c1c}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+.aviso{background:#fef3c7;padding:12px;border-radius:8px;margin-bottom:20px;color:#92400e}
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+<a href="index.html" class="volver">← Volver al Panel Principal</a>
+
+<header>
+<h1>👤 Administrar Usuarios</h1>
+<p>Solo para Administradores</p>
+</header>
+
+<div class="aviso">
+ℹ️ Completa todos los datos para crear un nuevo usuario del sistema.
+</div>
+
+<div class="tarjeta">
+<h3>Agregar Nuevo Usuario</h3>
+
+<div class="campo">
+<label>Correo electrónico</label>
+<input type="email" id="correo" placeholder="ejemplo@correo.com" required>
+</div>
+
+<div class="campo">
+<label>Nombre completo</label>
+<input type="text" id="nombreCompleto" placeholder="Nombre y Apellido" required>
+</div>
+
+<div class="campo">
+<label>Contraseña</label>
+<input type="text" id="clave" placeholder="Mínimo 6 caracteres" required>
+</div>
+
+<div class="campo">
+<label>Rol / Permiso</label>
+<select id="rol">
+<option value="docente">Docente</option>
+<option value="admin">Administrador</option>
+</select>
+</div>
+
+<button id="btnCrear">✅ Crear Usuario</button>
+<div id="mensaje" class="mensaje"></div>
+</div>
+
+<div class="pie">
+© 2026 Chavarría Producciones
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp(window.firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Proteger la página: solo administradores pueden entrar
+auth.onAuthStateChanged(async (usuarioActual) => {
+  if (!usuarioActual) {
+    window.location.href = 'index.html';
+    return;
+  }
+  const ref = await db.collection('usuarios').doc(usuarioActual.uid).get();
+  if (!ref.exists || ref.data().rol !== 'admin') {
+    alert('No tienes permiso para acceder a esta página');
+    window.location.href = 'index.html';
+    return;
+  }
+});
+
+// Función para mostrar mensajes
+function mostrarMensaje(texto, tipo) {
+  const caja = document.getElementById('mensaje');
+  caja.textContent = texto;
+  caja.className = 'mensaje ' + tipo;
+  caja.style.display = 'block';
+}
+
+// Crear usuario al presionar el botón
+document.getElementById('btnCrear').addEventListener('click', async () => {
+  const correo = document.getElementById('correo').value.trim();
+  const nombre = document.getElementById('nombreCompleto').value.trim();
+  const clave = document.getElementById('clave').value;
+  const rol = document.getElementById('rol').value;
+  const boton = document.getElementById('btnCrear');
+
+  // Validar campos
+  if (!correo || !nombre || !clave) {
+    mostrarMensaje('⚠️ Completa todos los campos', 'error');
+    return;
+  }
+  if (clave.length < 6) {
+    mostrarMensaje('⚠️ La contraseña debe tener al menos 6 caracteres', 'error');
+    return;
+  }
+
+  boton.disabled = true;
+  boton.textContent = 'Creando...';
+
+  try {
+    // 1. Crear acceso en Autenticación
+    const respuesta = await fetch(
+      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + window.firebaseConfig.apiKey,
+      {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          email: correo,
+          password: clave,
+          returnSecureToken: true
+        })
+      }
+    );
+
+    const datos = await respuesta.json();
+    if (!respuesta.ok) throw new Error(datos.error.message);
+
+    const uidNuevo = datos.localId;
+
+    // 2. Guardar datos en la base de datos
+    await db.collection('usuarios').doc(uidNuevo).set({
+      correo: correo,
+      nombreCompleto: nombre,
+      rol: rol
+    });
+
+    // Éxito
+    mostrarMensaje('✅ Usuario creado correctamente', 'exito');
+    // Limpiar formulario
+    document.getElementById('correo').value = '';
+    document.getElementById('nombreCompleto').value = '';
+    document.getElementById('clave').value = '';
+
+  } catch (error) {
+    let mensajeError = 'Error al crear el usuario';
+    if (error.message.includes('EMAIL_EXISTS')) {
+      mensajeError = '⚠️ Este correo ya está registrado';
+    } else if (error.message.includes('WEAK_PASSWORD')) {
+      mensajeError = '⚠️ La contraseña es muy débil';
+    } else if (error.message.includes('INVALID_EMAIL')) {
+      mensajeError = '⚠️ El correo no es válido';
+    }
+    mostrarMensaje(mensajeError, 'error');
+  }
+
+  boton.disabled = false;
+  boton.textContent = '✅ Crear Usuario';
+});
+</script>
+
+</body>
+</html>
