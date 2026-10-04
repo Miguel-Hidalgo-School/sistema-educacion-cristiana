@@ -59,7 +59,7 @@ body{
   margin-bottom:6px;
   color:#374151;
 }
-.campo input,.campo textarea,.campo select{
+.campo input{
   width:100%;
   padding:12px 14px;
   border:1px solid #d1d5db;
@@ -76,6 +76,9 @@ body{
   margin-top:3px;
   width:18px;
   height:18px;
+}
+.opcion-acceso input:disabled + label{
+  color:#9ca3af;
 }
 .opcion-acceso label{
   margin:0;
@@ -115,7 +118,7 @@ body{
 }
 .exito{background:#d1fae5;color:#065f46;display:block}
 .error{background:#fee2e2;color:#b91c1c;display:block}
-.info{background:#dbeafe;color:#1e40af;display:block;margin-top:12px}
+.info{background:#dbeafe;color:#1e40af;display:block}
 .lista-usuarios{
   margin-top:25px;
 }
@@ -126,14 +129,39 @@ body{
 .usuario-item:last-child{border-bottom:none}
 .usuario-nombre{font-weight:bold;color:#1f2937}
 .usuario-correo{font-size:.9rem;color:#6b7280;margin:4px 0}
-.usuario-permisos{font-size:.85rem;color:#4b5563}
+.usuario-permisos{font-size:.85rem;color:#4b5563;margin-top:4px}
+.etiqueta-super{
+  display:inline-block;
+  background:#d1fae5;
+  color:#065f46;
+  padding:2px 8px;
+  border-radius:4px;
+  font-weight:bold;
+  font-size:.8rem;
+  margin-right:6px;
+}
+.etiqueta-sub{
+  display:inline-block;
+  background:#fef3c7;
+  color:#92400e;
+  padding:2px 8px;
+  border-radius:4px;
+  font-weight:bold;
+  font-size:.8rem;
+  margin-right:6px;
+}
+.aviso-automatico{
+  font-size:.85rem;
+  color:#1e40af;
+  margin:6px 0 10px 0;
+}
 </style>
 </head>
 <body>
 
 <div class="contenedor">
   <div class="cabecera">
-    <h1>👥 Usuarios del sistema</h1>
+    <h1>👥 Administrar Usuarios</h1>
     <a href="index.html" class="btn-volver">← Volver al inicio</a>
   </div>
 
@@ -146,53 +174,58 @@ body{
     </div>
 
     <div class="campo">
-      <label>Nombre (opcional)</label>
-      <input type="text" id="nombreCompleto" placeholder="Nombre para identificarlo" autocomplete="off">
+      <label>Nombre completo</label>
+      <input type="text" id="nombreCompleto" placeholder="Nombre de la persona" autocomplete="off">
     </div>
 
     <div class="campo">
-      <label>Correo real de contacto (privado, opcional)</label>
-      <input type="email" id="correoReal" placeholder="su_correo_real@gmail.com" autocomplete="off">
+      <label>Correo real de contacto (opcional)</label>
+      <input type="email" id="correoReal" placeholder="su_correo@gmail.com" autocomplete="off">
     </div>
 
     <div class="campo">
-      <label>WhatsApp (opcional, con lada, solo números)</label>
+      <label>WhatsApp (opcional, con lada 52)</label>
       <input type="tel" id="whatsapp" placeholder="521XXXXXXXXXX" autocomplete="off" inputmode="numeric">
     </div>
 
-    <div style="margin:20px 0 10px 0;font-weight:bold;color:#374151;">¿A qué le das acceso?</div>
+    <div style="margin:20px 0 10px 0;font-weight:bold;color:#374151;">Nivel de acceso:</div>
 
     <div class="opcion-acceso">
-      <input type="checkbox" id="accesoPrimaria" value="primaria">
-      <label for="accesoPrimaria">Primaria</label>
+      <input type="checkbox" id="esSuperAdmin" value="super">
+      <label for="esSuperAdmin">👑 Súper Administrador — Acceso total a ECO y EM</label>
     </div>
     <div class="opcion-acceso">
-      <input type="checkbox" id="accesoSecundaria" value="secundaria">
-      <label for="accesoSecundaria">Secundaria</label>
+      <input type="checkbox" id="esSubAdmin" value="subadmin">
+      <label for="esSubAdmin">🔧 Subadministrador — Acceso completo a ECO y EM</label>
     </div>
-    <div class="opcion-acceso">
-      <input type="checkbox" id="accesoCheckin" value="checkin">
-      <label for="accesoCheckin">CheckIn Kids</label>
-    </div>
-    <div class="opcion-acceso">
-      <input type="checkbox" id="accesoBitacora" value="bitacora">
-      <label for="accesoBitacora">Bitácora</label>
-    </div>
-    <div class="opcion-acceso">
-      <input type="checkbox" id="puedeGestionar" value="gestionar">
-      <label for="puedeGestionar">Puede gestionar sus propios usuarios</label>
+
+    <p id="avisoEscuelas" class="aviso-automatico" style="display:none;">✅ Los administradores obtienen acceso automático a ECO y EM</p>
+
+    <div id="seccionEscuelas" style="margin:18px 0 8px 0;">
+      <div style="font-weight:bold;color:#374151;">Acceso a escuelas:</div>
+      <div class="opcion-acceso">
+        <input type="checkbox" id="accesoEco" value="eco">
+        <label for="accesoEco">🏫 Escuela de Consolidación (ECO)</label>
+      </div>
+      <div class="opcion-acceso">
+        <input type="checkbox" id="accesoEm" value="em">
+        <label for="accesoEm">📖 Escuela de Ministerios (EM)</label>
+      </div>
     </div>
 
     <button id="btnCrearUsuario" class="btn-crear">➕ Crear usuario</button>
     <div id="mensaje" class="mensaje"></div>
 
     <p class="nota">
-      <strong>El correo de acceso es solo un usuario dentro de @terceradecolima.edu.iafcj</strong> — sirve para iniciar sesión, no es un correo real. Cada usuario ve y gestiona solo su propio espacio.
+      <strong>Correo:</strong> se genera con @terceradecolima.edu.iafcj<br>
+      • Súper y Subadmin ven TODO sin seleccionar<br>
+      • Usuarios de escuela: marca solo la que corresponde<br>
+      • Contraseña temporal se genera automáticamente
     </p>
   </div>
 
   <div class="tarjeta lista-usuarios">
-    <h2>📋 Usuarios que has creado</h2>
+    <h2>📋 Usuarios del sistema</h2>
     <div id="listaUsuarios"></div>
     <p id="sinUsuarios" style="color:#6b7280;text-align:center;padding:15px;">Cargando...</p>
   </div>
@@ -211,14 +244,58 @@ const btnCrear = document.getElementById('btnCrearUsuario');
 const mensaje = document.getElementById('mensaje');
 const listaUsuarios = document.getElementById('listaUsuarios');
 const sinUsuarios = document.getElementById('sinUsuarios');
+const avisoEscuelas = document.getElementById('avisoEscuelas');
+const seccionEscuelas = document.getElementById('seccionEscuelas');
+const checkEco = document.getElementById('accesoEco');
+const checkEm = document.getElementById('accesoEm');
+const checkSuper = document.getElementById('esSuperAdmin');
+const checkSub = document.getElementById('esSubAdmin');
 
+// Solo Súper Admin puede crear usuarios
 auth.onAuthStateChanged(async (usuarioActual) => {
   if (!usuarioActual) {
     window.location.href = 'index.html';
     return;
   }
-  await cargarUsuarios(usuarioActual.email);
+  const doc = await db.collection('usuarios').doc(usuarioActual.email).get();
+  const datos = doc.data();
+  if (!datos || !datos.roles?.superAdmin) {
+    btnCrear.disabled = true;
+    btnCrear.textContent = 'Sin permiso';
+    mostrarMensaje('Solo el Súper Administrador puede crear usuarios', 'info');
+  }
+  await cargarUsuarios();
 });
+
+// Lógica: al seleccionar Súper o Sub → ocultar selección de escuelas
+function actualizarVista() {
+  const esAdmin = checkSuper.checked || checkSub.checked;
+  
+  if (esAdmin) {
+    // Quitar la otra opción
+    if (event.target === checkSuper && checkSuper.checked) checkSub.checked = false;
+    if (event.target === checkSub && checkSub.checked) checkSuper.checked = false;
+    
+    // Asignar y bloquear
+    checkEco.checked = true;
+    checkEm.checked = true;
+    checkEco.disabled = true;
+    checkEm.disabled = true;
+    
+    // Mostrar aviso, ocultar encabezado
+    avisoEscuelas.style.display = 'block';
+    seccionEscuelas.querySelector('div').style.display = 'none';
+  } else {
+    // Habilitar para usuario normal
+    checkEco.disabled = false;
+    checkEm.disabled = false;
+    avisoEscuelas.style.display = 'none';
+    seccionEscuelas.querySelector('div').style.display = 'block';
+  }
+}
+
+checkSuper.addEventListener('change', actualizarVista);
+checkSub.addEventListener('change', actualizarVista);
 
 btnCrear.addEventListener('click', async () => {
   const nombreBase = document.getElementById('nuevoUsuario').value.trim().toLowerCase().replace(/\s+/g, '.');
@@ -231,31 +308,39 @@ btnCrear.addEventListener('click', async () => {
     return;
   }
 
-  // ✅ SOLO el dominio nuevo
   const correoNuevo = `${nombreBase}@terceradecolima.edu.iafcj`;
   const contrasenaTemp = generarContrasena();
 
-  const permisos = {
-    primaria: document.getElementById('accesoPrimaria').checked,
-    secundaria: document.getElementById('accesoSecundaria').checked,
-    checkin: document.getElementById('accesoCheckin').checked,
-    bitacora: document.getElementById('accesoBitacora').checked,
-    puedeGestionar: document.getElementById('puedeGestionar').checked
-  };
+  const superAdmin = checkSuper.checked;
+  const subAdmin = checkSub.checked;
+  const eco = checkEco.checked;
+  const em = checkEm.checked;
+
+  if (!eco && !em) {
+    mostrarMensaje('Selecciona al menos un acceso', 'error');
+    return;
+  }
 
   btnCrear.disabled = true;
   btnCrear.textContent = 'Creando...';
   mensaje.style.display = 'none';
 
   try {
-    const credencial = await auth.createUserWithEmailAndPassword(correoNuevo, contrasenaTemp);
+    await auth.createUserWithEmailAndPassword(correoNuevo, contrasenaTemp);
     
     await db.collection('usuarios').doc(correoNuevo).set({
       email: correoNuevo,
       nombreCompleto: nombreCompleto || nombreBase,
       correoReal: correoReal || null,
       whatsapp: whatsapp || null,
-      permisos: permisos,
+      roles: {
+        superAdmin: superAdmin,
+        subAdmin: subAdmin
+      },
+      acceso: {
+        eco: eco,
+        em: em
+      },
       creadoPor: auth.currentUser.email,
       fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
       contrasenaTemporal: true
@@ -268,13 +353,13 @@ btnCrear.addEventListener('click', async () => {
     document.getElementById('nombreCompleto').value = '';
     document.getElementById('correoReal').value = '';
     document.getElementById('whatsapp').value = '';
-    document.getElementById('accesoPrimaria').checked = false;
-    document.getElementById('accesoSecundaria').checked = false;
-    document.getElementById('accesoCheckin').checked = false;
-    document.getElementById('accesoBitacora').checked = false;
-    document.getElementById('puedeGestionar').checked = false;
+    checkSuper.checked = false;
+    checkSub.checked = false;
+    checkEco.checked = false;
+    checkEm.checked = false;
+    actualizarVista();
 
-    await cargarUsuarios(auth.currentUser.email);
+    await cargarUsuarios();
 
   } catch (error) {
     let texto = 'No se pudo crear';
@@ -288,17 +373,16 @@ btnCrear.addEventListener('click', async () => {
   btnCrear.textContent = '➕ Crear usuario';
 });
 
-async function cargarUsuarios(correoCreador) {
+async function cargarUsuarios() {
   try {
     const snapshot = await db.collection('usuarios')
-      .where('creadoPor', '==', correoCreador)
       .orderBy('fechaCreacion', 'desc')
       .get();
 
     listaUsuarios.innerHTML = '';
     if (snapshot.empty) {
       sinUsuarios.style.display = 'block';
-      sinUsuarios.textContent = 'Aún no has creado usuarios';
+      sinUsuarios.textContent = 'Aún no hay usuarios registrados';
       return;
     }
     sinUsuarios.style.display = 'none';
@@ -306,16 +390,19 @@ async function cargarUsuarios(correoCreador) {
       const u = doc.data();
       const div = document.createElement('div');
       div.className = 'usuario-item';
+      
+      let etiquetas = '';
+      if(u.roles?.superAdmin) etiquetas += '<span class="etiqueta-super">👑 SÚPER ADMIN</span>';
+      if(u.roles?.subAdmin) etiquetas += '<span class="etiqueta-sub">🔧 SUBADMIN</span>';
+      
+      let escuelas = [];
+      if(u.acceso?.eco) escuelas.push('🏫 ECO');
+      if(u.acceso?.em) escuelas.push('📖 EM');
+      
       div.innerHTML = `
-        <div class="usuario-nombre">${u.nombreCompleto || u.email}</div>
+        <div class="usuario-nombre">${etiquetas}${u.nombreCompleto || u.email}</div>
         <div class="usuario-correo">${u.email}</div>
-        <div class="usuario-permisos">
-          ${u.permisos?.primaria ? '✅ Primaria ' : ''}
-          ${u.permisos?.secundaria ? '✅ Secundaria ' : ''}
-          ${u.permisos?.checkin ? '✅ CheckIn ' : ''}
-          ${u.permisos?.bitacora ? '✅ Bitácora ' : ''}
-          ${u.permisos?.puedeGestionar ? '🔧 Puede gestionar ' : ''}
-        </div>
+        <div class="usuario-permisos">${escuelas.join(' · ')}</div>
       `;
       listaUsuarios.appendChild(div);
     });
@@ -339,6 +426,7 @@ function generarContrasena() {
 function mostrarMensaje(texto, tipo) {
   mensaje.textContent = texto;
   mensaje.className = `mensaje ${tipo}`;
+  mensaje.style.display = 'block';
 }
 </script>
 </body>
