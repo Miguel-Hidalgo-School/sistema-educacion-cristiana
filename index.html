@@ -10,7 +10,8 @@ body{
   background:#1e50c8;
   min-height:100vh;
   position:relative;
-  overflow:hidden;
+  overflow-x:hidden; /* Evita desplazamiento horizontal */
+  overflow-y:auto;   /* Permite desplazamiento vertical cuando hace falta */
   padding:30px 20px;
   cursor:default;
 }
@@ -217,12 +218,13 @@ body{
   z-index:11;
 }
 
-/* PANEL PRINCIPAL */
+/* PANEL PRINCIPAL — Con espacio y desplazamiento */
 #pantallaPrincipal{
   max-width:500px;
   margin:0 auto;
   position:relative;
   z-index:10;
+  padding-bottom:40px; /* Espacio extra al final para que no se corte */
 }
 header{
   text-align:center;
@@ -256,7 +258,7 @@ header p{font-size:1rem;opacity:.9}
 .pie{
   text-align:center;
   color:rgba(255,255,255,.7);
-  margin-top:30px;
+  margin-top:20px;
   font-size:.9rem;
 }
 .btn-salir{
@@ -397,6 +399,7 @@ function mostrarPanel(){
   logoVerde.style.display = 'none';
   logoMorado.style.display = 'none';
   logoNaranja.style.display = 'none';
+  window.scrollTo(0, 0); // Lleva al inicio automáticamente
 }
 function mostrarLogin(){
   login.classList.remove('oculto');
@@ -408,6 +411,7 @@ function mostrarLogin(){
   logoVerde.style.display = 'block';
   logoMorado.style.display = 'block';
   logoNaranja.style.display = 'block';
+  window.scrollTo(0, 0);
 }
 
 auth.onAuthStateChanged(u => u ? mostrarPanel() : mostrarLogin());
