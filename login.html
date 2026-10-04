@@ -3,83 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Iniciar Sesión</title>
+<title>Sistema de Gestión Escolar</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-body{background:linear-gradient(135deg,#1e3a8a 0%,#b45309 100%);min-height:100vh;display:flex;align-items:center;justify-content:center}
-.caja{background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);width:90%;max-width:400px}
-h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
-.campo{margin-bottom:18px}
-label{display:block;margin-bottom:6px;font-weight:bold;color:#374151}
-input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
-button{width:100%;padding:13px;background:#9a3412;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:5px}
-button:hover{background:#7c2d12}
-#mensaje{margin-top:15px;padding:10px;border-radius:6px;text-align:center;display:none;font-weight:bold}
-.error{background:#fee2e2;color:#b91c1c}
-.exito{background:#d1fae5;color:#065f46}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
+header{text-align:center;color:white;margin-bottom:40px}
+header h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
+header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
+header p{font-size:1rem;opacity:.9}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block}
+.tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
+.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
+.tarjeta p{color:#6b7280;font-size:.95rem}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 </style>
 </head>
 <body>
 
-<div class="caja">
-<h1>🔐 Iniciar Sesión</h1>
+<div class="contenedor">
+<header>
+<h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
+<h2>Sistema de Gestión Escolar</h2>
+<p>Panel Principal</p>
+</header>
 
-<div class="campo">
-<label>Correo electrónico</label>
-<input type="email" id="correo" required>
+<a href="alumnos.html" class="tarjeta">
+<div class="icono">👥</div>
+<h3>Alumnos</h3>
+<p>Registro y consulta</p>
+</a>
+
+<a href="docentes.html" class="tarjeta">
+<div class="icono">👨‍🏫</div>
+<h3>Docentes</h3>
+<p>Maestros y personal</p>
+</a>
+
+<a href="escuelas.html" class="tarjeta">
+<div class="icono">📚</div>
+<h3>Escuelas</h3>
+<p>Consolidación y Ministerios</p>
+</a>
+
+<a href="calificaciones.html" class="tarjeta">
+<div class="icono">✏️</div>
+<h3>Calificaciones</h3>
+<p>Evaluaciones y boletas</p>
+</a>
+
+<a href="asistencia.html" class="tarjeta">
+<div class="icono">📅</div>
+<h3>Asistencia</h3>
+<p>Registro diario</p>
+</a>
+
+<a href="pagos.html" class="tarjeta">
+<div class="icono">💰</div>
+<h3>Pagos</h3>
+<p>Inscripciones y cuotas</p>
+</a>
+
+<div class="pie">
+© 2026 Chavarría Producciones
 </div>
 
-<div class="campo">
-<label>Contraseña</label>
-<input type="password" id="clave" required>
-</div>
-
-<button id="btnEntrar">✅ Entrar</button>
-
-<div id="mensaje"></div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-
 <script>
-const app = firebase.initializeApp(window.firebaseConfig);
+firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 
-const btnEntrar = document.getElementById('btnEntrar');
-const mensaje = document.getElementById('mensaje');
-
-btnEntrar.addEventListener('click', async () => {
-  const correo = document.getElementById('correo').value.trim();
-  const clave = document.getElementById('clave').value;
-  
-  if(!correo || !clave) return mostrarMensaje('Escribe correo y contraseña', 'error');
-  
-  btnEntrar.disabled = true;
-  btnEntrar.textContent = 'Verificando...';
-  mensaje.style.display = 'none';
-  
-  try {
-    await auth.signInWithEmailAndPassword(correo, clave);
-    mostrarMensaje('✅ Acceso correcto...', 'exito');
-    setTimeout(() => window.location.href = 'index.html', 800);
-  } catch (err) {
-    btnEntrar.disabled = false;
-    btnEntrar.textContent = '✅ Entrar';
-    let texto = 'Error de acceso';
-    if(err.code === 'auth/user-not-found') texto = 'No existe este correo';
-    if(err.code === 'auth/wrong-password') texto = 'Contraseña incorrecta';
-    if(err.code === 'auth/too-many-requests') texto = 'Demasiados intentos — intenta más tarde';
-    mostrarMensaje(texto, 'error');
+auth.onAuthStateChanged(usuario => {
+  if (!usuario) {
+    window.location.href = 'login.html';
   }
 });
-
-function mostrarMensaje(texto, tipo){
-  mensaje.textContent = texto;
-  mensaje.className = tipo;
-  mensaje.style.display = 'block';
-}
 </script>
 
 </body>
