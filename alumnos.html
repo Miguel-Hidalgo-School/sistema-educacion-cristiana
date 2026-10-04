@@ -24,7 +24,6 @@ button:hover{background:#1548c5}
 .btn-cancelar{background:#6b7280;margin-left:8px}
 .btn-cancelar:hover{background:#4b5563}
 .ok{background:#dcfce7;color:#166534;padding:12px;border-radius:6px;margin-top:15px;display:none;text-align:center;font-weight:bold}
-.editar-card{border:2px solid #f59e0b;background:#fffbeb;display:none}
 table{width:100%;border-collapse:collapse;margin-top:15px}
 th,td{padding:12px 8px;text-align:left;border-bottom:1px solid #eee}
 th{background:#f8fafc;font-weight:bold;color:#1e293b;white-space:nowrap}
@@ -41,8 +40,7 @@ tr:hover{background:#f8fafc}
 <a href="index.html" class="volver">← Volver al Menú</a>
 <h1>🎓 Gestión de Alumnos</h1>
 
-<!-- FORMULARIO NUEVO / EDITAR -->
-<div class="card" id="formularioTarjeta">
+<div class="card">
 <h2 id="tituloForm">➕ Agregar Nuevo Alumno</h2>
 <form id="formAlumno">
 <input type="hidden" id="docId">
@@ -88,7 +86,6 @@ tr:hover{background:#f8fafc}
 </form>
 </div>
 
-<!-- BUSCADOR + LISTA -->
 <div class="card">
 <h2>📋 Lista de Alumnos</h2>
 <div class="buscador">
@@ -99,31 +96,20 @@ tr:hover{background:#f8fafc}
 </div>
 </div>
 
+<script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-// ✅ TUS DATOS DE FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyDVQ5IwdNhg8IoN0ITvB8eLWkS7NqG5TSg",
-  authDomain: "sistema-escolar-chavarria.firebaseapp.com",
-  projectId: "sistema-escolar-chavarria",
-  storageBucket: "sistema-escolar-chavarria.firebasestorage.app",
-  messagingSenderId: "740096083947",
-  appId: "1:740096083947:web:3dc9e6ea062d3fd7b07bae"
-};
-
-const app = firebase.initializeApp(firebaseConfig);
+const app = firebase.initializeApp(window.firebaseConfig);
 const db = firebase.firestore();
 
 let todosLosAlumnos = [];
 let modoEdicion = false;
 
-// Cargar lista
 async function cargarLista() {
   const lista = document.getElementById('lista');
   lista.innerHTML = '<div class="cargando">Cargando...</div>';
-  
   try {
     const snapshot = await db.collection('alumnos').orderBy('nombreCompleto').get();
     todosLosAlumnos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
@@ -158,11 +144,9 @@ function mostrarLista(alumnos) {
   lista.innerHTML = html;
 }
 
-// Editar
 function editarAlumno(id) {
   const alumno = todosLosAlumnos.find(a => a.id === id);
   if (!alumno) return;
-  
   modoEdicion = true;
   document.getElementById('docId').value = id;
   document.getElementById('nombreCompleto').value = alumno.nombreCompleto || '';
@@ -172,14 +156,12 @@ function editarAlumno(id) {
   document.getElementById('correo').value = alumno.correo || '';
   document.getElementById('fechaIngreso').value = alumno.fechaIngreso ? new Date(alumno.fechaIngreso.toDate ? alumno.fechaIngreso.toDate() : alumno.fechaIngreso).toISOString().split('T')[0] : '';
   document.getElementById('status').value = alumno.status || 'inscrito';
-  
   document.getElementById('tituloForm').textContent = '✏️ Editar Alumno';
   document.getElementById('btnGuardar').textContent = '🔄 Actualizar Datos';
   document.getElementById('btnCancelar').style.display = 'inline-block';
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
-// Cancelar edición
 document.getElementById('btnCancelar').addEventListener('click', () => {
   modoEdicion = false;
   document.getElementById('formAlumno').reset();
@@ -189,7 +171,6 @@ document.getElementById('btnCancelar').addEventListener('click', () => {
   document.getElementById('btnCancelar').style.display = 'none';
 });
 
-// Guardar (nuevo o editar)
 document.getElementById('formAlumno').addEventListener('submit', async e => {
   e.preventDefault();
   const datos = {
@@ -201,7 +182,6 @@ document.getElementById('formAlumno').addEventListener('submit', async e => {
     fechaIngreso: new Date(document.getElementById('fechaIngreso').value),
     status: document.getElementById('status').value
   };
-  
   try {
     const docId = document.getElementById('docId').value;
     if (modoEdicion && docId) {
@@ -209,26 +189,21 @@ document.getElementById('formAlumno').addEventListener('submit', async e => {
     } else {
       await db.collection('alumnos').add(datos);
     }
-    
     document.getElementById('mensajeExito').style.display = 'block';
     setTimeout(() => document.getElementById('mensajeExito').style.display = 'none', 3000);
-    
-    // Reiniciar formulario
     modoEdicion = false;
     document.getElementById('formAlumno').reset();
     document.getElementById('docId').value = '';
     document.getElementById('tituloForm').textContent = '➕ Agregar Nuevo Alumno';
     document.getElementById('btnGuardar').textContent = '✅ Guardar Alumno';
     document.getElementById('btnCancelar').style.display = 'none';
-    
     cargarLista();
   } catch (error) {
     alert('Error: ' + error.message);
   }
 });
 
-// Eliminar
-async function eliminarAlumno(id) {
+window.eliminarAlumno = async function(id) {
   if (!confirm('⚠️ ¿Seguro que quieres eliminar este alumno?\nEsta acción no se puede deshacer.')) return;
   try {
     await db.collection('alumnos').doc(id).delete();
@@ -236,15 +211,11 @@ async function eliminarAlumno(id) {
   } catch (error) {
     alert('Error al eliminar: ' + error.message);
   }
-}
+};
 
-// Buscador
 document.getElementById('buscar').addEventListener('input', e => {
   const texto = e.target.value.toLowerCase().trim();
-  if (!texto) {
-    mostrarLista(todosLosAlumnos);
-    return;
-  }
+  if (!texto) { mostrarLista(todosLosAlumnos); return; }
   const filtrados = todosLosAlumnos.filter(a =>
     (a.nombreCompleto || '').toLowerCase().includes(texto) ||
     (a.matricula || '').toLowerCase().includes(texto)
