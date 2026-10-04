@@ -6,9 +6,12 @@
 <title>Sistema de Gestión Escolar</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-body{background:#1e50c8;min-height:100vh;padding:30px 20px}
-.login-caja{max-width:420px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-.login-caja h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
+html, body{min-height:100%}
+body{background:#1e50c8;padding:30px 20px}
+
+/* === LOGIN === */
+#pantallaLogin{max-width:420px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+#pantallaLogin h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
 .campo{margin-bottom:18px}
 .campo label{display:block;margin-bottom:6px;font-weight:bold;color:#374151}
 .campo input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
@@ -17,7 +20,9 @@ body{background:#1e50c8;min-height:100vh;padding:30px 20px}
 .mensaje{margin-top:15px;padding:10px;border-radius:6px;text-align:center;font-weight:bold;display:none}
 .error{background:#fee2e2;color:#b91c1c}
 .exito{background:#d1fae5;color:#065f46}
-.contenedor{max-width:500px;margin:0 auto;display:none}
+
+/* === PANEL PRINCIPAL === */
+#pantallaPrincipal{max-width:500px;margin:0 auto}
 header{text-align:center;color:white;margin-bottom:40px}
 header h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
 header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
@@ -26,13 +31,17 @@ header p{font-size:1rem;opacity:.9}
 .tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
 .tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
 .tarjeta p{color:#6b7280;font-size:.95rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem;padding-bottom:20px}
 .btn-salir{background:transparent;color:white;border:none;text-decoration:underline;cursor:pointer;margin-top:10px}
+
+/* === OCULTAR DESDE EL INICIO === */
+.oculto{display:none !important}
 </style>
 </head>
 <body>
 
-<div id="pantallaLogin" class="login-caja">
+<!-- LOGIN - Por defecto VISIBLE -->
+<div id="pantallaLogin">
 <h1>🔐 Iniciar Sesión</h1>
 <div class="campo">
 <label>Correo electrónico</label>
@@ -46,7 +55,8 @@ header p{font-size:1rem;opacity:.9}
 <div id="mensaje" class="mensaje"></div>
 </div>
 
-<div id="pantallaPrincipal" class="contenedor">
+<!-- PANEL - Por defecto OCULTO -->
+<div id="pantallaPrincipal" class="oculto">
 <header>
 <h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
 <h2>Sistema de Gestión Escolar</h2>
@@ -101,26 +111,31 @@ header p{font-size:1rem;opacity:.9}
 <script>
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
-const pantallaLogin = document.getElementById('pantallaLogin');
-const pantallaPrincipal = document.getElementById('pantallaPrincipal');
+const login = document.getElementById('pantallaLogin');
+const principal = document.getElementById('pantallaPrincipal');
 const btnEntrar = document.getElementById('btnEntrar');
 const btnSalir = document.getElementById('btnSalir');
 const mensaje = document.getElementById('mensaje');
 
+// Mostrar sin parpadeo
 function mostrarPanel() {
-  pantallaLogin.style.display = 'none';
-  pantallaPrincipal.style.display = 'block';
+  login.classList.add('oculto');
+  principal.classList.remove('oculto');
+  window.scrollTo(0,0);
 }
 function mostrarLogin() {
-  pantallaLogin.style.display = 'block';
-  pantallaPrincipal.style.display = 'none';
+  login.classList.remove('oculto');
+  principal.classList.add('oculto');
+  window.scrollTo(0,0);
 }
 
+// Detectar sesión
 auth.onAuthStateChanged(usuario => {
   if (usuario) { mostrarPanel(); }
   else { mostrarLogin(); }
 });
 
+// Iniciar sesión
 btnEntrar.addEventListener('click', async () => {
   const correo = document.getElementById('correo').value.trim();
   const clave = document.getElementById('clave').value;
@@ -142,6 +157,7 @@ btnEntrar.addEventListener('click', async () => {
   }
 });
 
+// Cerrar sesión
 btnSalir.addEventListener('click', () => {
   auth.signOut().catch(err => alert('Error: ' + err.message));
 });
