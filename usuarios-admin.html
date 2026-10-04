@@ -140,7 +140,7 @@
       const cred = await apoyo.auth().createUserWithEmailAndPassword(correoCompleto, contraseñaTemp);
       await apoyo.auth().signOut();
       
-      await db.collection('usuarios').doc(cred.user.uid).set({
+      await db.collection('usuarios').doc(correoCompleto).set({
         nombreCompleto: nombreCompleto,
         email: correoCompleto,
         whatsapp: numWhatsApp,
