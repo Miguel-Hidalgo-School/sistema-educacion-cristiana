@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Escuelas</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
+.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
+.volver:hover{text-decoration:underline}
+header{text-align:center;color:white;margin-bottom:40px}
+header h1{font-size:1.6rem;margin-bottom:8px}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
+.tarjeta h3{font-size:1.4rem;color:#1f2937;margin:10px 0 5px}
+.tarjeta p{color:#6b7280;font-size:1rem;margin-bottom:15px}
+.botones{display:flex;gap:10px;justify-content:center}
+.botones a{padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:bold}
+.botones .azul{background:#1e50c8;color:white}
+.botones .azul:hover{background:#1540a8}
+.botones .gris{background:#e5e7eb;color:#374151}
+.botones .gris:hover{background:#d1d5db}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+<a href="index.html" class="volver">← Volver al Panel Principal</a>
+
+<header>
+<h1>Escuelas</h1>
+<p>Selecciona la opción</p>
+</header>
+
+<div class="tarjeta">
+<div style="font-size:2.5rem">🏫</div>
+<h3>Escuela de Consolidación — ECO</h3>
+<p>Niveles 1, 2 y 3 · 16 Lecciones cada uno</p>
+<div class="botones">
+<a href="eco-alumnos.html" class="azul">📋 Alumnos</a>
+<a href="eco-calificaciones.html" class="gris">📊 Calificaciones</a>
+</div>
+</div>
+
+<div class="tarjeta">
+<div style="font-size:2.5rem">⛪</div>
+<h3>Escuela de Ministerios</h3>
+<p>Nivel General y Específico · 16 Lecciones cada uno</p>
+<div class="botones">
+<a href="ministerios-alumnos.html" class="azul">📋 Alumnos</a>
+<a href="ministerios-calificaciones.html" class="gris">📊 Calificaciones</a>
+</div>
+</div>
+
+<div class="pie">
+© 2026 Chavarría Producciones
+</div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="config.js"></script>
+<script>
+firebase.initializeApp(window.firebaseConfig).auth().onAuthStateChanged(u => {
+  if (!u) window.location.href = 'login.html';
+});
+</script>
+
+</body>
+</html>
