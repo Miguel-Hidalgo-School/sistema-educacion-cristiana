@@ -31,7 +31,6 @@ tr:hover{background:#f8fafc}
 <a href="index.html" class="volver">← Volver al Menú</a>
 <h1>🎓 Gestión de Alumnos</h1>
 
-<!-- FORMULARIO DE REGISTRO -->
 <div class="card">
 <h2>➕ Agregar Nuevo Alumno</h2>
 <form id="formAlumno">
@@ -74,7 +73,6 @@ tr:hover{background:#f8fafc}
 </form>
 </div>
 
-<!-- LISTA DE ALUMNOS REGISTRADOS -->
 <div class="card">
 <h2>📋 Lista de Alumnos</h2>
 <div id="lista">
@@ -86,21 +84,19 @@ tr:hover{background:#f8fafc}
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
-// ===== TU CONFIGURACIÓN DE FIREBASE =====
+// ✅ TUS DATOS REALES — YA ESTÁN PUESTOS
 const firebaseConfig = {
-apiKey: "AQUÍ_TU_API_KEY",
-authDomain: "TU_PROYECTO.firebaseapp.com",
-projectId: "TU_PROYECTO",
-storageBucket: "TU_PROYECTO.appspot.com",
-messagingSenderId: "123456789",
-appId: "1:123456789:web:abc123"
+  apiKey: "AIzaSyDVQ5IwdNhg8IoN0ITvB8eLWkS7NqG5TSg",
+  authDomain: "sistema-escolar-chavarria.firebaseapp.com",
+  projectId: "sistema-escolar-chavarria",
+  storageBucket: "sistema-escolar-chavarria.firebasestorage.app",
+  messagingSenderId: "740096083947",
+  appId: "1:740096083947:web:3dc9e6ea062d3fd7b07bae"
 };
-// =========================================
 
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-// ✅ Función para cargar y mostrar la lista
 async function cargarLista() {
   const lista = document.getElementById('lista');
   lista.innerHTML = '<div class="cargando">Cargando...</div>';
@@ -131,11 +127,10 @@ async function cargarLista() {
     lista.innerHTML = html;
     
   } catch (error) {
-    lista.innerHTML = `<div style="color:red">Error al cargar: ${error.message}</div>`;
+    lista.innerHTML = `<div style="color:red">Error: ${error.message}</div>`;
   }
 }
 
-// ✅ Guardar nuevo alumno
 document.getElementById('formAlumno').addEventListener('submit', async e => {
   e.preventDefault();
   
@@ -154,16 +149,12 @@ document.getElementById('formAlumno').addEventListener('submit', async e => {
     document.getElementById('mensajeExito').style.display = 'block';
     document.getElementById('formAlumno').reset();
     setTimeout(() => document.getElementById('mensajeExito').style.display = 'none', 3000);
-    
-    // 🔄 Actualizar la lista automáticamente
     cargarLista();
-    
   } catch (error) {
-    alert('Error: revisa tu configuración de Firebase');
+    alert('Error: ' + error.message);
   }
 });
 
-// ✅ Cargar la lista al abrir la página
 cargarLista();
 </script>
 
