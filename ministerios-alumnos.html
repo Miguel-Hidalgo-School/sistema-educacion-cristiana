@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Alumnos Ministerios — Escuela de Ministerios</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
+body{background:#f0f4f8;padding:20px;max-width:950px;margin:0 auto}
+.volver{display:inline-block;margin-bottom:15px;color:#7c2d12;text-decoration:none;font-weight:bold}
+.escuela-nombre{text-align:center;color:#7c2d12;margin-bottom:10px;font-size:1.3rem;font-weight:bold}
+h1{text-align:center;color:#9a3412;margin:10px 0 20px 0;font-size:1.8rem;font-weight:bold}
+h2{color:#c2410c;margin:25px 0 15px 0;font-weight:bold}
+.card{background:white;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-bottom:25px}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px}
+.form-group{margin-bottom:15px}
+label{display:block;margin-bottom:5px;font-weight:bold;color:#333}
+input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-size:1rem}
+button{padding:12px 20px;background:#9a3412;color:white;border:none;border-radius:6px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:10px}
+button:hover{background:#7c2d12}
+.btn-editar{background:#f59e0b;margin-right:8px}
+.btn-editar:hover{background:#d97706}
+.btn-eliminar{background:#ef4444}
+.btn-eliminar:hover{background:#dc2626}
+.btn-cancelar{background:#6b7280;margin-left:8px}
+.btn-cancelar:hover{background:#4b5563}
+.ok{background:#fef3c7;color:#92400e;padding:12px;border-radius:6px;margin-top:15px;display:none;text-align:center;font-weight:bold}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{padding:12px 8px;text-align:left;border-bottom:1px solid #eee}
+th{background:#fffbeb;font-weight:bold;color:#78350f;white-space:nowrap}
+tr:hover{background:#fffbeb}
+.acciones{white-space:nowrap;text-align:center}
+.vacio{text-align:center;color:#78350f;padding:30px;font-weight:bold}
+.cargando{text-align:center;color:#c2410c;padding:20px}
+.buscador{margin-bottom:15px}
+#buscar{max-width:400px}
+.nivel-nombre{font-size:.85rem;color:#78350f;margin-top:3px;font-style:italic}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="volver">← Volver al Menú</a>
+<div class="escuela-nombre">⛪ Escuela de Ministerios</div>
+<h1>🙏 Registro de Alumnos</h1>
+
+<div class="card">
+<h2 id="tituloForm">➕ Inscribir Nuevo Alumno</h2>
+<form id="formAlumno">
+<input type="hidden" id="docId">
+<div class="form-row">
+<div class="form-group">
+<label>Nombre Completo</label>
+<input type="text" id="nombreCompleto" required>
+</div>
+<div class="form-group">
+<label>Matrícula</label>
+<input type="text" id="matricula" required>
+</div>
+<div class="form-group">
+<label>Nivel / Módulo</label>
+<select id="nivel" required>
+<option value="">Seleccionar...</option>
+<option value="1">Nivel 1 — General</option>
+<option value="2">Nivel 2 — Específico</option>
+</select>
+</div>
+<div class="form-group">
+<label>Ministerio</label>
+<select id="ministerio" required>
+<option value="">Seleccionar...</option>
+<option value="Adoración">Adoración</option>
+<option value="Evangelismo">Evangelismo</option>
+<option value="Enseñanza">Enseñanza</option>
+<option value="Liderazgo">Liderazgo</option>
+<option value="Pastoral">Pastoral</option>
+<option value="Jóvenes">Jóvenes</option>
+<option value="Niños">Niños</option>
+<option value="Misiones">Misiones</option>
+<option value="Otro">Otro</option>
+</select>
+</div>
+<div class="form-group">
+<label>Rol / Función</label>
+<input type="text" id="rol" placeholder="Ej: Líder, Estudiante..." required>
+</div>
+<div class="form-group">
+<label>Correo</label>
+<input type="email" id="correo" required>
+</div>
+<div class="form-group">
+<label>Fecha de Inscripción</label>
+<input type="date" id="fechaIngreso" required>
+</div>
+<div class="form-group">
+<label>Estatus</label>
+<select id="status">
+<option value="inscrito">Inscrito</option>
+<option value="activo">Activo</option>
+<option value="cursando">Cursando</option>
+<option value="egresado">Egresado</option>
+<option value="baja">Baja</option>
+</select>
+</div>
+</div>
+<div>
+<button type="submit" id="btnGuardar">✅ Inscribir Alumno</button>
+<button type="button" class="btn-cancelar" id="btnCancelar" style="display:none">Cancelar</button>
+<a href="ministerios-calificaciones.html" style="display:inline-block;margin-left:10px;background:#b45309">📊 Calificaciones</a>
+</div>
+<div class="ok" id="mensajeExito">✅ Alumno registrado correctamente en Escuela de Ministerios</div>
+</form>
+</div>
+
+<div class="card">
+<h2>📋 Lista de Alumnos — Ministerios</h2>
+<div class="buscador">
+<input type="text" id="buscar" placeholder="🔍 Buscar por nombre, matrícula, nivel o ministerio...">
+</div>
+<div id="lista">
+<div class="cargando">Cargando...</div>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+const app = firebase.initializeApp(window.firebaseConfig);
+const db = firebase.firestore();
+
+const COLECCION = 'ministerios-alumnos';
+const NIVELES = {
+  '1': 'Nivel 1 — General',
+  '2': 'Nivel 2 — Específico'
+};
+let todosLosAlumnos = [];
+let modoEdicion = false;
+
+async function cargarLista() {
+  const lista = document.getElementById('lista');
+  lista.innerHTML = '<div class="cargando">Cargando...</div>';
+  try {
+    const snapshot = await db.collection(COLECCION).orderBy('nombreCompleto').get();
+    todosLosAlumnos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+    mostrarLista(todosLosAlumnos);
+  } catch (error) {
+    lista.innerHTML = `<div style="color:red;font-weight:bold">Error: ${error.message}</div>`;
+  }
+}
+
+function mostrarLista(alumnos) {
+  const lista = document.getElementById('lista');
+  if (alumnos.length === 0) {
+    lista.innerHTML = '<div class="vacio">📭 No hay alumnos inscritos</div>';
+    return;
+  }
+  let html = '<table><tr><th>Nombre</th><th>Matrícula</th><th>Nivel</th><th>Ministerio</th><th>Rol</th><th>Estatus</th><th class="acciones">Acciones</th></tr>';
+  alumnos.forEach(a => {
+    const nombreNivel = NIVELES[a.nivel] || a.nivel;
+    html += `
+      <tr>
+        <td>${a.nombreCompleto || '-'}</td>
+        <td>${a.matricula || '-'}</td>
+        <td><div>${nombreNivel}</div><div class="nivel-nombre">16 lecciones</div></td>
+        <td>${a.ministerio || '-'}</td>
+        <td>${a.rol || '-'}</td>
+        <td>${a.status || '-'}</td>
+        <td class="acciones">
+          <button class="btn-editar" onclick="editarAlumno('${a.id}')">✏️ Editar</button>
+          <button class="btn-eliminar" onclick="eliminarAlumno('${a.id}')">❌ Eliminar</button>
+        </td>
+      </tr>`;
+  });
+  html += '</table>';
+  lista.innerHTML = html;
+}
+
+function editarAlumno(id) {
+  const alumno = todosLosAlumnos.find(a => a.id === id);
+  if (!alumno) return;
+  modoEdicion = true;
+  document.getElementById('docId').value = id;
+  document.getElementById('nombreCompleto').value = alumno.nombreCompleto || '';
+  document.getElementById('matricula').value = alumno.matricula || '';
+  document.getElementById('nivel').value = alumno.nivel || '';
+  document.getElementById('ministerio').value = alumno.ministerio || '';
+  document.getElementById('rol').value = alumno.rol || '';
+  document.getElementById('correo').value = alumno.correo || '';
+  document.getElementById('fechaIngreso').value = alumno.fechaIngreso ? new Date(alumno.fechaIngreso.toDate ? alumno.fechaIngreso.toDate() : alumno.fechaIngreso).toISOString().split('T')[0] : '';
+  document.getElementById('status').value = alumno.status || 'inscrito';
+  document.getElementById('tituloForm').textContent = '✏️ Editar Datos del Alumno';
+  document.getElementById('btnGuardar').textContent = '🔄 Actualizar';
+  document.getElementById('btnCancelar').style.display = 'inline-block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('btnCancelar').addEventListener('click', () => {
+  modoEdicion = false;
+  document.getElementById('formAlumno').reset();
+  document.getElementById('docId').value = '';
+  document.getElementById('tituloForm').textContent = '➕ Inscribir Nuevo Alumno';
+  document.getElementById('btnGuardar').textContent = '✅ Inscribir Alumno';
+  document.getElementById('btnCancelar').style.display = 'none';
+});
+
+document.getElementById('formAlumno').addEventListener('submit', async e => {
+  e.preventDefault();
+  const datos = {
+    escuela: 'Ministerios',
+    nivelNombre: NIVELES[document.getElementById('nivel').value],
+    nombreCompleto: document.getElementById('nombreCompleto').value,
+    matricula: document.getElementById('matricula').value,
+    nivel: document.getElementById('nivel').value,
+    ministerio: document.getElementById('ministerio').value,
+    rol: document.getElementById('rol').value,
+    correo: document.getElementById('correo').value,
+    fechaIngreso: new Date(document.getElementById('fechaIngreso').value),
+    status: document.getElementById('status').value
+  };
+  try {
+    const docId = document.getElementById('docId').value;
+    if (modoEdicion && docId) {
+      await db.collection(COLECCION).doc(docId).update(datos);
+    } else {
+      await db.collection(COLECCION).add(datos);
+    }
+    document.getElementById('mensajeExito').style.display = 'block';
+    setTimeout(() => document.getElementById('mensajeExito').style.display = 'none', 3000);
+    modoEdicion = false;
+    document.getElementById('formAlumno').reset();
+    document.getElementById('docId').value = '';
+    document.getElementById('tituloForm').textContent = '➕ Inscribir Nuevo Alumno';
+    document.getElementById('btnGuardar').textContent = '✅ Inscribir Alumno';
+    document.getElementById('btnCancelar').style.display = 'none';
+    cargarLista();
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+});
+
+window.eliminarAlumno = async function(id) {
+  if (!confirm('⚠️ ¿Seguro que quieres eliminar este alumno?\nEsta acción no se puede deshacer.')) return;
+  try {
+    await db.collection(COLECCION).doc(id).delete();
+    cargarLista();
+  } catch (error) {
+    alert('Error al eliminar: ' + error.message);
+  }
+};
+
+document.getElementById('buscar').addEventListener('input', e => {
+  const texto = e.target.value.toLowerCase().trim();
+  if (!texto) { mostrarLista(todosLosAlumnos); return; }
+  const filtrados = todosLosAlumnos.filter(a =>
+    (a.nombreCompleto || '').toLowerCase().includes(texto) ||
+    (a.matricula || '').toLowerCase().includes(texto) ||
+    (NIVELES[a.nivel] || '').toLowerCase().includes(texto) ||
+    (a.ministerio || '').toLowerCase().includes(texto)
+  );
+  mostrarLista(filtrados);
+});
+
+cargarLista();
+</script>
+
+</body>
+</html>
