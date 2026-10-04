@@ -65,22 +65,13 @@
 </div>
 
 
+<script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // === PON TUS DATOS DE FIREBASE AQUÍ ===
-  const firebaseConfig = {
-    apiKey: "PON_TU_apiKey_AQUI",
-    authDomain: "tu-proyecto.firebaseapp.com",
-    projectId: "tu-proyecto",
-    storageBucket: "tu-proyecto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123:web:abc123"
-  };
-
-  firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(window.firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
@@ -144,9 +135,12 @@
     const contraseñaTemp = Math.random().toString(36).slice(-8);
 
     try {
-      await auth.createUserWithEmailAndPassword(correoCompleto, contraseñaTemp);
+      // App secundaria: así no se cierra tu sesión de administrador
+      const apoyo = firebase.apps.find(a => a.name === 'apoyo') || firebase.initializeApp(window.firebaseConfig, 'apoyo');
+      const cred = await apoyo.auth().createUserWithEmailAndPassword(correoCompleto, contraseñaTemp);
+      await apoyo.auth().signOut();
       
-      await db.collection('usuarios').doc(correoCompleto).set({
+      await db.collection('usuarios').doc(cred.user.uid).set({
         nombreCompleto: nombreCompleto,
         email: correoCompleto,
         whatsapp: numWhatsApp,

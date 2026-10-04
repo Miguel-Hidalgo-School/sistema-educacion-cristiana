@@ -9,44 +9,49 @@
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
 .contenedor{max-width:500px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
-.volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:40px}
+header{text-align:center;color:white;margin-bottom:25px}
 header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
-.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
+.tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:20px}
+.tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:12px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
+.campo input[type=text]{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
+.chk{display:inline-block;margin:0 15px 12px 0;color:#374151}
+.btn{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
+.msg{margin-top:12px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.fila{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e5e7eb}
+.fila:last-child{border-bottom:none}
+.sub{color:#6b7280;font-size:.85rem;margin-top:2px}
+.borrar{background:none;border:none;font-size:1.2rem;cursor:pointer}
+.vacio{color:#6b7280;font-style:italic;text-align:center}
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 </style>
 </head>
 <body>
-
 <div class="contenedor">
 <a href="index.html" class="volver">← Volver al Panel Principal</a>
-
-<header>
-<h1>👥 Alumnos</h1>
-<p>Registro y consulta</p>
-</header>
-
-<div class="tarjeta">
-<h3>Listado de Alumnos</h3>
-<p>Aquí aparecerán los alumnos registrados</p>
+<header><h1>👥 Alumnos</h1><p>Registro y consulta</p></header>
+<div class="tarjeta"><h3>Nuevo alumno</h3><div id="formulario"></div><div id="msg" class="msg"></div></div>
+<div class="tarjeta"><h3>Registrados</h3><div id="lista"></div></div>
+<div class="pie">© 2026 Chavarría Producciones</div>
 </div>
-
-<div class="pie">
-© 2026 Chavarría Producciones
-</div>
-</div>
-
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="registro.js"></script>
 <script>
-firebase.initializeApp(window.firebaseConfig);
-firebase.auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'index.html';
+iniciarLista({
+  coleccion: 'alumnos',
+  campos: [
+    {id:'nombreCompleto', etiqueta:'Nombre completo', ph:'Nombre y apellidos'},
+    {id:'whatsapp', etiqueta:'WhatsApp (solo números)', ph:'3121234567'},
+    {id:'eco', etiqueta:'ECO', tipo:'check'},
+    {id:'em', etiqueta:'EM', tipo:'check'}
+  ]
 });
 </script>
-
 </body>
 </html>
