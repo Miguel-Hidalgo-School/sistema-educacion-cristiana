@@ -12,9 +12,22 @@ body{
   position:relative;
   overflow:hidden;
   padding:30px 20px;
-  cursor:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="40"><text x="10" y="28" font-family="Arial,Segoe UI,sans-serif" font-size="15" font-weight="bold" fill="white">Así como JESÚS ° Tercera de Colima</text></svg>') 10 10,auto;
+  cursor:default;
 }
 .oculto{display:none !important}
+
+/* TEXTO QUE SIGUE AL PUNTERO */
+.texto-puntero{
+  position:fixed;
+  color:white;
+  font-weight:bold;
+  font-size:16px;
+  pointer-events:none;
+  z-index:9999;
+  text-shadow:0 2px 4px rgba(0,0,0,.5);
+  white-space:nowrap;
+  transition:transform 0.08s ease-out;
+}
 
 /* ANIMACIONES */
 @keyframes flotarAzul {
@@ -56,7 +69,7 @@ body{
   100% { transform: translate(calc(100vw + 180px), calc(100vh + 180px)) rotate(360deg); }
 }
 
-/* SEIS LOGOS FLOTANTES — POR DETRÁS */
+/* SEIS LOGOS FLOTANTES */
 .logo-flotante{
   position:absolute;
   width:160px;
@@ -96,7 +109,7 @@ body{
   opacity:0.95;
 }
 
-/* LOGIN — POR ENCIMA */
+/* LOGIN */
 #pantallaLogin{
   max-width:440px;
   margin:0 auto;
@@ -255,6 +268,9 @@ header p{font-size:1rem;opacity:.9}
 </head>
 <body>
 
+<!-- TEXTO QUE SIGUE AL PUNTERO -->
+<div class="texto-puntero" id="textoPuntero">Así como JESÚS ° Tercera de Colima</div>
+
 <!-- SEIS LOGOS FLOTANDO EN EL FONDO -->
 <img src="logo.jpg" alt="" class="logo-flotante logo-azul" id="logoAzul">
 <img src="logo.jpg" alt="" class="logo-flotante logo-rojo" id="logoRojo">
@@ -354,6 +370,7 @@ firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const login = document.getElementById('pantallaLogin');
 const principal = document.getElementById('pantallaPrincipal');
+const textoPuntero = document.getElementById('textoPuntero');
 const logoAzul = document.getElementById('logoAzul');
 const logoRojo = document.getElementById('logoRojo');
 const logoAmarillo = document.getElementById('logoAmarillo');
@@ -361,9 +378,16 @@ const logoVerde = document.getElementById('logoVerde');
 const logoMorado = document.getElementById('logoMorado');
 const logoNaranja = document.getElementById('logoNaranja');
 
+// El texto sigue al ratón
+document.addEventListener('mousemove', (e) => {
+  textoPuntero.style.left = (e.pageX + 15) + 'px';
+  textoPuntero.style.top = (e.pageY + 5) + 'px';
+});
+
 function mostrarPanel(){
   login.classList.add('oculto');
   principal.classList.remove('oculto');
+  textoPuntero.style.display = 'none';
   logoAzul.style.display = 'none';
   logoRojo.style.display = 'none';
   logoAmarillo.style.display = 'none';
@@ -374,6 +398,7 @@ function mostrarPanel(){
 function mostrarLogin(){
   login.classList.remove('oculto');
   principal.classList.add('oculto');
+  textoPuntero.style.display = 'block';
   logoAzul.style.display = 'block';
   logoRojo.style.display = 'block';
   logoAmarillo.style.display = 'block';
