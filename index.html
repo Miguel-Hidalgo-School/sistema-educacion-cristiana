@@ -15,27 +15,53 @@ body{
 }
 .oculto{display:none !important}
 
-/* ANIMACIÓN DEL LOGO FLOTANTE */
-@keyframes flotar {
-  0% { transform: translate(0vw, 0vh) rotate(0deg); }
-  25% { transform: translate(calc(100vw - 250px), 20vh) rotate(90deg); }
-  50% { transform: translate(calc(100vw - 250px), calc(100vh - 250px)) rotate(180deg); }
-  75% { transform: translate(0vw, calc(100vh - 250px)) rotate(270deg); }
-  100% { transform: translate(0vw, 0vh) rotate(360deg); }
+/* ANIMACIÓN GENERAL */
+@keyframes flotarAzul {
+  0% { transform: translate(-180px, 0vh) rotate(0deg); }
+  25% { transform: translate(calc(100vw - 180px), 15vh) rotate(90deg); }
+  50% { transform: translate(calc(100vw - 180px), calc(100vh - 200px)) rotate(180deg); }
+  75% { transform: translate(-180px, calc(100vh - 200px)) rotate(270deg); }
+  100% { transform: translate(-180px, 0vh) rotate(360deg); }
+}
+@keyframes flotarRojo {
+  0% { transform: translate(calc(100vw + 180px), 20vh) rotate(0deg); }
+  33% { transform: translate(calc(50vw - 90px), calc(100vh - 200px)) rotate(120deg); }
+  66% { transform: translate(-180px, 40vh) rotate(240deg); }
+  100% { transform: translate(calc(100vw + 180px), 20vh) rotate(360deg); }
+}
+@keyframes flotarAmarillo {
+  0% { transform: translate(40vw, -180px) rotate(0deg); }
+  33% { transform: translate(calc(100vw - 200px), 50vh) rotate(120deg); }
+  66% { transform: translate(20vw, calc(100vh - 180px)) rotate(240deg); }
+  100% { transform: translate(40vw, -180px) rotate(360deg); }
 }
 
+/* TRES LOGOS FLOTANTES — POR DETRÁS DEL FORMULARIO */
 .logo-flotante{
   position:absolute;
-  width:180px;
+  width:160px;
   height:auto;
   border-radius:50%;
-  opacity:0.25;
   pointer-events:none;
-  animation: flotar 25s linear infinite;
-  z-index:1;
+  z-index:1; /* Queda por DETRÁS */
+}
+.logo-azul{
+  filter:hue-rotate(200deg) saturate(1.2) brightness(1.1);
+  animation: flotarAzul 28s linear infinite;
+  opacity:0.9;
+}
+.logo-rojo{
+  filter:hue-rotate(320deg) saturate(1.3) brightness(1.05);
+  animation: flotarRojo 32s linear infinite;
+  opacity:0.9;
+}
+.logo-amarillo{
+  filter:hue-rotate(40deg) saturate(1.4) brightness(1.2);
+  animation: flotarAmarillo 35s linear infinite;
+  opacity:0.9;
 }
 
-/* LOGIN */
+/* LOGIN — POR ENCIMA DE TODO */
 #pantallaLogin{
   max-width:440px;
   margin:0 auto;
@@ -45,7 +71,7 @@ body{
   box-shadow:0 10px 30px rgba(0,0,0,.2);
   text-align:center;
   position:relative;
-  z-index:10;
+  z-index:10; /* Queda POR ENCIMA de los flotantes */
 }
 .contenedor-logo{
   margin-bottom:20px;
@@ -194,8 +220,10 @@ header p{font-size:1rem;opacity:.9}
 </head>
 <body>
 
-<!-- LOGO QUE FLOTA EN EL FONDO -->
-<img src="logo.jpg" alt="" class="logo-flotante" id="logoFlotante">
+<!-- TRES LOGOS FLOTANDO EN EL FONDO -->
+<img src="logo.jpg" alt="" class="logo-flotante logo-azul" id="logoAzul">
+<img src="logo.jpg" alt="" class="logo-flotante logo-rojo" id="logoRojo">
+<img src="logo.jpg" alt="" class="logo-flotante logo-amarillo" id="logoAmarillo">
 
 <!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="pantallaLogin">
@@ -288,17 +316,25 @@ firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const login = document.getElementById('pantallaLogin');
 const principal = document.getElementById('pantallaPrincipal');
-const logoFlotante = document.getElementById('logoFlotante');
+const logoAzul = document.getElementById('logoAzul');
+const logoRojo = document.getElementById('logoRojo');
+const logoAmarillo = document.getElementById('logoAmarillo');
 
 function mostrarPanel(){
   login.classList.add('oculto');
   principal.classList.remove('oculto');
-  logoFlotante.style.display = 'none'; // Oculta el flotante al entrar
+  // Oculta los flotantes al entrar
+  logoAzul.style.display = 'none';
+  logoRojo.style.display = 'none';
+  logoAmarillo.style.display = 'none';
 }
 function mostrarLogin(){
   login.classList.remove('oculto');
   principal.classList.add('oculto');
-  logoFlotante.style.display = 'block'; // Muestra el flotante al volver al login
+  // Muestra los flotantes al volver
+  logoAzul.style.display = 'block';
+  logoRojo.style.display = 'block';
+  logoAmarillo.style.display = 'block';
 }
 
 auth.onAuthStateChanged(u => u ? mostrarPanel() : mostrarLogin());
