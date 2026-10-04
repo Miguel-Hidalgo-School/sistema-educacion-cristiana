@@ -5,20 +5,119 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Sistema de Gestión Escolar</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-body{background:#1e50c8;min-height:100vh;padding:30px 20px}
-.contenedor{max-width:500px;margin:0 auto}
-header{text-align:center;color:white;margin-bottom:40px}
-header h1{font-size:1.6rem;margin-bottom:8px;line-height:1.3}
-header h2{font-size:1.4rem;font-weight:600;margin-bottom:5px}
-header p{font-size:1.1rem;opacity:.9}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block}
-.tarjeta h3{font-size:1.4rem;color:#1f2937;margin:10px 0 5px}
-.tarjeta p{color:#6b7280;font-size:1rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,Segoe UI,sans-serif
+}
+
+body{
+  background:#1e50c8;
+  min-height:100vh;
+  padding:0;
+  position:relative
+}
+
+/* Franja lateral izquierda blanca con formas */
+.lado-izquierdo{
+  position:absolute;
+  left:0;
+  top:0;
+  width:60px;
+  height:100%;
+  background:white;
+  z-index:1
+}
+
+.forma-lateral{
+  width:40px;
+  height:40px;
+  background:#1e50c8;
+  border-radius:50% 50% 0 50%;
+  margin:35px auto;
+  transform:rotate(45deg)
+}
+
+.contenedor{
+  position:relative;
+  z-index:2;
+  max-width:480px;
+  margin:0 auto;
+  padding:20px 16px 24px
+}
+
+/* Encabezado */
+header{
+  text-align:center;
+  color:white;
+  margin-bottom:24px
+}
+
+header h1{
+  font-size:1.5rem;
+  line-height:1.3;
+  margin-bottom:8px
+}
+
+header h2{
+  font-size:1.3rem;
+  font-weight:bold;
+  margin-bottom:4px
+}
+
+header p{
+  font-size:1rem;
+  opacity:.9
+}
+
+/* Tarjetas */
+.tarjeta{
+  background:white;
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:12px;
+  text-align:center;
+  text-decoration:none;
+  color:inherit;
+  display:block
+}
+
+.tarjeta .icono{
+  font-size:2.4rem;
+  margin-bottom:8px
+}
+
+.tarjeta h3{
+  font-size:1.3rem;
+  color:#1f2937;
+  margin-bottom:4px
+}
+
+.tarjeta p{
+  color:#6b7280;
+  font-size:.95rem
+}
+
+/* Pie */
+.pie{
+  text-align:center;
+  color:rgba(255,255,255,.7);
+  margin-top:24px;
+  font-size:.85rem
+}
 </style>
 </head>
 <body>
+
+<div class="lado-izquierdo">
+  <div class="forma-lateral"></div>
+  <div class="forma-lateral"></div>
+  <div class="forma-lateral"></div>
+  <div class="forma-lateral"></div>
+  <div class="forma-lateral"></div>
+  <div class="forma-lateral"></div>
+</div>
 
 <div class="contenedor">
 <header>
@@ -28,40 +127,39 @@ header p{font-size:1.1rem;opacity:.9}
 </header>
 
 <a href="alumnos.html" class="tarjeta">
-<div style="font-size:2.5rem">👥</div>
-<h3>Alumnos</h3>
-<p>Registro y consulta</p>
+  <div class="icono">👥</div>
+  <h3>Alumnos</h3>
+  <p>Registro y consulta</p>
 </a>
 
 <a href="docentes.html" class="tarjeta">
-<div style="font-size:2.5rem">👨‍🏫</div>
-<h3>Docentes</h3>
-<p>Maestros y personal</p>
+  <div class="icono">👨‍🏫</div>
+  <h3>Docentes</h3>
+  <p>Maestros y personal</p>
 </a>
 
-<!-- === AQUÍ: Escuelas en lugar de Materias === -->
 <a href="escuelas.html" class="tarjeta">
-<div style="font-size:2.5rem">📚</div>
-<h3>Escuelas</h3>
-<p>Consolidación y Ministerios</p>
+  <div class="icono">📚</div>
+  <h3>Escuelas</h3>
+  <p>Consolidación y Ministerios</p>
 </a>
 
 <a href="calificaciones.html" class="tarjeta">
-<div style="font-size:2.5rem">✏️</div>
-<h3>Calificaciones</h3>
-<p>Evaluaciones y boletas</p>
+  <div class="icono">✏️</div>
+  <h3>Calificaciones</h3>
+  <p>Evaluaciones y boletas</p>
 </a>
 
 <a href="asistencia.html" class="tarjeta">
-<div style="font-size:2.5rem">📅</div>
-<h3>Asistencia</h3>
-<p>Registro diario</p>
+  <div class="icono">📅</div>
+  <h3>Asistencia</h3>
+  <p>Registro diario</p>
 </a>
 
 <a href="pagos.html" class="tarjeta">
-<div style="font-size:2.5rem">💰</div>
-<h3>Pagos</h3>
-<p>Inscripciones y cuotas</p>
+  <div class="icono">💰</div>
+  <h3>Pagos</h3>
+  <p>Inscripciones y cuotas</p>
 </a>
 
 <div class="pie">
@@ -77,9 +175,10 @@ header p{font-size:1.1rem;opacity:.9}
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 
-// Protección
 auth.onAuthStateChanged(usuario => {
-  if (!usuario) window.location.href = 'login.html';
+  if (!usuario) {
+    window.location.href = 'login.html';
+  }
 });
 </script>
 
