@@ -3,84 +3,80 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sistema de Escuelas — Inicio</title>
+<title>Sistema de Gestión Escolar</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-body{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 50%,#b45309 100%);min-height:100vh;padding:30px 20px}
-.contenedor{max-width:900px;margin:0 auto}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
 header{text-align:center;color:white;margin-bottom:40px}
-header h1{font-size:2rem;margin-bottom:10px;text-shadow:0 2px 4px rgba(0,0,0,.3)}
-header p{font-size:1.1rem;opacity:.9}
-.tarjeta{background:white;border-radius:16px;padding:30px;margin-bottom:25px;box-shadow:0 8px 20px rgba(0,0,0,.15);transition:transform .2s,box-shadow .2s}
-.tarjeta:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.2)}
-.tarjeta h2{font-size:1.4rem;margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.tarjeta.eco h2{color:#1e40af}
-.tarjeta.ministerios h2{color:#9a3412}
-.tarjeta p{color:#4b5563;margin-bottom:20px;line-height:1.5}
-.botones{display:flex;flex-wrap:wrap;gap:12px}
-.btn{padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;display:inline-flex;align-items:center;gap:8px;transition:all .2s}
-.btn.eco{background:#1e40af;color:white}
-.btn.eco:hover{background:#1e3a8a}
-.btn.eco-secundario{background:#dbeafe;color:#1e40af;border:2px solid #bfdbfe}
-.btn.eco-secundario:hover{background:#bfdbfe}
-.btn.min{background:#9a3412;color:white}
-.btn.min:hover{background:#7c2d12}
-.btn.min-secundario{background:#fef3c7;color:#92400e;border:2px solid #fde68a}
-.btn.min-secundario:hover{background:#fde68a}
-.info-niveles{background:#f8fafc;padding:15px;border-radius:8px;margin-top:15px;font-size:.9rem;color:#374151;line-height:1.6}
-.info-niveles strong{color:#1f2937}
+header h1{font-size:1.6rem;margin-bottom:8px;line-height:1.3}
+header h2{font-size:1.3rem;font-weight:normal;opacity:.9;margin-bottom:5px}
+header p{font-size:1rem;opacity:.8}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;color:inherit}
+.tarjeta:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.15)}
+.tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
+.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
+.tarjeta p{color:#6b7280;font-size:.95rem}
+.separador{border-top:2px solid rgba(255,255,255,.2);margin:30px 0}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:40px;font-size:.9rem}
+.cerrar{background:rgba(255,255,255,.2);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:20px;width:100%}
+.cerrar:hover{background:rgba(255,255,255,.3)}
 </style>
 </head>
 <body>
 
 <div class="contenedor">
 <header>
-<h1>🏫 Sistema de Escuelas de Consolidación</h1>
-<p>Administración de Alumnos, Tareas y Calificaciones</p>
+<h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
+<h2>Sistema de Gestión Escolar</h2>
+<p>Panel Principal</p>
 </header>
 
-<!-- === ESCUELA ECO === -->
-<div class="tarjeta">
-<h2>🏫 Escuela de Consolidación — ECO</h2>
-<p>Formación en valores cristianos, fundamentos de la fe y servicio ministerial.</p>
+<!-- === MÓDULOS ORIGINALES — IGUALITOS === -->
+<a href="alumnos.html" class="tarjeta">
+<div class="icono">👥</div>
+<h3>Alumnos</h3>
+<p>Registro y consulta</p>
+</a>
 
-<div class="info-niveles">
-<strong>Estructura:</strong><br>
-✅ Nivel 1 — Carácter y Estilo de Vida Cristiana (16 Lecciones)<br>
-✅ Nivel 2 — Las Bases de Nuestra Fe (16 Lecciones)<br>
-✅ Nivel 3 — Ministerio y Ministerios (16 Lecciones)
+<a href="docentes.html" class="tarjeta">
+<div class="icono">👨‍🏫</div>
+<h3>Docentes</h3>
+<p>Maestros y personal</p>
+</a>
+
+<!-- === AQUÍ VA ESCUELAS EN LUGAR DE MATERIAS === -->
+<a href="escuelas.html" class="tarjeta">
+<div class="icono">📚</div>
+<h3>Escuelas</h3>
+<p>Consolidación y Ministerios</p>
+</a>
+
+<a href="calificaciones.html" class="tarjeta">
+<div class="icono">✏️</div>
+<h3>Calificaciones</h3>
+<p>Evaluaciones y boletas</p>
+</a>
+
+<a href="asistencia.html" class="tarjeta">
+<div class="icono">📅</div>
+<h3>Asistencia</h3>
+<p>Registro diario</p>
+</a>
+
+<a href="pagos.html" class="tarjeta">
+<div class="icono">💰</div>
+<h3>Pagos</h3>
+<p>Inscripciones y cuotas</p>
+</a>
+
+<div class="pie">
+© 2026 Chavarría Producciones
+<button class="cerrar" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
 </div>
 
-<div class="botones" style="margin-top:20px">
-<a href="eco-alumnos.html" class="btn eco">📋 Registro de Alumnos</a>
-<a href="eco-calificaciones.html" class="btn eco-secundario">📊 Calificaciones y Tareas</a>
-</div>
-</div>
-
-<!-- === ESCUELA DE MINISTERIOS === -->
-<div class="tarjeta">
-<h2>⛪ Escuela de Ministerios</h2>
-<p>Preparación para el servicio, liderazgo y trabajo en los ministerios de la iglesia.</p>
-
-<div class="info-niveles">
-<strong>Estructura:</strong><br>
-✅ Nivel 1 — General (16 Lecciones)<br>
-✅ Nivel 2 — Específico (16 Lecciones)
-</div>
-
-<div class="botones" style="margin-top:20px">
-<a href="ministerios-alumnos.html" class="btn min">📋 Registro de Alumnos</a>
-<a href="ministerios-calificaciones.html" class="btn min-secundario">📊 Calificaciones y Tareas</a>
-</div>
-</div>
-
-</div>
-<!-- Botón Cerrar Sesión -->
-<div style="text-align:center;margin-top:30px">
-<button onclick="cerrarSesion()" style="background:#6b7280;padding:10px 20px;border-radius:8px;color:white;border:none;font-weight:bold;cursor:pointer">🚪 Cerrar Sesión</button>
 </div>
 
 <script src="protegido.js"></script>
-
 </body>
 </html>
