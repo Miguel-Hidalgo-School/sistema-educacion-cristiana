@@ -3,30 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sistema de Gestión Escolar</title>
+<title>Sistema de Educación Cristiana</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-body{background:#1e50c8;padding:30px 20px}
+body{background:#1e50c8;padding:30px 20px;min-height:100vh}
 .oculto{display:none !important}
 
 /* LOGIN */
-#pantallaLogin{max-width:420px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
-#pantallaLogin h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
-.campo{margin-bottom:18px}
+#pantallaLogin{max-width:440px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);text-align:center}
+.contenedor-logo{margin-bottom:20px;display:inline-block}
+#logo{width:180px;height:auto;transition:all 0.4s ease;cursor:pointer;border-radius:50%}
+/* EFECTO AL PASAR EL PUNTERO: cambia colores y crece */
+#logo:hover{
+  filter:hue-rotate(120deg) saturate(1.4) brightness(1.05);
+  transform:scale(1.08);
+}
+#pantallaLogin h1{color:#1f2937;margin-bottom:5px;font-size:1.4rem;font-weight:bold}
+#pantallaLogin h2{color:#1e50c8;margin-bottom:25px;font-size:1rem;font-weight:normal}
+.campo{margin-bottom:18px;text-align:left}
 .campo label{display:block;margin-bottom:6px;font-weight:bold;color:#374151}
 .campo input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
-.btn-entrar{width:100%;padding:13px;background:#9a3412;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer}
+.btn-entrar{width:100%;padding:13px;background:#9a3412;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer;transition:background 0.3s ease}
 .btn-entrar:hover{background:#7c2d12}
 .mensaje{margin-top:15px;padding:10px;border-radius:6px;text-align:center;font-weight:bold;display:none}
 .error{background:#fee2e2;color:#b91c1c}
 .exito{background:#d1fae5;color:#065f46}
+.credito-login{margin-top:20px;padding-top:15px;border-top:1px solid #e5e7eb;color:#6b7280;font-weight:bold;font-size:0.9rem;letter-spacing:0.5px}
 
 /* PANEL PRINCIPAL */
 #pantallaPrincipal{max-width:500px;margin:0 auto}
-header{text-align:center;color:white;margin-bottom:40px}
-header h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
-header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block}
+header{text-align:center;color:white;margin-bottom:30px}
+header .logo-panel{width:110px;height:auto;margin-bottom:10px;border-radius:50%}
+header h1{font-size:1.4rem;line-height:1.3;margin-bottom:5px}
+header h2{font-size:1.1rem;font-weight:bold;margin-bottom:5px}
+header p{font-size:1rem;opacity:.9}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block;transition:transform 0.2s ease}
+.tarjeta:hover{transform:translateY(-3px)}
 .tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
 .tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
 .tarjeta p{color:#6b7280;font-size:.95rem}
@@ -38,24 +50,36 @@ header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
 
 <!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="pantallaLogin">
-<h1>🔐 Iniciar Sesión</h1>
+<div class="contenedor-logo">
+<img src="logo.jpg" alt="Así como Jesús — Tercera de Colima" id="logo">
+</div>
+<h1>SISTEMA DE EDUCACIÓN CRISTIANA</h1>
+<h2>Así como Jesús · Tercera de Colima</h2>
+
 <div class="campo">
 <label>Correo electrónico</label>
 <input type="email" id="correo">
 </div>
+
 <div class="campo">
 <label>Contraseña</label>
 <input type="password" id="clave">
 </div>
+
 <button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
 <div id="mensaje" class="mensaje"></div>
+
+<div class="credito-login">
+CHAVARRÍA PRODUCCIONES
+</div>
 </div>
 
-<!-- PANEL PRINCIPAL — YA INCLUYE ADMINISTRAR USUARIOS -->
+<!-- PANEL PRINCIPAL -->
 <div id="pantallaPrincipal" class="oculto">
 <header>
-<h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
-<h2>Sistema de Gestión Escolar</h2>
+<img src="logo.jpg" alt="Logo" class="logo-panel">
+<h1>Secretaría de Educación Cristiana</h1>
+<h2>Tercera de Colima</h2>
 <p>Panel Principal</p>
 </header>
 
@@ -89,7 +113,6 @@ header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
 <p>Registro diario</p>
 </a>
 
-<!-- ✅ AQUÍ ESTÁ LA OPCIÓN DE CREAR USUARIOS -->
 <a href="usuarios-admin.html" class="tarjeta">
 <div class="icono">👤</div>
 <h3>Administrar Usuarios</h3>
@@ -103,7 +126,7 @@ header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
 </a>
 
 <div class="pie">
-© 2026 Chavarría Producciones<br>
+© 2026 CHAVARRÍA PRODUCCIONES<br>
 <button class="btn-salir" id="btnSalir">🚪 Cerrar Sesión</button>
 </div>
 </div>
