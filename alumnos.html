@@ -3,227 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Alumnos — Secretaría de Educación Cristiana</title>
+<title>Alumnos</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,sans-serif}
-body{background:#f0f4f8;padding:20px;max-width:950px;margin:0 auto}
-.volver{display:inline-block;margin-bottom:15px;color:#1a56db;text-decoration:none;font-weight:bold}
-h1{text-align:center;color:#1a56db;margin:20px 0;font-size:1.8rem;font-weight:bold}
-h2{color:#2563eb;margin:25px 0 15px 0;font-weight:bold}
-.card{background:white;padding:25px;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,.1);margin-bottom:25px}
-.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px}
-.form-group{margin-bottom:15px}
-label{display:block;margin-bottom:5px;font-weight:bold;color:#333}
-input,select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-size:1rem}
-button{padding:12px 20px;background:#1a56db;color:white;border:none;border-radius:6px;font-size:1rem;font-weight:bold;cursor:pointer;margin-top:10px}
-button:hover{background:#1548c5}
-.btn-editar{background:#f59e0b;margin-right:8px}
-.btn-editar:hover{background:#d97706}
-.btn-eliminar{background:#ef4444}
-.btn-eliminar:hover{background:#dc2626}
-.btn-cancelar{background:#6b7280;margin-left:8px}
-.btn-cancelar:hover{background:#4b5563}
-.ok{background:#dcfce7;color:#166534;padding:12px;border-radius:6px;margin-top:15px;display:none;text-align:center;font-weight:bold}
-table{width:100%;border-collapse:collapse;margin-top:15px}
-th,td{padding:12px 8px;text-align:left;border-bottom:1px solid #eee}
-th{background:#f8fafc;font-weight:bold;color:#1e293b;white-space:nowrap}
-tr:hover{background:#f8fafc}
-.acciones{white-space:nowrap;text-align:center}
-.vacio{text-align:center;color:#64748b;padding:30px;font-weight:bold}
-.cargando{text-align:center;color:#2563eb;padding:20px}
-.buscador{margin-bottom:15px}
-#buscar{max-width:400px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
+.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
+.volver:hover{text-decoration:underline}
+header{text-align:center;color:white;margin-bottom:40px}
+header h1{font-size:1.5rem;margin-bottom:8px}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
+.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
+.tarjeta p{color:#6b7280;font-size:.95rem}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 </style>
 </head>
 <body>
 
-<a href="index.html" class="volver">← Volver al Menú</a>
-<h1>🎓 Gestión de Alumnos</h1>
+<div class="contenedor">
+<a href="index.html" class="volver">← Volver al Panel Principal</a>
 
-<div class="card">
-<h2 id="tituloForm">➕ Agregar Nuevo Alumno</h2>
-<form id="formAlumno">
-<input type="hidden" id="docId">
-<div class="form-row">
-<div class="form-group">
-<label>Nombre Completo</label>
-<input type="text" id="nombreCompleto" required>
-</div>
-<div class="form-group">
-<label>Matrícula</label>
-<input type="text" id="matricula" required>
-</div>
-<div class="form-group">
-<label>Grado</label>
-<input type="number" id="grado" required min="1" max="12">
-</div>
-<div class="form-group">
-<label>Grupo</label>
-<input type="text" id="grupo" required maxlength="3">
-</div>
-<div class="form-group">
-<label>Correo</label>
-<input type="email" id="correo" required>
-</div>
-<div class="form-group">
-<label>Fecha Ingreso</label>
-<input type="date" id="fechaIngreso" required>
-</div>
-<div class="form-group">
-<label>Estatus</label>
-<select id="status">
-<option value="inscrito">Inscrito</option>
-<option value="baja">Baja</option>
-<option value="suspendido">Suspendido</option>
-</select>
-</div>
-</div>
-<div>
-<button type="submit" id="btnGuardar">✅ Guardar Alumno</button>
-<button type="button" class="btn-cancelar" id="btnCancelar" style="display:none">Cancelar</button>
-</div>
-<div class="ok" id="mensajeExito">✅ Operación realizada correctamente</div>
-</form>
+<header>
+<h1>👥 Alumnos</h1>
+<p>Registro y consulta</p>
+</header>
+
+<div class="tarjeta">
+<h3>Listado de Alumnos</h3>
+<p>Aquí aparecerán los alumnos registrados</p>
 </div>
 
-<div class="card">
-<h2>📋 Lista de Alumnos</h2>
-<div class="buscador">
-<input type="text" id="buscar" placeholder="🔍 Buscar por nombre o matrícula...">
-</div>
-<div id="lista">
-<div class="cargando">Cargando...</div>
+<div class="pie">
+© 2026 Chavarría Producciones
 </div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script>
-const app = firebase.initializeApp(window.firebaseConfig);
-const db = firebase.firestore();
-
-let todosLosAlumnos = [];
-let modoEdicion = false;
-
-async function cargarLista() {
-  const lista = document.getElementById('lista');
-  lista.innerHTML = '<div class="cargando">Cargando...</div>';
-  try {
-    const snapshot = await db.collection('alumnos').orderBy('nombreCompleto').get();
-    todosLosAlumnos = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-    mostrarLista(todosLosAlumnos);
-  } catch (error) {
-    lista.innerHTML = `<div style="color:red;font-weight:bold">Error: ${error.message}</div>`;
-  }
-}
-
-function mostrarLista(alumnos) {
-  const lista = document.getElementById('lista');
-  if (alumnos.length === 0) {
-    lista.innerHTML = '<div class="vacio">📭 No hay alumnos registrados</div>';
-    return;
-  }
-  let html = '<table><tr><th>Nombre</th><th>Matrícula</th><th>Grado/Grupo</th><th>Correo</th><th>Estatus</th><th class="acciones">Acciones</th></tr>';
-  alumnos.forEach(a => {
-    html += `
-      <tr>
-        <td>${a.nombreCompleto || '-'}</td>
-        <td>${a.matricula || '-'}</td>
-        <td>${a.grado || '-'}/${a.grupo || '-'}</td>
-        <td>${a.correo || '-'}</td>
-        <td>${a.status || '-'}</td>
-        <td class="acciones">
-          <button class="btn-editar" onclick="editarAlumno('${a.id}')">✏️ Editar</button>
-          <button class="btn-eliminar" onclick="eliminarAlumno('${a.id}')">❌ Eliminar</button>
-        </td>
-      </tr>`;
-  });
-  html += '</table>';
-  lista.innerHTML = html;
-}
-
-function editarAlumno(id) {
-  const alumno = todosLosAlumnos.find(a => a.id === id);
-  if (!alumno) return;
-  modoEdicion = true;
-  document.getElementById('docId').value = id;
-  document.getElementById('nombreCompleto').value = alumno.nombreCompleto || '';
-  document.getElementById('matricula').value = alumno.matricula || '';
-  document.getElementById('grado').value = alumno.grado || '';
-  document.getElementById('grupo').value = alumno.grupo || '';
-  document.getElementById('correo').value = alumno.correo || '';
-  document.getElementById('fechaIngreso').value = alumno.fechaIngreso ? new Date(alumno.fechaIngreso.toDate ? alumno.fechaIngreso.toDate() : alumno.fechaIngreso).toISOString().split('T')[0] : '';
-  document.getElementById('status').value = alumno.status || 'inscrito';
-  document.getElementById('tituloForm').textContent = '✏️ Editar Alumno';
-  document.getElementById('btnGuardar').textContent = '🔄 Actualizar Datos';
-  document.getElementById('btnCancelar').style.display = 'inline-block';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-document.getElementById('btnCancelar').addEventListener('click', () => {
-  modoEdicion = false;
-  document.getElementById('formAlumno').reset();
-  document.getElementById('docId').value = '';
-  document.getElementById('tituloForm').textContent = '➕ Agregar Nuevo Alumno';
-  document.getElementById('btnGuardar').textContent = '✅ Guardar Alumno';
-  document.getElementById('btnCancelar').style.display = 'none';
+firebase.initializeApp(window.firebaseConfig);
+firebase.auth().onAuthStateChanged(u => {
+  if (!u) window.location.href = 'index.html';
 });
-
-document.getElementById('formAlumno').addEventListener('submit', async e => {
-  e.preventDefault();
-  const datos = {
-    nombreCompleto: document.getElementById('nombreCompleto').value,
-    matricula: document.getElementById('matricula').value,
-    grado: parseInt(document.getElementById('grado').value),
-    grupo: document.getElementById('grupo').value,
-    correo: document.getElementById('correo').value,
-    fechaIngreso: new Date(document.getElementById('fechaIngreso').value),
-    status: document.getElementById('status').value
-  };
-  try {
-    const docId = document.getElementById('docId').value;
-    if (modoEdicion && docId) {
-      await db.collection('alumnos').doc(docId).update(datos);
-    } else {
-      await db.collection('alumnos').add(datos);
-    }
-    document.getElementById('mensajeExito').style.display = 'block';
-    setTimeout(() => document.getElementById('mensajeExito').style.display = 'none', 3000);
-    modoEdicion = false;
-    document.getElementById('formAlumno').reset();
-    document.getElementById('docId').value = '';
-    document.getElementById('tituloForm').textContent = '➕ Agregar Nuevo Alumno';
-    document.getElementById('btnGuardar').textContent = '✅ Guardar Alumno';
-    document.getElementById('btnCancelar').style.display = 'none';
-    cargarLista();
-  } catch (error) {
-    alert('Error: ' + error.message);
-  }
-});
-
-window.eliminarAlumno = async function(id) {
-  if (!confirm('⚠️ ¿Seguro que quieres eliminar este alumno?\nEsta acción no se puede deshacer.')) return;
-  try {
-    await db.collection('alumnos').doc(id).delete();
-    cargarLista();
-  } catch (error) {
-    alert('Error al eliminar: ' + error.message);
-  }
-};
-
-document.getElementById('buscar').addEventListener('input', e => {
-  const texto = e.target.value.toLowerCase().trim();
-  if (!texto) { mostrarLista(todosLosAlumnos); return; }
-  const filtrados = todosLosAlumnos.filter(a =>
-    (a.nombreCompleto || '').toLowerCase().includes(texto) ||
-    (a.matricula || '').toLowerCase().includes(texto)
-  );
-  mostrarLista(filtrados);
-});
-
-cargarLista();
 </script>
 
 </body>

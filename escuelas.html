@@ -58,15 +58,15 @@ header h1{font-size:1.5rem;margin-bottom:8px}
 <div class="pie">
 © 2026 Chavarría Producciones
 </div>
-
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script>
-firebase.initializeApp(window.firebaseConfig).auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'login.html';
+firebase.initializeApp(window.firebaseConfig);
+firebase.auth().onAuthStateChanged(u => {
+  if (!u) window.location.href = 'index.html';
 });
 </script>
 

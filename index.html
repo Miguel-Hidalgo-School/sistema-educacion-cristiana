@@ -5,121 +5,48 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Sistema de Gestión Escolar</title>
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Arial,Segoe UI,sans-serif
-}
-
-body{
-  background:#1e50c8;
-  min-height:100vh;
-  padding:0;
-  position:relative
-}
-
-/* Franja lateral izquierda blanca con formas */
-.lado-izquierdo{
-  position:absolute;
-  left:0;
-  top:0;
-  width:60px;
-  height:100%;
-  background:white;
-  z-index:1
-}
-
-.forma-lateral{
-  width:40px;
-  height:40px;
-  background:#1e50c8;
-  border-radius:50% 50% 0 50%;
-  margin:35px auto;
-  transform:rotate(45deg)
-}
-
-.contenedor{
-  position:relative;
-  z-index:2;
-  max-width:480px;
-  margin:0 auto;
-  padding:20px 16px 24px
-}
-
-/* Encabezado */
-header{
-  text-align:center;
-  color:white;
-  margin-bottom:24px
-}
-
-header h1{
-  font-size:1.5rem;
-  line-height:1.3;
-  margin-bottom:8px
-}
-
-header h2{
-  font-size:1.3rem;
-  font-weight:bold;
-  margin-bottom:4px
-}
-
-header p{
-  font-size:1rem;
-  opacity:.9
-}
-
-/* Tarjetas */
-.tarjeta{
-  background:white;
-  border-radius:12px;
-  padding:18px;
-  margin-bottom:12px;
-  text-align:center;
-  text-decoration:none;
-  color:inherit;
-  display:block
-}
-
-.tarjeta .icono{
-  font-size:2.4rem;
-  margin-bottom:8px
-}
-
-.tarjeta h3{
-  font-size:1.3rem;
-  color:#1f2937;
-  margin-bottom:4px
-}
-
-.tarjeta p{
-  color:#6b7280;
-  font-size:.95rem
-}
-
-/* Pie */
-.pie{
-  text-align:center;
-  color:rgba(255,255,255,.7);
-  margin-top:24px;
-  font-size:.85rem
-}
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.login-caja{max-width:420px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.login-caja h1{text-align:center;color:#1f2937;margin-bottom:25px;font-size:1.5rem}
+.campo{margin-bottom:18px}
+.campo label{display:block;margin-bottom:6px;font-weight:bold;color:#374151}
+.campo input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
+.btn-entrar{width:100%;padding:13px;background:#9a3412;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer}
+.btn-entrar:hover{background:#7c2d12}
+.mensaje{margin-top:15px;padding:10px;border-radius:6px;text-align:center;font-weight:bold;display:none}
+.error{background:#fee2e2;color:#b91c1c}
+.exito{background:#d1fae5;color:#065f46}
+.contenedor{max-width:500px;margin:0 auto;display:none}
+header{text-align:center;color:white;margin-bottom:40px}
+header h1{font-size:1.5rem;line-height:1.3;margin-bottom:8px}
+header h2{font-size:1.3rem;font-weight:bold;margin-bottom:5px}
+header p{font-size:1rem;opacity:.9}
+.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block}
+.tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
+.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
+.tarjeta p{color:#6b7280;font-size:.95rem}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+.btn-salir{background:transparent;color:white;border:none;text-decoration:underline;cursor:pointer;margin-top:10px}
 </style>
 </head>
 <body>
 
-<div class="lado-izquierdo">
-  <div class="forma-lateral"></div>
-  <div class="forma-lateral"></div>
-  <div class="forma-lateral"></div>
-  <div class="forma-lateral"></div>
-  <div class="forma-lateral"></div>
-  <div class="forma-lateral"></div>
+<div id="pantallaLogin" class="login-caja">
+<h1>🔐 Iniciar Sesión</h1>
+<div class="campo">
+<label>Correo electrónico</label>
+<input type="email" id="correo" required>
+</div>
+<div class="campo">
+<label>Contraseña</label>
+<input type="password" id="clave" required>
+</div>
+<button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
+<div id="mensaje" class="mensaje"></div>
 </div>
 
-<div class="contenedor">
+<div id="pantallaPrincipal" class="contenedor">
 <header>
 <h1>Secretaría de Educación Cristiana 3a. I.A.F.C.J. de Colima</h1>
 <h2>Sistema de Gestión Escolar</h2>
@@ -127,59 +54,103 @@ header p{
 </header>
 
 <a href="alumnos.html" class="tarjeta">
-  <div class="icono">👥</div>
-  <h3>Alumnos</h3>
-  <p>Registro y consulta</p>
+<div class="icono">👥</div>
+<h3>Alumnos</h3>
+<p>Registro y consulta</p>
 </a>
 
 <a href="docentes.html" class="tarjeta">
-  <div class="icono">👨‍🏫</div>
-  <h3>Docentes</h3>
-  <p>Maestros y personal</p>
+<div class="icono">👨‍🏫</div>
+<h3>Docentes</h3>
+<p>Maestros y personal</p>
 </a>
 
 <a href="escuelas.html" class="tarjeta">
-  <div class="icono">📚</div>
-  <h3>Escuelas</h3>
-  <p>Consolidación y Ministerios</p>
+<div class="icono">📚</div>
+<h3>Escuelas</h3>
+<p>Consolidación y Ministerios</p>
 </a>
 
 <a href="calificaciones.html" class="tarjeta">
-  <div class="icono">✏️</div>
-  <h3>Calificaciones</h3>
-  <p>Evaluaciones y boletas</p>
+<div class="icono">✏️</div>
+<h3>Calificaciones</h3>
+<p>Evaluaciones y boletas</p>
 </a>
 
 <a href="asistencia.html" class="tarjeta">
-  <div class="icono">📅</div>
-  <h3>Asistencia</h3>
-  <p>Registro diario</p>
+<div class="icono">📅</div>
+<h3>Asistencia</h3>
+<p>Registro diario</p>
 </a>
 
 <a href="pagos.html" class="tarjeta">
-  <div class="icono">💰</div>
-  <h3>Pagos</h3>
-  <p>Inscripciones y cuotas</p>
+<div class="icono">💰</div>
+<h3>Pagos</h3>
+<p>Inscripciones y cuotas</p>
 </a>
 
 <div class="pie">
-© 2026 Chavarría Producciones
+© 2026 Chavarría Producciones<br>
+<button class="btn-salir" id="btnSalir">🚪 Cerrar Sesión</button>
+</div>
 </div>
 
-</div>
-
+<script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
-<script src="config.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
+const pantallaLogin = document.getElementById('pantallaLogin');
+const pantallaPrincipal = document.getElementById('pantallaPrincipal');
+const btnEntrar = document.getElementById('btnEntrar');
+const btnSalir = document.getElementById('btnSalir');
+const mensaje = document.getElementById('mensaje');
+
+function mostrarPanel() {
+  pantallaLogin.style.display = 'none';
+  pantallaPrincipal.style.display = 'block';
+}
+function mostrarLogin() {
+  pantallaLogin.style.display = 'block';
+  pantallaPrincipal.style.display = 'none';
+}
 
 auth.onAuthStateChanged(usuario => {
-  if (!usuario) {
-    window.location.href = 'login.html';
+  if (usuario) { mostrarPanel(); }
+  else { mostrarLogin(); }
+});
+
+btnEntrar.addEventListener('click', async () => {
+  const correo = document.getElementById('correo').value.trim();
+  const clave = document.getElementById('clave').value;
+  if (!correo || !clave) return mostrarMensaje('Escribe correo y contraseña', 'error');
+  btnEntrar.disabled = true;
+  btnEntrar.textContent = 'Verificando...';
+  mensaje.style.display = 'none';
+  try {
+    await auth.signInWithEmailAndPassword(correo, clave);
+    mostrarMensaje('✅ Acceso correcto...', 'exito');
+  } catch (err) {
+    btnEntrar.disabled = false;
+    btnEntrar.textContent = '✅ Entrar';
+    let texto = 'Error de acceso';
+    if (err.code === 'auth/user-not-found') texto = 'No existe este correo';
+    if (err.code === 'auth/wrong-password') texto = 'Contraseña incorrecta';
+    if (err.code === 'auth/too-many-requests') texto = 'Demasiados intentos — intenta más tarde';
+    mostrarMensaje(texto, 'error');
   }
 });
+
+btnSalir.addEventListener('click', () => {
+  auth.signOut().catch(err => alert('Error: ' + err.message));
+});
+
+function mostrarMensaje(texto, tipo) {
+  mensaje.textContent = texto;
+  mensaje.className = 'mensaje ' + tipo;
+  mensaje.style.display = 'block';
+}
 </script>
 
 </body>
