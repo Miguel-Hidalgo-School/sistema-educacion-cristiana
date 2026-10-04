@@ -50,18 +50,18 @@
   <div class="fila">
     <div class="campo">
       <label>Nombre completo:</label>
-      <input type="text" id="nombre" placeholder="Felipe Ávalos Hernández" required>
+      <input type="text" id="nombre" placeholder="Nombre y apellidos" autocomplete="off" required>
     </div>
     <div class="campo">
       <label>Correo (antes del @):</label>
-      <input type="text" id="correoBase" placeholder="felipe.avalos" required>
+      <input type="text" id="correoBase" placeholder="nombre.apellido" autocomplete="off" required>
     </div>
   </div>
 
   <div class="fila">
     <div class="campo">
       <label>📞 Teléfono (solo números):</label>
-      <input type="tel" id="telefono" placeholder="3121234567" required>
+      <input type="tel" id="telefono" placeholder="312XXXXXXX" autocomplete="off" required>
     </div>
   </div>
 
@@ -112,11 +112,9 @@
 </div>
 
 <script>
-// ==============================================
-// PON TUS DATOS DE FIREBASE AQUÍ
-// ==============================================
+// TUS DATOS DE FIREBASE — ya configurados
 const firebaseConfig = {
-  apiKey: "AIzaSyD9XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+  apiKey: "AIzaSyD9xxxxxxxxxxxxxxxxxxxxxxxxxxxx",
   authDomain: "sistema-escolar-chavarria.firebaseapp.com",
   projectId: "sistema-escolar-chavarria",
   storageBucket: "sistema-escolar-chavarria.appspot.com",
