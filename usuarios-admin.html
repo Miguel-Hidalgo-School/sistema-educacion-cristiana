@@ -3,182 +3,343 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Administrar Usuarios</title>
+<title>Administrar Usuarios — Tercera de Colima</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-body{background:#1e50c8;padding:30px 20px}
-.contenedor{max-width:500px;margin:0 auto}
-.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
-.volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:30px}
-header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px}
-.tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:15px;text-align:center}
-.campo{margin-bottom:15px}
-.campo label{display:block;margin-bottom:5px;font-weight:bold;color:#374151;font-size:.9rem}
-.campo input, .campo select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
-button{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;cursor:pointer;font-size:1rem}
-button:hover{background:#7c2d12}
-button:disabled{background:#9ca3af;cursor:not-allowed}
-.mensaje{margin-top:15px;padding:12px;border-radius:8px;text-align:center;font-weight:bold;display:none}
-.exito{background:#d1fae5;color:#065f46}
-.error{background:#fee2e2;color:#b91c1c}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
-.aviso{background:#fef3c7;padding:12px;border-radius:8px;margin-bottom:20px;color:#92400e}
+body{
+  background:#1e50c8;
+  min-height:100vh;
+  padding:25px 20px;
+  color:#333;
+}
+.contenedor{
+  max-width:520px;
+  margin:0 auto;
+}
+.cabecera{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:25px;
+}
+.cabecera h1{
+  color:white;
+  font-size:1.4rem;
+}
+.btn-volver{
+  background:#ef4444;
+  color:white;
+  border:none;
+  padding:10px 18px;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+  text-decoration:none;
+}
+.tarjeta{
+  background:white;
+  border-radius:14px;
+  padding:28px;
+  margin-bottom:20px;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+.tarjeta h2{
+  font-size:1.25rem;
+  margin-bottom:22px;
+  color:#1f2937;
+  border-bottom:2px solid #e5e7eb;
+  padding-bottom:10px;
+}
+.campo{
+  margin-bottom:18px;
+}
+.campo label{
+  display:block;
+  font-weight:bold;
+  margin-bottom:6px;
+  color:#374151;
+}
+.campo input,.campo textarea,.campo select{
+  width:100%;
+  padding:12px 14px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:1rem;
+}
+.opcion-acceso{
+  margin:12px 0;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.opcion-acceso input[type="checkbox"]{
+  margin-top:3px;
+  width:18px;
+  height:18px;
+}
+.opcion-acceso label{
+  margin:0;
+  font-weight:normal;
+  line-height:1.4;
+}
+.btn-crear{
+  width:100%;
+  padding:15px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:10px;
+  font-size:1.1rem;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:8px;
+  transition:background .2s;
+}
+.btn-crear:hover{background:#1d4ed8}
+.btn-crear:disabled{background:#93c5fd;cursor:not-allowed}
+.nota{
+  margin-top:18px;
+  font-size:.9rem;
+  color:#6b7280;
+  line-height:1.5;
+  background:#f3f4f6;
+  padding:14px;
+  border-radius:8px;
+}
+.mensaje{
+  margin-top:16px;
+  padding:14px;
+  border-radius:8px;
+  font-weight:bold;
+  display:none;
+}
+.exito{background:#d1fae5;color:#065f46;display:block}
+.error{background:#fee2e2;color:#b91c1c;display:block}
+.info{background:#dbeafe;color:#1e40af;display:block;margin-top:12px}
+.lista-usuarios{
+  margin-top:25px;
+}
+.usuario-item{
+  padding:14px;
+  border-bottom:1px solid #e5e7eb;
+}
+.usuario-item:last-child{border-bottom:none}
+.usuario-nombre{font-weight:bold;color:#1f2937}
+.usuario-correo{font-size:.9rem;color:#6b7280;margin:4px 0}
+.usuario-permisos{font-size:.85rem;color:#4b5563}
 </style>
 </head>
 <body>
 
 <div class="contenedor">
-<a href="index.html" class="volver">← Volver al Panel Principal</a>
+  <div class="cabecera">
+    <h1>👥 Usuarios del sistema</h1>
+    <a href="index.html" class="btn-volver">← Volver al inicio</a>
+  </div>
 
-<header>
-<h1>👤 Administrar Usuarios</h1>
-<p>Solo para Administradores</p>
-</header>
+  <div class="tarjeta">
+    <h2>➕ Crear nuevo usuario</h2>
 
-<div class="aviso">
-ℹ️ Completa todos los datos para crear un nuevo usuario del sistema.
-</div>
+    <div class="campo">
+      <label>Usuario de acceso (se completa con @terceradecolima.edu.iafcj)</label>
+      <input type="text" id="nuevoUsuario" placeholder="ej. maestra.lopez" autocomplete="off">
+    </div>
 
-<div class="tarjeta">
-<h3>Agregar Nuevo Usuario</h3>
+    <div class="campo">
+      <label>Nombre (opcional)</label>
+      <input type="text" id="nombreCompleto" placeholder="Nombre para identificarlo" autocomplete="off">
+    </div>
 
-<div class="campo">
-<label>Correo electrónico</label>
-<input type="email" id="correo" placeholder="ejemplo@correo.com" required>
-</div>
+    <div class="campo">
+      <label>Correo real de contacto (privado, opcional)</label>
+      <input type="email" id="correoReal" placeholder="su_correo_real@gmail.com" autocomplete="off">
+    </div>
 
-<div class="campo">
-<label>Nombre completo</label>
-<input type="text" id="nombreCompleto" placeholder="Nombre y Apellido" required>
-</div>
+    <div class="campo">
+      <label>WhatsApp (opcional, con lada, solo números)</label>
+      <input type="tel" id="whatsapp" placeholder="521XXXXXXXXXX" autocomplete="off" inputmode="numeric">
+    </div>
 
-<div class="campo">
-<label>Contraseña</label>
-<input type="text" id="clave" placeholder="Mínimo 6 caracteres" required>
-</div>
+    <div style="margin:20px 0 10px 0;font-weight:bold;color:#374151;">¿A qué le das acceso?</div>
 
-<div class="campo">
-<label>Rol / Permiso</label>
-<select id="rol">
-<option value="docente">Docente</option>
-<option value="admin">Administrador</option>
-</select>
-</div>
+    <div class="opcion-acceso">
+      <input type="checkbox" id="accesoPrimaria" value="primaria">
+      <label for="accesoPrimaria">Primaria</label>
+    </div>
+    <div class="opcion-acceso">
+      <input type="checkbox" id="accesoSecundaria" value="secundaria">
+      <label for="accesoSecundaria">Secundaria</label>
+    </div>
+    <div class="opcion-acceso">
+      <input type="checkbox" id="accesoCheckin" value="checkin">
+      <label for="accesoCheckin">CheckIn Kids</label>
+    </div>
+    <div class="opcion-acceso">
+      <input type="checkbox" id="accesoBitacora" value="bitacora">
+      <label for="accesoBitacora">Bitácora</label>
+    </div>
+    <div class="opcion-acceso">
+      <input type="checkbox" id="puedeGestionar" value="gestionar">
+      <label for="puedeGestionar">Puede gestionar sus propios usuarios</label>
+    </div>
 
-<button id="btnCrear">✅ Crear Usuario</button>
-<div id="mensaje" class="mensaje"></div>
-</div>
+    <button id="btnCrearUsuario" class="btn-crear">➕ Crear usuario</button>
+    <div id="mensaje" class="mensaje"></div>
 
-<div class="pie">
-© 2026 Chavarría Producciones
-</div>
+    <p class="nota">
+      <strong>El correo de acceso es solo un usuario dentro de @terceradecolima.edu.iafcj</strong> — sirve para iniciar sesión, no es un correo real. Cada usuario ve y gestiona solo su propio espacio.
+    </p>
+  </div>
+
+  <div class="tarjeta lista-usuarios">
+    <h2>📋 Usuarios que has creado</h2>
+    <div id="listaUsuarios"></div>
+    <p id="sinUsuarios" style="color:#6b7280;text-align:center;padding:15px;">Cargando...</p>
+  </div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
 <script>
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// Proteger la página: solo administradores pueden entrar
+const btnCrear = document.getElementById('btnCrearUsuario');
+const mensaje = document.getElementById('mensaje');
+const listaUsuarios = document.getElementById('listaUsuarios');
+const sinUsuarios = document.getElementById('sinUsuarios');
+
 auth.onAuthStateChanged(async (usuarioActual) => {
   if (!usuarioActual) {
     window.location.href = 'index.html';
     return;
   }
-  const ref = await db.collection('usuarios').doc(usuarioActual.uid).get();
-  if (!ref.exists || ref.data().rol !== 'admin') {
-    alert('No tienes permiso para acceder a esta página');
-    window.location.href = 'index.html';
-    return;
-  }
+  await cargarUsuarios(usuarioActual.email);
 });
 
-// Función para mostrar mensajes
-function mostrarMensaje(texto, tipo) {
-  const caja = document.getElementById('mensaje');
-  caja.textContent = texto;
-  caja.className = 'mensaje ' + tipo;
-  caja.style.display = 'block';
-}
+btnCrear.addEventListener('click', async () => {
+  const nombreBase = document.getElementById('nuevoUsuario').value.trim().toLowerCase().replace(/\s+/g, '.');
+  const nombreCompleto = document.getElementById('nombreCompleto').value.trim();
+  const correoReal = document.getElementById('correoReal').value.trim();
+  const whatsapp = document.getElementById('whatsapp').value.trim();
 
-// Crear usuario al presionar el botón
-document.getElementById('btnCrear').addEventListener('click', async () => {
-  const correo = document.getElementById('correo').value.trim();
-  const nombre = document.getElementById('nombreCompleto').value.trim();
-  const clave = document.getElementById('clave').value;
-  const rol = document.getElementById('rol').value;
-  const boton = document.getElementById('btnCrear');
-
-  // Validar campos
-  if (!correo || !nombre || !clave) {
-    mostrarMensaje('⚠️ Completa todos los campos', 'error');
-    return;
-  }
-  if (clave.length < 6) {
-    mostrarMensaje('⚠️ La contraseña debe tener al menos 6 caracteres', 'error');
+  if (!nombreBase) {
+    mostrarMensaje('Escribe el nombre de usuario', 'error');
     return;
   }
 
-  boton.disabled = true;
-  boton.textContent = 'Creando...';
+  // ✅ SOLO el dominio nuevo
+  const correoNuevo = `${nombreBase}@terceradecolima.edu.iafcj`;
+  const contrasenaTemp = generarContrasena();
+
+  const permisos = {
+    primaria: document.getElementById('accesoPrimaria').checked,
+    secundaria: document.getElementById('accesoSecundaria').checked,
+    checkin: document.getElementById('accesoCheckin').checked,
+    bitacora: document.getElementById('accesoBitacora').checked,
+    puedeGestionar: document.getElementById('puedeGestionar').checked
+  };
+
+  btnCrear.disabled = true;
+  btnCrear.textContent = 'Creando...';
+  mensaje.style.display = 'none';
 
   try {
-    // 1. Crear acceso en Autenticación
-    const respuesta = await fetch(
-      'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + window.firebaseConfig.apiKey,
-      {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          email: correo,
-          password: clave,
-          returnSecureToken: true
-        })
-      }
-    );
-
-    const datos = await respuesta.json();
-    if (!respuesta.ok) throw new Error(datos.error.message);
-
-    const uidNuevo = datos.localId;
-
-    // 2. Guardar datos en la base de datos
-    await db.collection('usuarios').doc(uidNuevo).set({
-      correo: correo,
-      nombreCompleto: nombre,
-      rol: rol
+    const credencial = await auth.createUserWithEmailAndPassword(correoNuevo, contrasenaTemp);
+    
+    await db.collection('usuarios').doc(correoNuevo).set({
+      email: correoNuevo,
+      nombreCompleto: nombreCompleto || nombreBase,
+      correoReal: correoReal || null,
+      whatsapp: whatsapp || null,
+      permisos: permisos,
+      creadoPor: auth.currentUser.email,
+      fechaCreacion: firebase.firestore.FieldValue.serverTimestamp(),
+      contrasenaTemporal: true
     });
 
-    // Éxito
-    mostrarMensaje('✅ Usuario creado correctamente', 'exito');
+    mostrarMensaje(`✅ Creado: ${correoNuevo}\n🔑 Contraseña: ${contrasenaTemp}`, 'exito');
+    
     // Limpiar formulario
-    document.getElementById('correo').value = '';
+    document.getElementById('nuevoUsuario').value = '';
     document.getElementById('nombreCompleto').value = '';
-    document.getElementById('clave').value = '';
+    document.getElementById('correoReal').value = '';
+    document.getElementById('whatsapp').value = '';
+    document.getElementById('accesoPrimaria').checked = false;
+    document.getElementById('accesoSecundaria').checked = false;
+    document.getElementById('accesoCheckin').checked = false;
+    document.getElementById('accesoBitacora').checked = false;
+    document.getElementById('puedeGestionar').checked = false;
+
+    await cargarUsuarios(auth.currentUser.email);
 
   } catch (error) {
-    let mensajeError = 'Error al crear el usuario';
-    if (error.message.includes('EMAIL_EXISTS')) {
-      mensajeError = '⚠️ Este correo ya está registrado';
-    } else if (error.message.includes('WEAK_PASSWORD')) {
-      mensajeError = '⚠️ La contraseña es muy débil';
-    } else if (error.message.includes('INVALID_EMAIL')) {
-      mensajeError = '⚠️ El correo no es válido';
+    let texto = 'No se pudo crear';
+    if (error.code === 'auth/email-already-in-use') {
+      texto = `Ya existe: ${correoNuevo}`;
     }
-    mostrarMensaje(mensajeError, 'error');
+    mostrarMensaje(`❌ ${texto}`, 'error');
   }
 
-  boton.disabled = false;
-  boton.textContent = '✅ Crear Usuario';
+  btnCrear.disabled = false;
+  btnCrear.textContent = '➕ Crear usuario';
 });
-</script>
 
+async function cargarUsuarios(correoCreador) {
+  try {
+    const snapshot = await db.collection('usuarios')
+      .where('creadoPor', '==', correoCreador)
+      .orderBy('fechaCreacion', 'desc')
+      .get();
+
+    listaUsuarios.innerHTML = '';
+    if (snapshot.empty) {
+      sinUsuarios.style.display = 'block';
+      sinUsuarios.textContent = 'Aún no has creado usuarios';
+      return;
+    }
+    sinUsuarios.style.display = 'none';
+    snapshot.forEach(doc => {
+      const u = doc.data();
+      const div = document.createElement('div');
+      div.className = 'usuario-item';
+      div.innerHTML = `
+        <div class="usuario-nombre">${u.nombreCompleto || u.email}</div>
+        <div class="usuario-correo">${u.email}</div>
+        <div class="usuario-permisos">
+          ${u.permisos?.primaria ? '✅ Primaria ' : ''}
+          ${u.permisos?.secundaria ? '✅ Secundaria ' : ''}
+          ${u.permisos?.checkin ? '✅ CheckIn ' : ''}
+          ${u.permisos?.bitacora ? '✅ Bitácora ' : ''}
+          ${u.permisos?.puedeGestionar ? '🔧 Puede gestionar ' : ''}
+        </div>
+      `;
+      listaUsuarios.appendChild(div);
+    });
+  } catch (e) {
+    sinUsuarios.textContent = 'Error al cargar';
+  }
+}
+
+function generarContrasena() {
+  const mayus = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const minus = 'abcdefghjkmnpqrstuvwxyz';
+  const nums = '23456789';
+  let c = '';
+  c += mayus[Math.floor(Math.random() * mayus.length)];
+  c += minus[Math.floor(Math.random() * minus.length)];
+  for (let i = 0; i < 4; i++) c += (mayus + minus + nums)[Math.floor(Math.random() * (mayus + minus + nums).length)];
+  for (let i = 0; i < 2; i++) c += nums[Math.floor(Math.random() * nums.length)];
+  return c.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+function mostrarMensaje(texto, tipo) {
+  mensaje.textContent = texto;
+  mensaje.className = `mensaje ${tipo}`;
+}
+</script>
 </body>
 </html>

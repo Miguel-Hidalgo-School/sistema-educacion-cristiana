@@ -3,21 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Sistema de Educación Cristiana</title>
+<title>Sistema de Educación — Tercera de Colima</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
 body{
   background:#1e50c8;
   min-height:100vh;
   position:relative;
-  overflow-x:hidden; /* Evita desplazamiento horizontal */
-  overflow-y:auto;   /* Permite desplazamiento vertical cuando hace falta */
+  overflow-x:hidden;
+  overflow-y:auto;
   padding:30px 20px;
   cursor:default;
 }
 .oculto{display:none !important}
 
-/* TEXTO QUE SIGUE AL PUNTERO — MUY VISIBLE */
+/* TEXTO QUE SIGUE AL PUNTERO — Dorado y visible siempre */
 .texto-puntero{
   position:fixed;
   color:#ffd700;
@@ -33,7 +33,7 @@ body{
   transition:transform 0.08s ease-out;
 }
 
-/* ANIMACIONES */
+/* ANIMACIONES DE LOS 6 LOGOS */
 @keyframes flotarAzul {
   0% { transform: translate(-180px, 0vh) rotate(0deg); }
   25% { transform: translate(calc(100vw - 180px), 15vh) rotate(90deg); }
@@ -73,7 +73,6 @@ body{
   100% { transform: translate(calc(100vw + 180px), calc(100vh + 180px)) rotate(360deg); }
 }
 
-/* SEIS LOGOS FLOTANTES */
 .logo-flotante{
   position:absolute;
   width:160px;
@@ -113,7 +112,7 @@ body{
   opacity:0.95;
 }
 
-/* LOGIN */
+/* PANTALLA DE INICIO DE SESIÓN */
 #pantallaLogin{
   max-width:440px;
   margin:0 auto;
@@ -135,10 +134,7 @@ body{
   width:220px;
   height:auto;
   transition:all 0.4s ease;
-  cursor:pointer;
   border-radius:50%;
-  position:relative;
-  z-index:11;
 }
 #logo:hover{
   filter:hue-rotate(120deg) saturate(1.4) brightness(1.05);
@@ -149,16 +145,12 @@ body{
   margin-bottom:5px;
   font-size:1.4rem;
   font-weight:bold;
-  position:relative;
-  z-index:11;
 }
 #pantallaLogin h2{
   color:#1e50c8;
   margin-bottom:25px;
   font-size:1rem;
   font-weight:normal;
-  position:relative;
-  z-index:11;
 }
 .campo{
   margin-bottom:18px;
@@ -168,8 +160,8 @@ body{
 }
 .campo label{
   display:block;
-  margin-bottom:6px;
   font-weight:bold;
+  margin-bottom:6px;
   color:#374151;
 }
 .campo input{
@@ -198,14 +190,13 @@ body{
   margin-top:15px;
   padding:10px;
   border-radius:6px;
-  text-align:center;
   font-weight:bold;
   display:none;
   position:relative;
   z-index:11;
 }
-.error{background:#fee2e2;color:#b91c1c}
-.exito{background:#d1fae5;color:#065f46}
+.error{background:#fee2e2;color:#b91c1c;display:block}
+.exito{background:#d1fae5;color:#065f46;display:block}
 .credito-login{
   margin-top:20px;
   padding-top:15px;
@@ -218,28 +209,41 @@ body{
   z-index:11;
 }
 
-/* PANEL PRINCIPAL — Con espacio y desplazamiento */
+/* PANEL PRINCIPAL */
 #pantallaPrincipal{
   max-width:500px;
   margin:0 auto;
   position:relative;
   z-index:10;
-  padding-bottom:40px; /* Espacio extra al final para que no se corte */
+  padding-bottom:40px;
 }
-header{
-  text-align:center;
+.cabecera-sistema{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:white;
+  padding:15px 20px;
+  border-radius:12px;
+  margin-bottom:25px;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+}
+.cabecera-sistema .info-usuario h3{
+  font-size:1rem;
+  color:#1f2937;
+}
+.cabecera-sistema .info-usuario p{
+  font-size:0.85rem;
+  color:#6b7280;
+}
+.btn-salir{
+  background:#ef4444;
   color:white;
-  margin-bottom:30px;
+  border:none;
+  padding:10px 16px;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
 }
-header .logo-panel{
-  width:140px;
-  height:auto;
-  margin-bottom:10px;
-  border-radius:50%;
-}
-header h1{font-size:1.4rem;line-height:1.3;margin-bottom:5px}
-header h2{font-size:1.1rem;font-weight:bold;margin-bottom:5px}
-header p{font-size:1rem;opacity:.9}
 .tarjeta{
   background:white;
   border-radius:12px;
@@ -254,20 +258,12 @@ header p{font-size:1rem;opacity:.9}
 .tarjeta:hover{transform:translateY(-3px)}
 .tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
 .tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
+.tarjeta p{color:#6b7280;font-size:0.95rem}
 .pie{
   text-align:center;
   color:rgba(255,255,255,.7);
   margin-top:20px;
-  font-size:.9rem;
-}
-.btn-salir{
-  background:transparent;
-  color:white;
-  border:none;
-  text-decoration:underline;
-  cursor:pointer;
-  margin-top:10px;
+  font-size:0.9rem;
 }
 </style>
 </head>
@@ -276,7 +272,7 @@ header p{font-size:1rem;opacity:.9}
 <!-- TEXTO QUE SIGUE AL PUNTERO -->
 <div class="texto-puntero" id="textoPuntero">Así como JESÚS ° Tercera de Colima</div>
 
-<!-- SEIS LOGOS FLOTANDO EN EL FONDO -->
+<!-- LOS 6 LOGOS FLOTANTES -->
 <img src="logo.jpg" alt="" class="logo-flotante logo-azul" id="logoAzul">
 <img src="logo.jpg" alt="" class="logo-flotante logo-rojo" id="logoRojo">
 <img src="logo.jpg" alt="" class="logo-flotante logo-amarillo" id="logoAmarillo">
@@ -286,85 +282,85 @@ header p{font-size:1rem;opacity:.9}
 
 <!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="pantallaLogin">
-<div class="contenedor-logo">
-<img src="logo.jpg" alt="Así como Jesús — Tercera de Colima" id="logo">
-</div>
-<h1>SISTEMA DE EDUCACIÓN CRISTIANA</h1>
-<h2>Así como Jesús · Tercera de Colima</h2>
+  <div class="contenedor-logo">
+    <img src="logo.jpg" alt="Tercera de Colima" id="logo">
+  </div>
+  <h1>SISTEMA DE EDUCACIÓN CRISTIANA</h1>
+  <h2>Así como JESÚS · Tercera de Colima</h2>
 
-<div class="campo">
-<label>Correo electrónico</label>
-<input type="email" id="correo">
-</div>
+  <div class="campo">
+    <label>Correo de acceso</label>
+    <input type="email" id="correo" placeholder="tuusuario@terceradecolima.edu.iafcj">
+  </div>
 
-<div class="campo">
-<label>Contraseña</label>
-<input type="password" id="clave">
-</div>
+  <div class="campo">
+    <label>Contraseña</label>
+    <input type="password" id="clave" placeholder="Escribe tu contraseña">
+  </div>
 
-<button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
-<div id="mensaje" class="mensaje"></div>
+  <button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
+  <div id="mensaje" class="mensaje"></div>
 
-<div class="credito-login">
-CHAVARRÍA PRODUCCIONES
-</div>
+  <div class="credito-login">
+    CHAVARRÍA PRODUCCIONES
+  </div>
 </div>
 
 <!-- PANEL PRINCIPAL -->
 <div id="pantallaPrincipal" class="oculto">
-<header>
-<img src="logo.jpg" alt="Logo" class="logo-panel">
-<h1>Secretaría de Educación Cristiana</h1>
-<h2>Tercera de Colima</h2>
-<p>Panel Principal</p>
-</header>
+  <div class="cabecera-sistema">
+    <div class="info-usuario">
+      <h3 id="nombreUsuario">Sistema Escolar</h3>
+      <p id="correoUsuario"></p>
+    </div>
+    <button class="btn-salir" id="btnSalir">🚪 Salir</button>
+  </div>
 
-<a href="alumnos.html" class="tarjeta">
-<div class="icono">👥</div>
-<h3>Alumnos</h3>
-<p>Registro y consulta</p>
-</a>
+  <a href="alumnos.html" class="tarjeta">
+    <div class="icono">👥</div>
+    <h3>Alumnos</h3>
+    <p>Registro y consulta</p>
+  </a>
 
-<a href="docentes.html" class="tarjeta">
-<div class="icono">👨‍🏫</div>
-<h3>Docentes</h3>
-<p>Maestros y personal</p>
-</a>
+  <a href="docentes.html" class="tarjeta">
+    <div class="icono">👨‍🏫</div>
+    <h3>Docentes</h3>
+    <p>Maestros y personal</p>
+  </a>
 
-<a href="escuelas.html" class="tarjeta">
-<div class="icono">📚</div>
-<h3>Escuelas</h3>
-<p>Consolidación y Ministerios</p>
-</a>
+  <a href="escuelas.html" class="tarjeta">
+    <div class="icono">📚</div>
+    <h3>Escuelas</h3>
+    <p>Centros educativos</p>
+  </a>
 
-<a href="calificaciones.html" class="tarjeta">
-<div class="icono">✏️</div>
-<h3>Calificaciones</h3>
-<p>Evaluaciones y boletas</p>
-</a>
+  <a href="calificaciones.html" class="tarjeta">
+    <div class="icono">✏️</div>
+    <h3>Calificaciones</h3>
+    <p>Evaluaciones y boletas</p>
+  </a>
 
-<a href="asistencia.html" class="tarjeta">
-<div class="icono">📅</div>
-<h3>Asistencia</h3>
-<p>Registro diario</p>
-</a>
+  <a href="asistencia.html" class="tarjeta">
+    <div class="icono">📅</div>
+    <h3>Asistencia</h3>
+    <p>Registro diario</p>
+  </a>
 
-<a href="usuarios-admin.html" class="tarjeta">
-<div class="icono">👤</div>
-<h3>Administrar Usuarios</h3>
-<p>Crear nuevos usuarios y asignar permisos</p>
-</a>
+  <a href="usuarios-admin.html" class="tarjeta">
+    <div class="icono">👤</div>
+    <h3>Administrar Usuarios</h3>
+    <p>Crear y gestionar accesos</p>
+  </a>
 
-<a href="pagos.html" class="tarjeta">
-<div class="icono">💰</div>
-<h3>Pagos</h3>
-<p>Inscripciones y cuotas</p>
-</a>
+  <a href="pagos.html" class="tarjeta">
+    <div class="icono">💰</div>
+    <h3>Pagos</h3>
+    <p>Inscripciones y cuotas</p>
+  </a>
 
-<div class="pie">
-© 2026 CHAVARRÍA PRODUCCIONES<br>
-<button class="btn-salir" id="btnSalir">🚪 Cerrar Sesión</button>
-</div>
+  <div class="pie">
+    © 2026 CHAVARRÍA PRODUCCIONES · Tercera de Colima
+  </div>
 </div>
 
 <script src="config.js"></script>
@@ -373,73 +369,98 @@ CHAVARRÍA PRODUCCIONES
 <script>
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
-const login = document.getElementById('pantallaLogin');
-const principal = document.getElementById('pantallaPrincipal');
-const textoPuntero = document.getElementById('textoPuntero');
-const logoAzul = document.getElementById('logoAzul');
-const logoRojo = document.getElementById('logoRojo');
-const logoAmarillo = document.getElementById('logoAmarillo');
-const logoVerde = document.getElementById('logoVerde');
-const logoMorado = document.getElementById('logoMorado');
-const logoNaranja = document.getElementById('logoNaranja');
 
 // El texto sigue al ratón
 document.addEventListener('mousemove', (e) => {
-  textoPuntero.style.left = (e.pageX + 15) + 'px';
-  textoPuntero.style.top = (e.pageY + 5) + 'px';
+  const tp = document.getElementById('textoPuntero');
+  tp.style.left = (e.pageX + 15) + 'px';
+  tp.style.top = (e.pageY + 5) + 'px';
 });
 
-function mostrarPanel(){
-  login.classList.add('oculto');
-  principal.classList.remove('oculto');
+const pantallaLogin = document.getElementById('pantallaLogin');
+const pantallaPrincipal = document.getElementById('pantallaPrincipal');
+const textoPuntero = document.getElementById('textoPuntero');
+const correo = document.getElementById('correo');
+const clave = document.getElementById('clave');
+const btnEntrar = document.getElementById('btnEntrar');
+const btnSalir = document.getElementById('btnSalir');
+const mensaje = document.getElementById('mensaje');
+const correoUsuario = document.getElementById('correoUsuario');
+
+function mostrarPanel(usuario) {
+  pantallaLogin.classList.add('oculto');
+  pantallaPrincipal.classList.remove('oculto');
   textoPuntero.style.display = 'none';
-  logoAzul.style.display = 'none';
-  logoRojo.style.display = 'none';
-  logoAmarillo.style.display = 'none';
-  logoVerde.style.display = 'none';
-  logoMorado.style.display = 'none';
-  logoNaranja.style.display = 'none';
-  window.scrollTo(0, 0); // Lleva al inicio automáticamente
-}
-function mostrarLogin(){
-  login.classList.remove('oculto');
-  principal.classList.add('oculto');
-  textoPuntero.style.display = 'block';
-  logoAzul.style.display = 'block';
-  logoRojo.style.display = 'block';
-  logoAmarillo.style.display = 'block';
-  logoVerde.style.display = 'block';
-  logoMorado.style.display = 'block';
-  logoNaranja.style.display = 'block';
+  correoUsuario.textContent = usuario.email;
   window.scrollTo(0, 0);
 }
 
-auth.onAuthStateChanged(u => u ? mostrarPanel() : mostrarLogin());
+function mostrarLogin() {
+  pantallaLogin.classList.remove('oculto');
+  pantallaPrincipal.classList.add('oculto');
+  textoPuntero.style.display = 'block';
+  correo.value = '';
+  clave.value = '';
+  mensaje.style.display = 'none';
+  window.scrollTo(0, 0);
+}
 
-document.getElementById('btnEntrar').addEventListener('click', async () => {
-  const c = document.getElementById('correo').value.trim();
-  const p = document.getElementById('clave').value;
-  if(!c || !p) return msj('Escribe correo y contraseña', 'error');
-  const b = document.getElementById('btnEntrar');b.disabled=true;b.textContent='Verificando...';
-  try{
-    await auth.signInWithEmailAndPassword(c,p);
-    msj('✅ Acceso correcto...','exito');
-  }catch(e){
-    b.disabled=false;b.textContent='✅ Entrar';
-    let t='Error de acceso';
-    if(e.code==='auth/user-not-found')t='No existe este correo';
-    if(e.code==='auth/wrong-password')t='Contraseña incorrecta';
-    if(e.code==='auth/too-many-requests')t='Demasiados intentos — intenta más tarde';
-    msj(t,'error');
+// Sesión activa
+auth.onAuthStateChanged(usuario => {
+  if (usuario) {
+    mostrarPanel(usuario);
+  } else {
+    mostrarLogin();
   }
 });
 
-document.getElementById('btnSalir').addEventListener('click', () => auth.signOut());
+// Entrar
+btnEntrar.addEventListener('click', async () => {
+  const c = correo.value.trim();
+  const p = clave.value;
+  
+  if (!c || !p) {
+    mensaje.textContent = 'Escribe tu correo y contraseña';
+    mensaje.className = 'mensaje error';
+    return;
+  }
 
-function msj(texto,tipo){
-  const m=document.getElementById('mensaje');
-  m.textContent=texto;m.className='mensaje '+tipo;m.style.display='block';
-}
+  btnEntrar.disabled = true;
+  btnEntrar.textContent = 'Verificando...';
+  mensaje.style.display = 'none';
+
+  try {
+    await auth.signInWithEmailAndPassword(c, p);
+  } catch (e) {
+    let texto = 'No se pudo iniciar sesión';
+    switch(e.code) {
+      case 'auth/user-not-found':
+      case 'auth/invalid-email':
+        texto = 'El usuario no existe o el formato es incorrecto';
+        break;
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        texto = 'Contraseña incorrecta';
+        break;
+      case 'auth/user-disabled':
+        texto = 'Esta cuenta ha sido desactivada';
+        break;
+      case 'auth/too-many-requests':
+        texto = 'Demasiados intentos — intenta más tarde';
+        break;
+    }
+    mensaje.textContent = texto;
+    mensaje.className = 'mensaje error';
+  }
+
+  btnEntrar.disabled = false;
+  btnEntrar.textContent = '✅ Entrar';
+});
+
+// Salir
+btnSalir.addEventListener('click', () => {
+  auth.signOut();
+});
 </script>
 </body>
 </html>
