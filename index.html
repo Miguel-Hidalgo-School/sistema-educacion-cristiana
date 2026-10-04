@@ -6,47 +6,196 @@
 <title>Sistema de Educación Cristiana</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
-body{background:#1e50c8;padding:30px 20px;min-height:100vh}
+body{
+  background:#1e50c8;
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+  padding:30px 20px;
+}
 .oculto{display:none !important}
 
+/* ANIMACIÓN DEL LOGO FLOTANTE */
+@keyframes flotar {
+  0% { transform: translate(0vw, 0vh) rotate(0deg); }
+  25% { transform: translate(calc(100vw - 250px), 20vh) rotate(90deg); }
+  50% { transform: translate(calc(100vw - 250px), calc(100vh - 250px)) rotate(180deg); }
+  75% { transform: translate(0vw, calc(100vh - 250px)) rotate(270deg); }
+  100% { transform: translate(0vw, 0vh) rotate(360deg); }
+}
+
+.logo-flotante{
+  position:absolute;
+  width:180px;
+  height:auto;
+  border-radius:50%;
+  opacity:0.25;
+  pointer-events:none;
+  animation: flotar 25s linear infinite;
+  z-index:1;
+}
+
 /* LOGIN */
-#pantallaLogin{max-width:440px;margin:0 auto;background:white;padding:35px;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.2);text-align:center}
-.contenedor-logo{margin-bottom:20px;display:inline-block}
-#logo{width:180px;height:auto;transition:all 0.4s ease;cursor:pointer;border-radius:50%}
-/* EFECTO AL PASAR EL PUNTERO: cambia colores y crece */
+#pantallaLogin{
+  max-width:440px;
+  margin:0 auto;
+  background:white;
+  padding:35px;
+  border-radius:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+  text-align:center;
+  position:relative;
+  z-index:10;
+}
+.contenedor-logo{
+  margin-bottom:20px;
+  display:inline-block;
+  position:relative;
+  z-index:11;
+}
+#logo{
+  width:220px;
+  height:auto;
+  transition:all 0.4s ease;
+  cursor:pointer;
+  border-radius:50%;
+  position:relative;
+  z-index:11;
+}
 #logo:hover{
   filter:hue-rotate(120deg) saturate(1.4) brightness(1.05);
   transform:scale(1.08);
 }
-#pantallaLogin h1{color:#1f2937;margin-bottom:5px;font-size:1.4rem;font-weight:bold}
-#pantallaLogin h2{color:#1e50c8;margin-bottom:25px;font-size:1rem;font-weight:normal}
-.campo{margin-bottom:18px;text-align:left}
-.campo label{display:block;margin-bottom:6px;font-weight:bold;color:#374151}
-.campo input{width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
-.btn-entrar{width:100%;padding:13px;background:#9a3412;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:bold;cursor:pointer;transition:background 0.3s ease}
+#pantallaLogin h1{
+  color:#1f2937;
+  margin-bottom:5px;
+  font-size:1.4rem;
+  font-weight:bold;
+  position:relative;
+  z-index:11;
+}
+#pantallaLogin h2{
+  color:#1e50c8;
+  margin-bottom:25px;
+  font-size:1rem;
+  font-weight:normal;
+  position:relative;
+  z-index:11;
+}
+.campo{
+  margin-bottom:18px;
+  text-align:left;
+  position:relative;
+  z-index:11;
+}
+.campo label{
+  display:block;
+  margin-bottom:6px;
+  font-weight:bold;
+  color:#374151;
+}
+.campo input{
+  width:100%;
+  padding:12px;
+  border:1px solid #d1d5db;
+  border-radius:8px;
+  font-size:1rem;
+}
+.btn-entrar{
+  width:100%;
+  padding:13px;
+  background:#9a3412;
+  color:white;
+  border:none;
+  border-radius:8px;
+  font-size:1rem;
+  font-weight:bold;
+  cursor:pointer;
+  transition:background 0.3s ease;
+  position:relative;
+  z-index:11;
+}
 .btn-entrar:hover{background:#7c2d12}
-.mensaje{margin-top:15px;padding:10px;border-radius:6px;text-align:center;font-weight:bold;display:none}
+.mensaje{
+  margin-top:15px;
+  padding:10px;
+  border-radius:6px;
+  text-align:center;
+  font-weight:bold;
+  display:none;
+  position:relative;
+  z-index:11;
+}
 .error{background:#fee2e2;color:#b91c1c}
 .exito{background:#d1fae5;color:#065f46}
-.credito-login{margin-top:20px;padding-top:15px;border-top:1px solid #e5e7eb;color:#6b7280;font-weight:bold;font-size:0.9rem;letter-spacing:0.5px}
+.credito-login{
+  margin-top:20px;
+  padding-top:15px;
+  border-top:1px solid #e5e7eb;
+  color:#6b7280;
+  font-weight:bold;
+  font-size:0.9rem;
+  letter-spacing:0.5px;
+  position:relative;
+  z-index:11;
+}
 
 /* PANEL PRINCIPAL */
-#pantallaPrincipal{max-width:500px;margin:0 auto}
-header{text-align:center;color:white;margin-bottom:30px}
-header .logo-panel{width:110px;height:auto;margin-bottom:10px;border-radius:50%}
+#pantallaPrincipal{
+  max-width:500px;
+  margin:0 auto;
+  position:relative;
+  z-index:10;
+}
+header{
+  text-align:center;
+  color:white;
+  margin-bottom:30px;
+}
+header .logo-panel{
+  width:140px;
+  height:auto;
+  margin-bottom:10px;
+  border-radius:50%;
+}
 header h1{font-size:1.4rem;line-height:1.3;margin-bottom:5px}
 header h2{font-size:1.1rem;font-weight:bold;margin-bottom:5px}
 header p{font-size:1rem;opacity:.9}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center;text-decoration:none;color:inherit;display:block;transition:transform 0.2s ease}
+.tarjeta{
+  background:white;
+  border-radius:12px;
+  padding:25px;
+  margin-bottom:20px;
+  text-align:center;
+  text-decoration:none;
+  color:inherit;
+  display:block;
+  transition:transform 0.2s ease;
+}
 .tarjeta:hover{transform:translateY(-3px)}
 .tarjeta .icono{font-size:2.5rem;margin-bottom:10px}
 .tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
 .tarjeta p{color:#6b7280;font-size:.95rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
-.btn-salir{background:transparent;color:white;border:none;text-decoration:underline;cursor:pointer;margin-top:10px}
+.pie{
+  text-align:center;
+  color:rgba(255,255,255,.7);
+  margin-top:30px;
+  font-size:.9rem;
+}
+.btn-salir{
+  background:transparent;
+  color:white;
+  border:none;
+  text-decoration:underline;
+  cursor:pointer;
+  margin-top:10px;
+}
 </style>
 </head>
 <body>
+
+<!-- LOGO QUE FLOTA EN EL FONDO -->
+<img src="logo.jpg" alt="" class="logo-flotante" id="logoFlotante">
 
 <!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="pantallaLogin">
@@ -139,9 +288,18 @@ firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const login = document.getElementById('pantallaLogin');
 const principal = document.getElementById('pantallaPrincipal');
+const logoFlotante = document.getElementById('logoFlotante');
 
-function mostrarPanel(){login.classList.add('oculto');principal.classList.remove('oculto')}
-function mostrarLogin(){login.classList.remove('oculto');principal.classList.add('oculto')}
+function mostrarPanel(){
+  login.classList.add('oculto');
+  principal.classList.remove('oculto');
+  logoFlotante.style.display = 'none'; // Oculta el flotante al entrar
+}
+function mostrarLogin(){
+  login.classList.remove('oculto');
+  principal.classList.add('oculto');
+  logoFlotante.style.display = 'block'; // Muestra el flotante al volver al login
+}
 
 auth.onAuthStateChanged(u => u ? mostrarPanel() : mostrarLogin());
 
