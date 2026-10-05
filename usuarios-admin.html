@@ -50,8 +50,12 @@
       <input type="checkbox" id="esEco"> ECO
     </label>
     <label style="display:inline-block; font-weight:normal;">
-      <input type="checkbox" id="esEm"> EM
+      <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EM
     </label>
+  </div>
+  <div class="campo" id="bloqueDiplomados" style="display:none;">
+    <label>Diplomados que imparte en EM:</label>
+    <div id="listaDiplomadosForm"><span style="font-size:13px;color:#718096;">Cargando diplomados…</span></div>
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
   <div id="resultadoCreacion" style="margin-top:12px;"></div>
@@ -76,6 +80,23 @@
   firebase.initializeApp(window.firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
+
+  // =============================================
+  // CATÁLOGO DE DIPLOMADOS (para asignar a un usuario de EM)
+  // =============================================
+  async function cargarCatalogoDiplomados() {
+    const cont = document.getElementById('listaDiplomadosForm');
+    try {
+      const snap = await db.collection('catalogo').where('tipo', '==', 'diplomado').orderBy('nombre').get();
+      if (snap.empty) { cont.innerHTML = '<span style="font-size:13px;color:#718096;">Aún no hay diplomados en el catálogo.</span>'; return; }
+      cont.innerHTML = snap.docs.map(d => {
+        const x = d.data();
+        return `<label style="display:block;font-weight:normal;margin:4px 0;"><input type="checkbox" class="chkDiplomado" value="${d.id}" data-nombre="${x.nombre}"> ${x.nombre}</label>`;
+      }).join('');
+    } catch (e) {
+      cont.innerHTML = '<span style="font-size:13px;color:#c53030;">No se pudo cargar el catálogo.</span>';
+    }
+  }
 
   // =============================================
   // CARGAR LISTA — LEE TUS CAMPOS TAL CUAL ESTÁN
@@ -106,12 +127,17 @@
         const yaCambio = u.contraseñaTemporal === false;
         const msgWA = mensajeAcceso(nombre, correo, pass, !yaCambio);
         const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
+        const escuelas = [u.eco ? 'ECO' : '', u.em ? 'EM' : ''].filter(Boolean).join(' · ');
+        const diplomadosTxt = Array.isArray(u.diplomados) && u.diplomados.length
+          ? u.diplomados.map(d => d.nombre).join(', ') : '';
 
         lista.innerHTML += `
           <div class="usuario">
             <div><strong>${nombre}</strong></div>
             <div class="rol">${rolUsuario}</div>
             <div class="correo">${correo}</div>
+            ${escuelas ? `<div style="font-size:13px;color:#2c5282;">${escuelas}</div>` : ''}
+            ${diplomadosTxt ? `<div style="font-size:12px;color:#718096;">🎓 ${diplomadosTxt}</div>` : ''}
             ${pass ? `
               <div>Contraseña actual: <span id="${idp}" data-pass="${pass}" data-visible="0">••••••••</span></div>
               <button type="button" onclick="verPass('${idp}', this)" style="font-size:13px;">👁️ Ver</button>
@@ -171,6 +197,9 @@
     const esSubAdmin = document.getElementById('esSubAdmin').checked;
     const esEco = document.getElementById('esEco').checked;
     const esEm = document.getElementById('esEm').checked;
+    const diplomados = esEm
+      ? Array.from(document.querySelectorAll('.chkDiplomado:checked')).map(el => ({ id: el.value, nombre: el.dataset.nombre }))
+      : [];
 
     if (!nombreCompleto || !correoParte || !numWhatsApp) {
       alert('Llena todos los campos');
@@ -194,6 +223,7 @@
         contraseñaActual: contraseñaTemp,
         eco: esEco,
         em: esEm,
+        diplomados: diplomados,
         roles: {
           subAdmin: esSubAdmin,
           superAdmin: false
@@ -215,6 +245,8 @@
       document.getElementById('esSubAdmin').checked = false;
       document.getElementById('esEco').checked = false;
       document.getElementById('esEm').checked = false;
+      document.querySelectorAll('.chkDiplomado').forEach(el => el.checked = false);
+      document.getElementById('bloqueDiplomados').style.display = 'none';
 
     } catch (e) {
       alert('Error: ' + e.message);
@@ -235,10 +267,23 @@
   // =============================================
   // CARGAR AL INICIAR — YA NO TE REGRESA SOLO
   // =============================================
-  auth.onAuthStateChanged(u => {
-    if (u) {
-      cargarLista();
+  auth.onAuthStateChanged(async u => {
+    if (!u) { window.location.href = 'index.html'; return; }
+    try {
+      const miDoc = await db.collection('usuarios').doc(u.email).get();
+      const miRoles = (miDoc.exists && miDoc.data().roles) || {};
+      if (!miRoles.superAdmin && !miRoles.subAdmin) {
+        alert('Esta pantalla es solo para Administrador o Subadministrador.');
+        window.location.href = 'index.html';
+        return;
+      }
+    } catch (e) {
+      alert('No se pudo verificar tu permiso: ' + e.message);
+      window.location.href = 'index.html';
+      return;
     }
+    cargarLista();
+    cargarCatalogoDiplomados();
   });
 </script>
 
