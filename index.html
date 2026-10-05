@@ -490,7 +490,10 @@ document.getElementById('cancelarCambio').addEventListener('click', (e) => {
 auth.onAuthStateChanged(async usuario => {
   if (usuario) {
     try {
-      const d = await db.collection('usuarios').doc(usuario.email).get();
+      const d = await Promise.race([
+        db.collection('usuarios').doc(usuario.email).get(),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('timeout firestore')), 10000))
+      ]);
       if (d.exists && d.data().contraseñaTemporal === true) {
         mostrarCambio(usuario);
         return;
@@ -509,7 +512,7 @@ auth.onAuthStateChanged(async usuario => {
 // Entrar
 btnEntrar.addEventListener('click', async () => {
   const c = correo.value.trim();
-  const p = clave.value;
+  const p = clave.value.trim();
   
   if (!c || !p) {
     mensaje.textContent = 'Escribe tu correo y contraseña';
@@ -522,9 +525,12 @@ btnEntrar.addEventListener('click', async () => {
   mensaje.style.display = 'none';
 
   try {
-    await auth.signInWithEmailAndPassword(c, p);
+    await Promise.race([
+      auth.signInWithEmailAndPassword(c, p),
+      new Promise((_, rej) => setTimeout(() => rej({ code: 'timeout' }), 20000))
+    ]);
   } catch (e) {
-    let texto = 'No se pudo iniciar sesión';
+    let texto = '';
     switch(e.code) {
       case 'auth/user-not-found':
       case 'auth/invalid-email':
@@ -540,6 +546,12 @@ btnEntrar.addEventListener('click', async () => {
       case 'auth/too-many-requests':
         texto = 'Demasiados intentos — intenta más tarde';
         break;
+      case 'auth/network-request-failed':
+      case 'timeout':
+        texto = 'No hay respuesta del servidor. Cambia de red (datos móviles u otro WiFi) e intenta de nuevo.';
+        break;
+      default:
+        texto = 'No se pudo iniciar sesión (' + (e.code || e.message) + ')';
     }
     mensaje.textContent = texto;
     mensaje.className = 'mensaje error';
