@@ -9,44 +9,522 @@
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
 .contenedor{max-width:500px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
-.volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:40px}
+header{text-align:center;color:white;margin-bottom:25px}
 header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
-.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
+.tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:20px}
+.tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:12px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
+input[type=text],input[type=tel],select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+textarea{resize:vertical}
+.btn{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
+.btn2{padding:9px 14px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.9rem}
+.btn2.rojo{background:#fee2e2;color:#b91c1c}
+.btn2.azul{background:#1e50c8;color:#fff}
+.msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:bold;cursor:pointer;font-size:.9rem}
+.chip.on{background:#1e50c8;color:#fff;border-color:#1e50c8}
+.tabs{display:flex;gap:8px;justify-content:center;margin-bottom:18px}
+.tabs .chip{border-color:transparent}
+details.al{border-bottom:1px solid #e5e7eb;padding:10px 0}
+details.al:last-child{border-bottom:none}
+details.al summary{cursor:pointer;list-style:none}
+details.al summary::-webkit-details-marker{display:none}
+.nom{font-weight:bold;color:#1f2937}
+.sub{color:#6b7280;font-size:.85rem;margin-top:2px}
+.det{margin-top:12px}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hist{font-size:.8rem;color:#6b7280;margin-top:10px;line-height:1.5}
+.insc{display:flex;gap:8px;align-items:center;padding:8px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:8px}
+.insc .t{flex:1;font-size:.9rem;color:#1f2937}
+.insc select{width:auto;padding:6px;font-size:.85rem}
+.x{background:none;border:none;font-size:1.1rem;cursor:pointer}
+.bloque{background:#f3f4f6;border-radius:10px;padding:12px;margin-top:12px}
+.bloque h4{font-size:.95rem;color:#374151;margin-bottom:8px}
+.mod{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f1f5f9;font-size:.95rem}
+.mod span{flex:1}
+.fil{display:grid;gap:8px;margin-bottom:14px}
+.vacio{color:#6b7280;font-style:italic;text-align:center}
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 </style>
 </head>
 <body>
-
 <div class="contenedor">
 <a href="escuelas.html" class="volver">← Volver a Escuelas</a>
+<header><h1>⛪ Ministerios — Alumnos</h1><p>Escuela de Ministerios</p></header>
 
-<header>
-<h1>⛪ Ministerios — Alumnos</h1>
-<p>Escuela de Ministerios</p>
-</header>
-
-<div class="tarjeta">
-<h3>Alumnos de Ministerios</h3>
-<p>Registro de alumnos de la Escuela de Ministerios</p>
+<div class="tabs">
+  <button class="chip on" id="tabA" onclick="verTab('alumnos')">👥 Alumnos</button>
+  <button class="chip" id="tabD" onclick="verTab('diplomados')">🎓 Diplomados</button>
 </div>
 
-<div class="pie">
-© 2026 Chavarría Producciones
-</div>
+<div id="msg" class="msg"></div>
+
+<!-- ===== ALUMNOS ===== -->
+<section id="secAlumnos">
+  <div class="tarjeta">
+    <h3>Nuevo alumno</h3>
+    <div class="campo"><label>Nombre completo</label><input type="text" id="nombre" placeholder="Nombre y apellidos"></div>
+    <div class="campo"><label>WhatsApp (solo números)</label><input type="tel" id="whatsapp" placeholder="3121234567"></div>
+    <div class="campo"><label>Nivel</label>
+      <select id="nivel"><option value="1">Nivel 1</option><option value="2">Nivel 2</option></select>
+    </div>
+    <div class="campo"><label>Diplomado (opcional)</label>
+      <select id="fDipSel" onchange="$('fModSel').innerHTML = opcionesModulos(this.value)"></select>
+    </div>
+    <div class="campo"><label>Módulo o materia (opcional)</label>
+      <select id="fModSel"><option value="">Todo el diplomado</option></select>
+    </div>
+    <button class="btn" id="btnGuardar" onclick="guardar()">➕ Guardar</button>
+  </div>
+
+  <div class="tarjeta">
+    <h3>Alumnos de Ministerios</h3>
+    <div id="chips" class="chips"></div>
+    <div id="filtros" class="fil"></div>
+    <div id="lista"><p class="vacio">Cargando...</p></div>
+  </div>
+</section>
+
+<!-- ===== DIPLOMADOS ===== -->
+<section id="secDip" style="display:none">
+  <div class="tarjeta">
+    <h3>Nuevo diplomado</h3>
+    <div class="campo"><input type="text" id="nuevoDip" placeholder="Nombre del diplomado"></div>
+    <button class="btn" onclick="agregarDiplomado()">➕ Agregar diplomado</button>
+  </div>
+  <div class="tarjeta">
+    <h3>Diplomados y módulos</h3>
+    <div id="listaDip"><p class="vacio">Cargando...</p></div>
+  </div>
+</section>
+
+<div class="pie">© 2026 Chavarría Producciones</div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
-firebase.auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'index.html';
-});
-</script>
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
 
+let todos = [];      // todos los alumnos
+let dips = [];       // catálogo de diplomados: {id, nombre, modulos:[{id,nombre}]}
+let fNivel = 'todos', fDip = '', fMod = '';
+let errCat = '';
+const abiertos = new Set();   // alumnos abiertos
+const abiertosD = new Set();  // diplomados abiertos
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const ahora = () => new Date().toISOString();
+const nuevoId = () => 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function aviso(t, ok = true) {
+  const m = $('msg');
+  m.textContent = t;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { m.className = 'msg'; }, 5000);
+}
+function errorTexto(e) {
+  if (e && e.code === 'permission-denied') return 'Sin permiso. Si eres administrador, falta agregar "catalogo" en las reglas de Firestore.';
+  return 'Error: ' + (e && e.message ? e.message : e);
+}
+
+auth.onAuthStateChanged(u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  cargarTodo();
+});
+
+async function cargarTodo() {
+  await cargarDiplomados();
+  await cargarAlumnos();
+}
+
+async function cargarDiplomados() {
+  try {
+    const snap = await db.collection('catalogo').where('tipo', '==', 'diplomado').get();
+    dips = snap.docs.map(d => ({ id: d.id, nombre: d.data().nombre || '', modulos: d.data().modulos || [] }))
+      .sort((a, b) => norm(a.nombre).localeCompare(norm(b.nombre)));
+    errCat = '';
+  } catch (e) {
+    console.error(e);
+    dips = [];
+    errCat = errorTexto(e);
+  }
+  pintarDiplomados();
+  $('fDipSel').innerHTML = '<option value="">Sin diplomado por ahora</option>' + dips.map(d => '<option value="' + d.id + '">' + esc(d.nombre) + '</option>').join('');
+  $('fModSel').innerHTML = opcionesModulos('');
+}
+
+async function cargarAlumnos() {
+  try {
+    const snap = await db.collection('alumnos').get();
+    todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    pintarAlumnos();
+    pintarDiplomados();
+  } catch (e) {
+    console.error(e);
+    $('lista').innerHTML = '<p class="vacio">No se pudo cargar. ' + esc(errorTexto(e)) + '</p>';
+  }
+}
+
+function verTab(t) {
+  $('secAlumnos').style.display = t === 'alumnos' ? '' : 'none';
+  $('secDip').style.display = t === 'diplomados' ? '' : 'none';
+  $('tabA').className = 'chip' + (t === 'alumnos' ? ' on' : '');
+  $('tabD').className = 'chip' + (t === 'diplomados' ? ' on' : '');
+}
+
+const dipPorId = id => dips.find(d => d.id === id);
+function opcionesModulos(dipId, sel) {
+  const d = dipPorId(dipId);
+  return '<option value="">Todo el diplomado</option>' +
+    (d ? d.modulos.map(m => '<option value="' + m.id + '" ' + (sel === m.id ? 'selected' : '') + '>' + esc(m.nombre) + '</option>').join('') : '');
+}
+function nombreDip(i) { const d = dipPorId(i.diplomadoId); return d ? d.nombre : (i.diplomadoNombre || '(diplomado eliminado)'); }
+function nombreMod(i) {
+  if (!i.moduloId) return 'Todo el diplomado';
+  const d = dipPorId(i.diplomadoId);
+  const m = d && d.modulos.find(x => x.id === i.moduloId);
+  return m ? m.nombre : (i.moduloNombre || '(módulo eliminado)');
+}
+
+/* ================= ALUMNOS ================= */
+function setNivel(n) { fNivel = n; pintarAlumnos(); }
+function setFDip(v) { fDip = v; fMod = ''; pintarAlumnos(); }
+function setFMod(v) { fMod = v; pintarAlumnos(); }
+
+function textoHist(h) {
+  const f = h.fecha ? new Date(h.fecha).toLocaleDateString('es-MX') : '';
+  let t = '';
+  if (h.accion === 'alta') t = 'Alta en nivel ' + h.a;
+  else if (h.accion === 'cambio de nivel') t = 'Nivel ' + (h.de || 'sin nivel') + ' → ' + h.a;
+  else if (h.accion === 'baja') t = 'Baja de Ministerios';
+  else if (h.accion === 'inscripcion') t = 'Inscrito: ' + h.a;
+  else if (h.accion === 'estado') t = h.a;
+  else if (h.accion === 'quito inscripcion') t = 'Quitado: ' + h.a;
+  return f + ': ' + t;
+}
+
+function pintarAlumnos() {
+  const em = todos.filter(a => a.em === true).sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+  const cuenta = n => em.filter(a => (a.emNivel || 0) === n).length;
+  const chips = [['todos', 'Todos (' + em.length + ')'], ['1', 'Nivel 1 (' + cuenta(1) + ')'], ['2', 'Nivel 2 (' + cuenta(2) + ')']];
+  if (cuenta(0) > 0) chips.push(['0', 'Sin nivel (' + cuenta(0) + ')']);
+  $('chips').innerHTML = chips.map(c => '<button class="chip ' + (fNivel === c[0] ? 'on' : '') + '" onclick="setNivel(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
+
+  // filtros por diplomado y módulo
+  let f = '<select onchange="setFDip(this.value)"><option value="">Todos los diplomados</option>' +
+    dips.map(d => '<option value="' + d.id + '" ' + (fDip === d.id ? 'selected' : '') + '>' + esc(d.nombre) + '</option>').join('') + '</select>';
+  if (fDip) {
+    const d = dipPorId(fDip);
+    f += '<select onchange="setFMod(this.value)"><option value="">Todos los módulos / materias</option>' +
+      (d ? d.modulos.map(m => '<option value="' + m.id + '" ' + (fMod === m.id ? 'selected' : '') + '>' + esc(m.nombre) + '</option>').join('') : '') + '</select>';
+  }
+  $('filtros').innerHTML = dips.length ? f : '';
+
+  let lista = em;
+  if (fNivel !== 'todos') lista = lista.filter(a => (a.emNivel || 0) === Number(fNivel));
+  if (fDip) lista = lista.filter(a => (a.inscripciones || []).some(i => i.diplomadoId === fDip && (!fMod || i.moduloId === fMod)));
+  if (!lista.length) { $('lista').innerHTML = '<p class="vacio">Aún no hay alumnos aquí</p>'; return; }
+
+  $('lista').innerHTML = lista.map(a => {
+    const niv = a.emNivel || 0;
+    const insc = a.inscripciones || [];
+    const wa = String(a.whatsapp || '').replace(/\D/g, '');
+    const hist = (a.historial || []).filter(h => h.escuela === 'EMIN').slice(-6).reverse().map(textoHist).map(esc).join('<br>');
+    const filas = insc.map(i =>
+      '<div class="insc"><div class="t"><b>' + esc(nombreDip(i)) + '</b><br>' + esc(nombreMod(i)) + '</div>' +
+      '<select onchange="cambiarEstado(\'' + a.id + '\',\'' + i.id + '\', this.value)">' +
+        '<option value="cursando" ' + (i.estado !== 'concluido' ? 'selected' : '') + '>Cursando</option>' +
+        '<option value="concluido" ' + (i.estado === 'concluido' ? 'selected' : '') + '>Concluido</option></select>' +
+      '<button class="x" onclick="quitarInscripcion(\'' + a.id + '\',\'' + i.id + '\')">✕</button></div>').join('');
+    return '<details class="al" data-id="' + a.id + '" ' + (abiertos.has(a.id) ? 'open' : '') + '>' +
+      '<summary><div class="nom">' + esc(a.nombreCompleto) + '</div>' +
+      '<div class="sub">' + (niv ? 'Nivel ' + niv : 'Sin nivel') + ' · ' + insc.length + ' inscripción(es)' + (wa ? ' · ' + esc(wa) : '') + '</div></summary>' +
+      '<div class="det">' +
+        '<div class="campo"><label>Nivel</label><select onchange="cambiarNivel(\'' + a.id + '\', this.value)">' +
+          (niv ? '' : '<option value="0" selected>Sin nivel</option>') +
+          [1, 2].map(n => '<option value="' + n + '" ' + (niv === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') +
+        '</select></div>' +
+        '<div class="bloque"><h4>Diplomados y módulos</h4>' + (filas || '<p class="sub">Sin inscripciones</p>') +
+          (dips.length ?
+            '<select id="dsel_' + a.id + '" onchange="$(\'msel_' + a.id + '\').innerHTML = opcionesModulos(this.value)" style="margin-top:6px">' +
+              '<option value="">Elegir diplomado...</option>' + dips.map(d => '<option value="' + d.id + '">' + esc(d.nombre) + '</option>').join('') + '</select>' +
+            '<select id="msel_' + a.id + '" style="margin-top:6px"><option value="">Todo el diplomado</option></select>' +
+            '<div class="acciones"><button class="btn2 azul" onclick="inscribir(\'' + a.id + '\')">➕ Inscribir</button></div>'
+          : '<p class="sub">Primero agrega diplomados en la pestaña 🎓 Diplomados.</p>') +
+        '</div>' +
+        '<div class="acciones">' +
+          (wa ? '<a class="btn2" style="text-decoration:none;color:#374151" target="_blank" href="https://wa.me/' + (wa.length === 10 ? '52' + wa : wa) + '">📲 WhatsApp</a>' : '') +
+          '<button class="btn2 rojo" onclick="quitar(\'' + a.id + '\')">Quitar de Ministerios</button>' +
+        '</div>' +
+        (hist ? '<div class="hist"><b>Historial</b><br>' + hist + '</div>' : '') +
+      '</div></details>';
+  }).join('');
+}
+
+$('lista').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d && d.matches && d.matches('details.al')) { if (d.open) abiertos.add(d.dataset.id); else abiertos.delete(d.dataset.id); }
+}, true);
+
+function nuevaInscripcion(dipId, modId) {
+  const d = dipPorId(dipId);
+  const m = d && d.modulos.find(x => x.id === modId);
+  return {
+    id: nuevoId(), diplomadoId: dipId, diplomadoNombre: d ? d.nombre : '',
+    moduloId: modId || '', moduloNombre: m ? m.nombre : '', estado: 'cursando', fecha: ahora()
+  };
+}
+
+async function guardar() {
+  const nombre = $('nombre').value.trim().replace(/\s+/g, ' ').toUpperCase();
+  const wa = $('whatsapp').value.replace(/\D/g, '');
+  const nivel = Number($('nivel').value);
+  const dipId = $('fDipSel').value, modId = $('fModSel').value;
+  if (!nombre) { aviso('Escribe el nombre del alumno', false); return; }
+
+  const btn = $('btnGuardar');
+  btn.disabled = true;
+  try {
+    const existente = todos.find(a => norm(a.nombreCompleto) === norm(nombre));
+    if (existente && existente.em === true) {
+      aviso('Ese alumno ya está en Ministerios. Búscalo en la lista para inscribirlo en un diplomado.', false);
+      btn.disabled = false;
+      return;
+    }
+    const hist = [{ fecha: ahora(), escuela: 'EMIN', accion: 'alta', a: nivel }];
+    let insc = [];
+    if (dipId) {
+      const ni = nuevaInscripcion(dipId, modId);
+      insc = [ni];
+      hist.push({ fecha: ahora(), escuela: 'EMIN', accion: 'inscripcion', a: ni.diplomadoNombre + (ni.moduloNombre ? ' — ' + ni.moduloNombre : '') });
+    }
+    if (existente) {
+      const datos = { em: true, emNivel: nivel, historial: FV.arrayUnion(...hist) };
+      if (wa && !existente.whatsapp) datos.whatsapp = wa;
+      if (insc.length) datos.inscripciones = (existente.inscripciones || []).concat(insc);
+      await db.collection('alumnos').doc(existente.id).update(datos);
+      aviso('✅ ' + nombre + ' ya estaba registrado; se agregó a Ministerios');
+    } else {
+      await db.collection('alumnos').add({
+        nombreCompleto: nombre, whatsapp: wa, eco: false, em: true, emNivel: nivel,
+        inscripciones: insc, historial: hist, creadoPor: auth.currentUser.email, fechaCreacion: new Date()
+      });
+      aviso('✅ Alumno agregado a Ministerios');
+    }
+    $('nombre').value = '';
+    $('whatsapp').value = '';
+    $('fDipSel').value = '';
+    $('fModSel').innerHTML = opcionesModulos('');
+    await cargarAlumnos();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  btn.disabled = false;
+}
+
+async function actualizar(id, datos, mensaje) {
+  try {
+    await db.collection('alumnos').doc(id).update(datos);
+    if (mensaje) aviso(mensaje);
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  await cargarAlumnos();
+}
+
+function cambiarNivel(id, v) {
+  const n = Number(v);
+  const a = todos.find(x => x.id === id);
+  if (!a || !n) return;
+  actualizar(id, { emNivel: n, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'cambio de nivel', de: a.emNivel || null, a: n }) }, '✅ Nivel actualizado');
+}
+
+function inscribir(id) {
+  const a = todos.find(x => x.id === id);
+  const dipId = $('dsel_' + id).value, modId = $('msel_' + id).value;
+  if (!a) return;
+  if (!dipId) { aviso('Elige un diplomado', false); return; }
+  const insc = a.inscripciones || [];
+  if (insc.some(i => i.diplomadoId === dipId && (i.moduloId || '') === modId)) { aviso('Ya está inscrito ahí', false); return; }
+  const ni = nuevaInscripcion(dipId, modId);
+  abiertos.add(id);
+  actualizar(id, {
+    inscripciones: insc.concat([ni]),
+    historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'inscripcion', a: ni.diplomadoNombre + (ni.moduloNombre ? ' — ' + ni.moduloNombre : '') })
+  }, '✅ Inscrito');
+}
+
+function cambiarEstado(id, inscId, estado) {
+  const a = todos.find(x => x.id === id);
+  if (!a) return;
+  const insc = (a.inscripciones || []).map(i => i.id === inscId ? Object.assign({}, i, { estado: estado }) : i);
+  const i0 = insc.find(i => i.id === inscId);
+  actualizar(id, {
+    inscripciones: insc,
+    historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'estado', a: (estado === 'concluido' ? 'Concluyó: ' : 'Cursando: ') + nombreDip(i0) + (i0.moduloId ? ' — ' + nombreMod(i0) : '') })
+  }, '✅ Estado actualizado');
+}
+
+function quitarInscripcion(id, inscId) {
+  const a = todos.find(x => x.id === id);
+  if (!a) return;
+  const i0 = (a.inscripciones || []).find(i => i.id === inscId);
+  if (!i0 || !confirm('¿Quitar esta inscripción?')) return;
+  actualizar(id, {
+    inscripciones: (a.inscripciones || []).filter(i => i.id !== inscId),
+    historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'quito inscripcion', a: nombreDip(i0) + (i0.moduloId ? ' — ' + nombreMod(i0) : '') })
+  }, 'Inscripción quitada');
+}
+
+function quitar(id) {
+  const a = todos.find(x => x.id === id);
+  if (!a || !confirm('¿Quitar a ' + a.nombreCompleto + ' de Ministerios? Seguirá registrado como alumno y se conserva su historial.')) return;
+  actualizar(id, { em: false, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'baja' }) }, 'Alumno quitado de Ministerios');
+}
+
+/* ================= DIPLOMADOS ================= */
+function pintarDiplomados() {
+  if (errCat) { $('listaDip').innerHTML = '<p class="vacio">' + esc(errCat) + '</p>'; return; }
+  if (!dips.length) {
+    $('listaDip').innerHTML = '<p class="vacio">Aún no hay diplomados.</p>' +
+      '<div class="acciones" style="justify-content:center"><button class="btn2 azul" onclick="cargarIniciales()">Cargar diplomados iniciales</button></div>';
+    return;
+  }
+  $('listaDip').innerHTML = dips.map(d => {
+    const n = todos.filter(a => (a.inscripciones || []).some(i => i.diplomadoId === d.id)).length;
+    return '<details class="al" data-id="' + d.id + '" ' + (abiertosD.has(d.id) ? 'open' : '') + '>' +
+      '<summary><div class="nom">' + esc(d.nombre) + '</div><div class="sub">' + d.modulos.length + ' módulo(s) · ' + n + ' alumno(s)</div></summary>' +
+      '<div class="det">' +
+        '<div class="bloque"><h4>Módulos / materias</h4>' +
+          (d.modulos.map(m => '<div class="mod"><span>' + esc(m.nombre) + '</span>' +
+            '<button class="x" onclick="renombrarModulo(\'' + d.id + '\',\'' + m.id + '\')">✏️</button>' +
+            '<button class="x" onclick="quitarModulo(\'' + d.id + '\',\'' + m.id + '\')">✕</button></div>').join('') || '<p class="sub">Aún no hay módulos</p>') +
+          '<textarea id="nm_' + d.id + '" rows="2" placeholder="Nuevos módulos o materias (uno por línea)" style="margin-top:10px"></textarea>' +
+          '<div class="acciones"><button class="btn2 azul" onclick="agregarModulos(\'' + d.id + '\')">➕ Agregar módulos</button></div>' +
+        '</div>' +
+        '<div class="acciones">' +
+          '<button class="btn2" onclick="renombrarDiplomado(\'' + d.id + '\')">✏️ Cambiar nombre</button>' +
+          '<button class="btn2 rojo" onclick="eliminarDiplomado(\'' + d.id + '\')">🗑️ Eliminar</button>' +
+        '</div>' +
+      '</div></details>';
+  }).join('');
+}
+
+$('listaDip').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d && d.matches && d.matches('details.al')) { if (d.open) abiertosD.add(d.dataset.id); else abiertosD.delete(d.dataset.id); }
+}, true);
+
+async function guardarDip(id, datos, mensaje) {
+  try {
+    await db.collection('catalogo').doc(id).update(datos);
+    if (mensaje) aviso(mensaje);
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  await cargarDiplomados();
+  pintarAlumnos();
+}
+
+async function agregarDiplomado() {
+  const nombre = $('nuevoDip').value.trim().replace(/\s+/g, ' ');
+  if (!nombre) { aviso('Escribe el nombre del diplomado', false); return; }
+  if (dips.some(d => norm(d.nombre) === norm(nombre))) { aviso('Ese diplomado ya existe', false); return; }
+  try {
+    await db.collection('catalogo').add({ tipo: 'diplomado', nombre: nombre, modulos: [], creadoPor: auth.currentUser.email, fechaCreacion: new Date() });
+    $('nuevoDip').value = '';
+    aviso('✅ Diplomado agregado');
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  await cargarDiplomados();
+}
+
+async function cargarIniciales() {
+  const nombres = [
+    'Ministerio de Intercesión y Oración de Guerra 1',
+    'Ministerio de Intercesión y Oración de Guerra 2',
+    'Ministerio para Enunciar el Evangelio por Radio y Televisión',
+    'Ministerio de Liturgia'
+  ];
+  try {
+    const batch = db.batch();
+    nombres.forEach(n => batch.set(db.collection('catalogo').doc(), { tipo: 'diplomado', nombre: n, modulos: [], creadoPor: auth.currentUser.email, fechaCreacion: new Date() }));
+    await batch.commit();
+    aviso('✅ Diplomados iniciales cargados. Agrega los módulos o materias de cada uno.');
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  await cargarDiplomados();
+}
+
+function renombrarDiplomado(id) {
+  const d = dipPorId(id);
+  const n = prompt('Nuevo nombre del diplomado:', d.nombre);
+  if (n && n.trim()) guardarDip(id, { nombre: n.trim().replace(/\s+/g, ' ') }, '✅ Nombre actualizado');
+}
+
+async function eliminarDiplomado(id) {
+  const d = dipPorId(id);
+  const n = todos.filter(a => (a.inscripciones || []).some(i => i.diplomadoId === id)).length;
+  const aviso2 = n ? '\n\n' + n + ' alumno(s) están inscritos; conservarán su registro con el nombre del diplomado.' : '';
+  if (!confirm('¿Eliminar el diplomado "' + d.nombre + '"?' + aviso2)) return;
+  try {
+    await db.collection('catalogo').doc(id).delete();
+    aviso('Diplomado eliminado');
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  await cargarDiplomados();
+  pintarAlumnos();
+}
+
+function agregarModulos(id) {
+  const d = dipPorId(id);
+  const nuevos = $('nm_' + id).value.split('\n').map(s => s.trim().replace(/\s+/g, ' ')).filter(Boolean)
+    .filter(n => !d.modulos.some(m => norm(m.nombre) === norm(n)));
+  if (!nuevos.length) { aviso('Escribe al menos un módulo nuevo', false); return; }
+  abiertosD.add(id);
+  guardarDip(id, { modulos: d.modulos.concat(nuevos.map(n => ({ id: nuevoId(), nombre: n }))) }, '✅ Módulos agregados');
+}
+
+function renombrarModulo(id, modId) {
+  const d = dipPorId(id);
+  const m = d.modulos.find(x => x.id === modId);
+  const n = prompt('Nuevo nombre del módulo o materia:', m.nombre);
+  if (n && n.trim()) {
+    abiertosD.add(id);
+    guardarDip(id, { modulos: d.modulos.map(x => x.id === modId ? { id: x.id, nombre: n.trim().replace(/\s+/g, ' ') } : x) }, '✅ Módulo actualizado');
+  }
+}
+
+function quitarModulo(id, modId) {
+  const d = dipPorId(id);
+  const m = d.modulos.find(x => x.id === modId);
+  const n = todos.filter(a => (a.inscripciones || []).some(i => i.diplomadoId === id && i.moduloId === modId)).length;
+  if (!confirm('¿Quitar "' + m.nombre + '"?' + (n ? '\n\n' + n + ' alumno(s) conservarán su registro con ese nombre.' : ''))) return;
+  abiertosD.add(id);
+  guardarDip(id, { modulos: d.modulos.filter(x => x.id !== modId) }, 'Módulo quitado');
+}
+</script>
 </body>
 </html>

@@ -9,44 +9,233 @@
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
 .contenedor{max-width:500px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
-.volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:40px}
+header{text-align:center;color:white;margin-bottom:25px}
 header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
-.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
+.tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:20px}
+.tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:12px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
+input[type=text],input[type=tel],select{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+.btn{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
+.btn2{padding:9px 14px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.9rem}
+.btn2.rojo{background:#fee2e2;color:#b91c1c}
+.msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:bold;cursor:pointer;font-size:.9rem}
+.chip.on{background:#1e50c8;color:#fff;border-color:#1e50c8}
+details.al{border-bottom:1px solid #e5e7eb;padding:10px 0}
+details.al:last-child{border-bottom:none}
+details.al summary{cursor:pointer;list-style:none}
+details.al summary::-webkit-details-marker{display:none}
+.nom{font-weight:bold;color:#1f2937}
+.sub{color:#6b7280;font-size:.85rem;margin-top:2px}
+.det{margin-top:12px}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hist{font-size:.8rem;color:#6b7280;margin-top:10px;line-height:1.5}
+.vacio{color:#6b7280;font-style:italic;text-align:center}
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
 </style>
 </head>
 <body>
-
 <div class="contenedor">
 <a href="escuelas.html" class="volver">← Volver a Escuelas</a>
+<header><h1>🏫 ECO — Alumnos</h1><p>Escuela de Consolidación</p></header>
 
-<header>
-<h1>🏫 ECO — Alumnos</h1>
-<p>Escuela de Consolidación</p>
-</header>
+<div id="msg" class="msg"></div>
 
 <div class="tarjeta">
-<h3>Alumnos de ECO</h3>
-<p>Registro de alumnos de la Escuela de Consolidación</p>
+  <h3>Nuevo alumno</h3>
+  <div class="campo"><label>Nombre completo</label><input type="text" id="nombre" placeholder="Nombre y apellidos"></div>
+  <div class="campo"><label>WhatsApp (solo números)</label><input type="tel" id="whatsapp" placeholder="3121234567"></div>
+  <div class="campo"><label>Nivel</label>
+    <select id="nivel"><option value="1">Nivel 1</option><option value="2">Nivel 2</option><option value="3">Nivel 3</option></select>
+  </div>
+  <button class="btn" id="btnGuardar" onclick="guardar()">➕ Guardar</button>
 </div>
 
-<div class="pie">
-© 2026 Chavarría Producciones
+<div class="tarjeta">
+  <h3>Alumnos de ECO</h3>
+  <div id="chips" class="chips"></div>
+  <div id="lista"><p class="vacio">Cargando...</p></div>
 </div>
+
+<div class="pie">© 2026 Chavarría Producciones</div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
-firebase.auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'index.html';
-});
-</script>
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
 
+let todos = [];
+let filtro = 'todos';
+const abiertos = new Set();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const ahora = () => new Date().toISOString();
+
+function aviso(t, ok = true) {
+  const m = $('msg');
+  m.textContent = t;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { m.className = 'msg'; }, 5000);
+}
+
+function errorTexto(e) {
+  if (e && e.code === 'permission-denied') return 'No tienes permiso para esta acción (solo administradores).';
+  return 'Error: ' + (e && e.message ? e.message : e);
+}
+
+auth.onAuthStateChanged(u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  cargar();
+});
+
+async function cargar() {
+  try {
+    const snap = await db.collection('alumnos').get();
+    todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    pintar();
+  } catch (e) {
+    console.error(e);
+    $('lista').innerHTML = '<p class="vacio">No se pudo cargar la lista. ' + esc(errorTexto(e)) + '</p>';
+  }
+}
+
+function setFiltro(f) { filtro = f; pintar(); }
+
+function textoHist(h) {
+  const f = h.fecha ? new Date(h.fecha).toLocaleDateString('es-MX') : '';
+  let t = '';
+  if (h.accion === 'alta') t = 'Alta en nivel ' + h.a;
+  else if (h.accion === 'cambio de nivel') t = 'Nivel ' + (h.de || 'sin nivel') + ' → ' + h.a;
+  else if (h.accion === 'baja') t = 'Baja de ECO';
+  return f + ': ' + t;
+}
+
+function pintar() {
+  const eco = todos.filter(a => a.eco === true)
+    .sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+
+  const cuenta = n => eco.filter(a => (a.ecoNivel || 0) === n).length;
+  const chips = [['todos', 'Todos (' + eco.length + ')'], ['1', 'Nivel 1 (' + cuenta(1) + ')'], ['2', 'Nivel 2 (' + cuenta(2) + ')'], ['3', 'Nivel 3 (' + cuenta(3) + ')']];
+  if (cuenta(0) > 0) chips.push(['0', 'Sin nivel (' + cuenta(0) + ')']);
+  $('chips').innerHTML = chips.map(c =>
+    '<button class="chip ' + (filtro === c[0] ? 'on' : '') + '" onclick="setFiltro(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
+
+  const lista = filtro === 'todos' ? eco : eco.filter(a => (a.ecoNivel || 0) === Number(filtro));
+  if (!lista.length) { $('lista').innerHTML = '<p class="vacio">Aún no hay alumnos aquí</p>'; return; }
+
+  $('lista').innerHTML = lista.map(a => {
+    const niv = a.ecoNivel || 0;
+    const hist = (a.historial || []).filter(h => h.escuela === 'ECO').slice(-5).reverse().map(textoHist).map(esc).join('<br>');
+    const wa = String(a.whatsapp || '').replace(/\D/g, '');
+    return '<details class="al" data-id="' + a.id + '" ' + (abiertos.has(a.id) ? 'open' : '') + '>' +
+      '<summary><div class="nom">' + esc(a.nombreCompleto) + '</div>' +
+      '<div class="sub">' + (niv ? 'Nivel ' + niv : 'Sin nivel') + (wa ? ' · ' + esc(wa) : '') + '</div></summary>' +
+      '<div class="det">' +
+        '<div class="campo"><label>Nivel</label><select onchange="cambiarNivel(\'' + a.id + '\', this.value)">' +
+          (niv ? '' : '<option value="0" selected>Sin nivel</option>') +
+          [1, 2, 3].map(n => '<option value="' + n + '" ' + (niv === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') +
+        '</select></div>' +
+        '<div class="acciones">' +
+          (wa ? '<a class="btn2" style="text-decoration:none;color:#374151" target="_blank" href="https://wa.me/' + (wa.length === 10 ? '52' + wa : wa) + '">📲 WhatsApp</a>' : '') +
+          '<button class="btn2 rojo" onclick="quitar(\'' + a.id + '\')">Quitar de ECO</button>' +
+        '</div>' +
+        (hist ? '<div class="hist"><b>Historial</b><br>' + hist + '</div>' : '') +
+      '</div></details>';
+  }).join('');
+}
+
+$('lista').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d && d.matches && d.matches('details.al')) {
+    if (d.open) abiertos.add(d.dataset.id); else abiertos.delete(d.dataset.id);
+  }
+}, true);
+
+async function guardar() {
+  const nombre = $('nombre').value.trim().replace(/\s+/g, ' ').toUpperCase();
+  const wa = $('whatsapp').value.replace(/\D/g, '');
+  const nivel = Number($('nivel').value);
+  if (!nombre) { aviso('Escribe el nombre del alumno', false); return; }
+
+  const btn = $('btnGuardar');
+  btn.disabled = true;
+  try {
+    const existente = todos.find(a => norm(a.nombreCompleto) === norm(nombre));
+    if (existente && existente.eco === true) {
+      aviso('Ese alumno ya está en ECO (nivel ' + (existente.ecoNivel || '?') + '). Cambia su nivel desde la lista.', false);
+      btn.disabled = false;
+      return;
+    }
+    const hist = { fecha: ahora(), escuela: 'ECO', accion: 'alta', a: nivel };
+    if (existente) {
+      const datos = { eco: true, ecoNivel: nivel, historial: FV.arrayUnion(hist) };
+      if (wa && !existente.whatsapp) datos.whatsapp = wa;
+      await db.collection('alumnos').doc(existente.id).update(datos);
+      aviso('✅ ' + nombre + ' ya estaba registrado; se agregó a ECO nivel ' + nivel);
+    } else {
+      await db.collection('alumnos').add({
+        nombreCompleto: nombre, whatsapp: wa, eco: true, em: false, ecoNivel: nivel,
+        historial: [hist], creadoPor: auth.currentUser.email, fechaCreacion: new Date()
+      });
+      aviso('✅ Alumno agregado a ECO nivel ' + nivel);
+    }
+    $('nombre').value = '';
+    $('whatsapp').value = '';
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  btn.disabled = false;
+}
+
+async function cambiarNivel(id, v) {
+  const n = Number(v);
+  const a = todos.find(x => x.id === id);
+  if (!a || !n) return;
+  try {
+    await db.collection('alumnos').doc(id).update({
+      ecoNivel: n,
+      historial: FV.arrayUnion({ fecha: ahora(), escuela: 'ECO', accion: 'cambio de nivel', de: a.ecoNivel || null, a: n })
+    });
+    aviso('✅ Nivel actualizado');
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+    await cargar();
+  }
+}
+
+async function quitar(id) {
+  const a = todos.find(x => x.id === id);
+  if (!a) return;
+  if (!confirm('¿Quitar a ' + a.nombreCompleto + ' de ECO? Seguirá registrado como alumno y se conserva su historial.')) return;
+  try {
+    await db.collection('alumnos').doc(id).update({
+      eco: false,
+      historial: FV.arrayUnion({ fecha: ahora(), escuela: 'ECO', accion: 'baja' })
+    });
+    aviso('Alumno quitado de ECO');
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+}
+</script>
 </body>
 </html>
