@@ -55,7 +55,7 @@
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
   <div id="resultadoCreacion" style="margin-top:12px;"></div>
-  <div style="font-size:11px;color:#999;margin-top:6px;">Versión v3 · guarda contraseña</div>
+  <div style="font-size:11px;color:#999;margin-top:6px;">Versión v4 · saludo apostólico</div>
 
   <hr>
 
@@ -104,8 +104,7 @@
         
         const pass = u.contraseñaActual || u.contraseñaTemporalTexto || '';
         const yaCambio = u.contraseñaTemporal === false;
-        const msgWA = 'Hola ' + nombre + ', aquí están tus datos de acceso al Sistema Escolar:\nCorreo: ' + correo +
-          (pass ? '\nContraseña: ' + pass : '') + '\n(Al entrar, el sistema te pedirá cambiarla).';
+        const msgWA = mensajeAcceso(nombre, correo, pass, !yaCambio);
         const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
 
         lista.innerHTML += `
@@ -144,6 +143,18 @@
   // =============================================
   // WHATSAPP
   // =============================================
+  function mensajeAcceso(nombre, correo, pass, esTemporal) {
+    let m = '¡Paz de Cristo herman@ ' + nombre + '!\n\n' +
+      'Es un gusto saludarte. Te compartimos tus datos de acceso al Sistema de Educación Cristiana:\n\n' +
+      'Usuario: ' + correo + '\n';
+    if (pass) m += (esTemporal ? 'Contraseña temporal: ' : 'Contraseña: ') + pass + '\n';
+    if (esTemporal) {
+      m += '\nPor seguridad, al ingresar por primera vez, es importante que cambies tu contraseña por una personal.\n';
+    }
+    m += '\nDios te bendiga.\nSistema de Educación Cristiana · Tercera de Colima';
+    return m;
+  }
+
   function linkWhatsApp(telefono, texto) {
     let num = String(telefono || '').replace(/\D/g, '');
     if (num.length === 10) num = '52' + num; // lada de México
@@ -191,7 +202,7 @@
         fechaCreacion: new Date()
       });
 
-      const msg = 'Hola ' + nombreCompleto + ', aquí están tus datos de acceso al Sistema Escolar:\nCorreo: ' + correoCompleto + '\nContraseña: ' + contraseñaTemp + '\n(Al entrar, el sistema te pedirá cambiarla).';
+      const msg = mensajeAcceso(nombreCompleto, correoCompleto, contraseñaTemp, true);
       document.getElementById('resultadoCreacion').innerHTML =
         '<p class="mensaje">✅ Usuario creado.<br>Contraseña temporal: <strong>' + contraseñaTemp + '</strong></p>' +
         '<a href="' + linkWhatsApp(numWhatsApp, msg) + '" target="_blank" style="font-size:15px;">📩 Enviar usuario y contraseña por WhatsApp</a>';
