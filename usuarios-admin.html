@@ -55,6 +55,7 @@
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
   <div id="resultadoCreacion" style="margin-top:12px;"></div>
+  <div style="font-size:11px;color:#999;margin-top:6px;">Versión v3 · guarda contraseña</div>
 
   <hr>
 
@@ -101,12 +102,24 @@
         const correo = u.email || u.correo || 'Sin correo';
         const telefono = u.whatsapp || u.telefono || '';
         
+        const pass = u.contraseñaActual || u.contraseñaTemporalTexto || '';
+        const yaCambio = u.contraseñaTemporal === false;
+        const msgWA = 'Hola ' + nombre + ', aquí están tus datos de acceso al Sistema Escolar:\nCorreo: ' + correo +
+          (pass ? '\nContraseña: ' + pass : '') + '\n(Al entrar, el sistema te pedirá cambiarla).';
+        const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
+
         lista.innerHTML += `
           <div class="usuario">
             <div><strong>${nombre}</strong></div>
             <div class="rol">${rolUsuario}</div>
             <div class="correo">${correo}</div>
-            ${telefono ? `<a href="${linkWhatsApp(telefono, 'Hola ' + nombre + ', tu usuario del sistema es: ' + correo)}" target="_blank" style="font-size:13px;">📩 Enviar WhatsApp</a>` : ''}
+            ${pass ? `
+              <div>Contraseña actual: <span id="${idp}" data-pass="${pass}" data-visible="0">••••••••</span></div>
+              <button type="button" onclick="verPass('${idp}', this)" style="font-size:13px;">👁️ Ver</button>
+              <button type="button" onclick="copiarPass('${idp}')" style="font-size:13px;">Copiar</button>
+            ` : '<div style="font-size:13px;color:#888;">Contraseña no guardada</div>'}
+            ${yaCambio ? '<div style="color:#16a34a;font-size:13px;">✅ Ya cambió su contraseña</div>' : ''}
+            ${telefono ? `<p><a href="${linkWhatsApp(telefono, msgWA)}" target="_blank" style="font-size:16px;">📲 Enviar por WhatsApp</a></p>` : ''}
           </div>
         `;
       });
@@ -114,6 +127,18 @@
       console.error(e);
       lista.innerHTML = `<p class="mensaje error">Error: ${e.message}</p>`;
     }
+  }
+
+  function verPass(id, btn) {
+    const el = document.getElementById(id);
+    const visible = el.dataset.visible === '1';
+    el.textContent = visible ? '••••••••' : el.dataset.pass;
+    el.dataset.visible = visible ? '0' : '1';
+    btn.textContent = visible ? '👁️ Ver' : '🙈 Ocultar';
+  }
+  function copiarPass(id) {
+    const t = document.getElementById(id).dataset.pass;
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => alert('Copiada'));
   }
 
   // =============================================
@@ -155,6 +180,7 @@
         email: correoCompleto,
         whatsapp: numWhatsApp,
         contraseñaTemporal: true,
+        contraseñaActual: contraseñaTemp,
         eco: esEco,
         em: esEm,
         roles: {
@@ -165,7 +191,7 @@
         fechaCreacion: new Date()
       });
 
-      const msg = 'Hola ' + nombreCompleto + ', tu acceso al sistema:\nUsuario: ' + correoCompleto + '\nContraseña temporal: ' + contraseñaTemp;
+      const msg = 'Hola ' + nombreCompleto + ', aquí están tus datos de acceso al Sistema Escolar:\nCorreo: ' + correoCompleto + '\nContraseña: ' + contraseñaTemp + '\n(Al entrar, el sistema te pedirá cambiarla).';
       document.getElementById('resultadoCreacion').innerHTML =
         '<p class="mensaje">✅ Usuario creado.<br>Contraseña temporal: <strong>' + contraseñaTemp + '</strong></p>' +
         '<a href="' + linkWhatsApp(numWhatsApp, msg) + '" target="_blank" style="font-size:15px;">📩 Enviar usuario y contraseña por WhatsApp</a>';
