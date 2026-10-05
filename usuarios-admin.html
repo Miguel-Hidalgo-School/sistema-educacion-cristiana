@@ -54,6 +54,7 @@
     </label>
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
+  <div id="resultadoCreacion" style="margin-top:12px;"></div>
 
   <hr>
 
@@ -105,7 +106,7 @@
             <div><strong>${nombre}</strong></div>
             <div class="rol">${rolUsuario}</div>
             <div class="correo">${correo}</div>
-            ${telefono ? `<a href="https://wa.me/${telefono}" target="_blank" style="font-size:13px;">📩 Enviar WhatsApp</a>` : ''}
+            ${telefono ? `<a href="${linkWhatsApp(telefono, 'Hola ' + nombre + ', tu usuario del sistema es: ' + correo)}" target="_blank" style="font-size:13px;">📩 Enviar WhatsApp</a>` : ''}
           </div>
         `;
       });
@@ -113,6 +114,15 @@
       console.error(e);
       lista.innerHTML = `<p class="mensaje error">Error: ${e.message}</p>`;
     }
+  }
+
+  // =============================================
+  // WHATSAPP
+  // =============================================
+  function linkWhatsApp(telefono, texto) {
+    let num = String(telefono || '').replace(/\D/g, '');
+    if (num.length === 10) num = '52' + num; // lada de México
+    return 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
   }
 
   // =============================================
@@ -155,7 +165,10 @@
         fechaCreacion: new Date()
       });
 
-      alert('✅ Usuario creado!\nContraseña temporal: ' + contraseñaTemp);
+      const msg = 'Hola ' + nombreCompleto + ', tu acceso al sistema:\nUsuario: ' + correoCompleto + '\nContraseña temporal: ' + contraseñaTemp;
+      document.getElementById('resultadoCreacion').innerHTML =
+        '<p class="mensaje">✅ Usuario creado.<br>Contraseña temporal: <strong>' + contraseñaTemp + '</strong></p>' +
+        '<a href="' + linkWhatsApp(numWhatsApp, msg) + '" target="_blank" style="font-size:15px;">📩 Enviar usuario y contraseña por WhatsApp</a>';
       cargarLista();
       
       // Limpiar formulario
