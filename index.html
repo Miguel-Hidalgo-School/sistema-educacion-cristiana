@@ -363,12 +363,33 @@ body{
   </div>
 </div>
 
+<!-- CAMBIO DE CONTRASEÑA (primer ingreso) -->
+<div id="pantallaCambio" class="oculto" style="position:fixed;inset:0;background:rgba(15,30,60,.92);z-index:9999;overflow:auto;padding:20px;">
+  <div style="max-width:420px;margin:30px auto;background:#fff;border-radius:14px;padding:24px;">
+    <h2 style="margin:0 0 6px;">🔐 Cambia tu contraseña</h2>
+    <p style="margin:0 0 16px;color:#555;font-size:15px;">Por seguridad, debes crear una contraseña personal antes de continuar.</p>
+    <div class="campo">
+      <label>Nueva contraseña (mínimo 8 caracteres)</label>
+      <input type="password" id="nuevaClave" placeholder="Nueva contraseña">
+    </div>
+    <div class="campo">
+      <label>Repite la nueva contraseña</label>
+      <input type="password" id="nuevaClave2" placeholder="Repite la contraseña">
+    </div>
+    <button id="btnCambiar" class="btn-entrar">✅ Guardar contraseña</button>
+    <div id="msgCambio" class="mensaje"></div>
+    <p style="text-align:center;margin-top:14px;"><a href="#" id="cancelarCambio" style="font-size:14px;">Cerrar sesión</a></p>
+  </div>
+</div>
+
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore();
 
 // El texto sigue al ratón
 document.addEventListener('mousemove', (e) => {
@@ -405,11 +426,82 @@ function mostrarLogin() {
   window.scrollTo(0, 0);
 }
 
+// Pantalla de cambio de contraseña
+const pantallaCambio = document.getElementById('pantallaCambio');
+const nuevaClave = document.getElementById('nuevaClave');
+const nuevaClave2 = document.getElementById('nuevaClave2');
+const btnCambiar = document.getElementById('btnCambiar');
+const msgCambio = document.getElementById('msgCambio');
+let usuarioCambio = null;
+
+function mostrarCambio(usuario) {
+  usuarioCambio = usuario;
+  pantallaLogin.classList.add('oculto');
+  pantallaPrincipal.classList.add('oculto');
+  textoPuntero.style.display = 'none';
+  pantallaCambio.classList.remove('oculto');
+  nuevaClave.value = '';
+  nuevaClave2.value = '';
+  msgCambio.style.display = 'none';
+}
+
+function errorCambio(texto) {
+  msgCambio.textContent = texto;
+  msgCambio.className = 'mensaje error';
+  msgCambio.style.display = 'block';
+}
+
+btnCambiar.addEventListener('click', async () => {
+  const a = nuevaClave.value;
+  const b = nuevaClave2.value;
+  if (a.length < 8) return errorCambio('La contraseña debe tener al menos 8 caracteres');
+  if (a !== b) return errorCambio('Las contraseñas no coinciden');
+
+  btnCambiar.disabled = true;
+  btnCambiar.textContent = 'Guardando...';
+  try {
+    await usuarioCambio.updatePassword(a);
+    await db.collection('usuarios').doc(usuarioCambio.email).update({
+      contraseñaActual: a,
+      contraseñaTemporal: false
+    });
+    pantallaCambio.classList.add('oculto');
+    mostrarPanel(usuarioCambio);
+  } catch (e) {
+    console.error(e);
+    if (e.code === 'auth/requires-recent-login') {
+      errorCambio('Por seguridad, cierra sesión y vuelve a entrar con tu contraseña temporal.');
+    } else if (e.code === 'auth/weak-password') {
+      errorCambio('La contraseña es muy débil. Usa una más larga.');
+    } else {
+      errorCambio('No se pudo guardar: ' + (e.message || e.code));
+    }
+  }
+  btnCambiar.disabled = false;
+  btnCambiar.textContent = '✅ Guardar contraseña';
+});
+
+document.getElementById('cancelarCambio').addEventListener('click', (e) => {
+  e.preventDefault();
+  auth.signOut();
+});
+
 // Sesión activa
-auth.onAuthStateChanged(usuario => {
+auth.onAuthStateChanged(async usuario => {
   if (usuario) {
+    try {
+      const d = await db.collection('usuarios').doc(usuario.email).get();
+      if (d.exists && d.data().contraseñaTemporal === true) {
+        mostrarCambio(usuario);
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    pantallaCambio.classList.add('oculto');
     mostrarPanel(usuario);
   } else {
+    pantallaCambio.classList.add('oculto');
     mostrarLogin();
   }
 });
