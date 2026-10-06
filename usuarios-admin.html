@@ -47,19 +47,25 @@
       <input type="checkbox" id="esSubAdmin"> Subadministrador
     </label>
     <label style="display:inline-block; margin-right:15px; font-weight:normal;">
-      <input type="checkbox" id="esEco"> ECO
+      <input type="checkbox" id="esEco" onchange="document.getElementById('bloqueNiveles').style.display = this.checked ? 'block' : 'none';"> ECO
     </label>
     <label style="display:inline-block; font-weight:normal;">
       <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EMI
     </label>
   </div>
+  <div class="campo" id="bloqueNiveles" style="display:none;">
+    <label>Niveles que imparte en ECO:</label>
+    <label style="display:inline-block;margin-right:15px;font-weight:normal;"><input type="checkbox" class="chkNivelEco" value="1"> Nivel 1</label>
+    <label style="display:inline-block;margin-right:15px;font-weight:normal;"><input type="checkbox" class="chkNivelEco" value="2"> Nivel 2</label>
+    <label style="display:inline-block;font-weight:normal;"><input type="checkbox" class="chkNivelEco" value="3"> Nivel 3</label>
+  </div>
   <div class="campo" id="bloqueDiplomados" style="display:none;">
-    <label>Diplomados que imparte en EM:</label>
+    <label>Diplomados que imparte en EMI:</label>
     <div id="listaDiplomadosForm"><span style="font-size:13px;color:#718096;">Cargando diplomados…</span></div>
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
   <div id="resultadoCreacion" style="margin-top:12px;"></div>
-  <div style="font-size:11px;color:#999;margin-top:6px;">Versión v4 · saludo apostólico</div>
+  <div style="font-size:11px;color:#999;margin-top:6px;">Versión v6 · editar docentes</div>
 
   <hr>
 
@@ -80,21 +86,27 @@
   firebase.initializeApp(window.firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
+  let catalogoDips = [];      // diplomados del catálogo
+  const usuariosMapa = {};    // usuarios cargados, por correo
 
   // =============================================
-  // CATÁLOGO DE DIPLOMADOS (para asignar a un usuario de EM)
+  // CATÁLOGO DE DIPLOMADOS (para asignar a un usuario de EMI)
   // =============================================
   async function cargarCatalogoDiplomados() {
     const cont = document.getElementById('listaDiplomadosForm');
     try {
-      const snap = await db.collection('catalogo').where('tipo', '==', 'diplomado').orderBy('nombre').get();
+      const snap = await db.collection('catalogo').where('tipo', '==', 'diplomado').get();
       if (snap.empty) { cont.innerHTML = '<span style="font-size:13px;color:#718096;">Aún no hay diplomados en el catálogo.</span>'; return; }
-      cont.innerHTML = snap.docs.map(d => {
-        const x = d.data();
-        return `<label style="display:block;font-weight:normal;margin:4px 0;"><input type="checkbox" class="chkDiplomado" value="${d.id}" data-nombre="${x.nombre}"> ${x.nombre}</label>`;
+      const lista = snap.docs.map(d => ({ id: d.id, nombre: d.data().nombre || '' }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+      catalogoDips = lista;
+      cont.innerHTML = lista.map(d => {
+        const n = d.nombre.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        return `<label style="display:block;font-weight:normal;margin:4px 0;"><input type="checkbox" class="chkDiplomado" value="${d.id}" data-nombre="${n}"> ${n}</label>`;
       }).join('');
     } catch (e) {
-      cont.innerHTML = '<span style="font-size:13px;color:#c53030;">No se pudo cargar el catálogo.</span>';
+      console.error(e);
+      cont.innerHTML = '<span style="font-size:13px;color:#c53030;">No se pudo cargar el catálogo: ' + (e.code || e.message) + '</span>';
     }
   }
 
@@ -114,6 +126,7 @@
       lista.innerHTML = "";
       snap.forEach(doc => {
         const u = doc.data();
+        usuariosMapa[doc.id] = u;
         
         let rolUsuario = 'Usuario';
         if (u.roles?.superAdmin === true) rolUsuario = 'Administrador';
@@ -127,7 +140,8 @@
         const yaCambio = u.contraseñaTemporal === false;
         const msgWA = mensajeAcceso(nombre, correo, pass, !yaCambio);
         const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
-        const escuelas = [u.eco ? 'ECO' : '', u.em ? 'EMI' : ''].filter(Boolean).join(' · ');
+        const nivelesTxt = Array.isArray(u.ecoNiveles) && u.ecoNiveles.length ? ' (nivel ' + u.ecoNiveles.join(', ') + ')' : '';
+        const escuelas = [u.eco ? 'ECO' + nivelesTxt : '', u.em ? 'EMI' : ''].filter(Boolean).join(' · ');
         const diplomadosTxt = Array.isArray(u.diplomados) && u.diplomados.length
           ? u.diplomados.map(d => d.nombre).join(', ') : '';
 
@@ -145,12 +159,74 @@
             ` : '<div style="font-size:13px;color:#888;">Contraseña no guardada</div>'}
             ${yaCambio ? '<div style="color:#16a34a;font-size:13px;">✅ Ya cambió su contraseña</div>' : ''}
             ${telefono ? `<p><a href="${linkWhatsApp(telefono, msgWA)}" target="_blank" style="font-size:16px;">📲 Enviar por WhatsApp</a></p>` : ''}
+            <button type="button" onclick="abrirEditar('${doc.id}', '${idp}')" style="font-size:13px;margin-top:6px;">✏️ Editar</button>
+            <div id="ed_${idp}"></div>
           </div>
         `;
       });
     } catch (e) {
       console.error(e);
       lista.innerHTML = `<p class="mensaje error">Error: ${e.message}</p>`;
+    }
+  }
+
+
+  // =============================================
+  // EDITAR USUARIO (escuelas, niveles y diplomados)
+  // =============================================
+  const escAttr = t => String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+  async function abrirEditar(docId, idp) {
+    const cont = document.getElementById('ed_' + idp);
+    if (cont.innerHTML.trim()) { cont.innerHTML = ''; return; }   // segundo toque: cerrar
+    const u = usuariosMapa[docId] || {};
+    if (!catalogoDips.length) await cargarCatalogoDiplomados();
+    const nivSel = new Set((u.ecoNiveles || []).map(Number));
+    const dipSel = new Set((u.diplomados || []).map(d => d.id));
+    const lbl = 'display:block;font-weight:normal;margin:4px 0;';
+    cont.innerHTML =
+      '<div style="border:1px solid #cbd5e0;border-radius:8px;padding:12px;margin-top:10px;background:#f7fafc;">' +
+        '<label>Nombre completo:</label>' +
+        '<input type="text" id="eNom_' + idp + '" value="' + escAttr(u.nombreCompleto || u.nombre) + '">' +
+        '<label style="margin-top:8px;display:block;">WhatsApp:</label>' +
+        '<input type="text" id="eWa_' + idp + '" value="' + escAttr(u.whatsapp || u.telefono) + '">' +
+        '<label style="' + lbl + 'margin-top:10px;"><input type="checkbox" id="eEco_' + idp + '" ' + (u.eco ? 'checked' : '') +
+          ' onchange="document.getElementById(\'eNiv_' + idp + '\').style.display = this.checked ? \'block\' : \'none\'"> ECO</label>' +
+        '<div id="eNiv_' + idp + '" style="margin-left:22px;display:' + (u.eco ? 'block' : 'none') + ';">' +
+          [1, 2, 3].map(n => '<label style="display:inline-block;margin-right:12px;font-weight:normal;"><input type="checkbox" class="eN_' + idp + '" value="' + n + '" ' + (nivSel.has(n) ? 'checked' : '') + '> Nivel ' + n + '</label>').join('') +
+        '</div>' +
+        '<label style="' + lbl + '"><input type="checkbox" id="eEm_' + idp + '" ' + (u.em ? 'checked' : '') +
+          ' onchange="document.getElementById(\'eDip_' + idp + '\').style.display = this.checked ? \'block\' : \'none\'"> EMI</label>' +
+        '<div id="eDip_' + idp + '" style="margin-left:22px;display:' + (u.em ? 'block' : 'none') + ';">' +
+          (catalogoDips.length ? catalogoDips.map(d => '<label style="' + lbl + '"><input type="checkbox" class="eD_' + idp + '" value="' + d.id + '" ' + (dipSel.has(d.id) ? 'checked' : '') + '> ' + escAttr(d.nombre) + '</label>').join('')
+            : '<span style="font-size:13px;color:#718096;">No hay diplomados en el catálogo.</span>') +
+        '</div>' +
+        '<div style="margin-top:10px;"><button type="button" onclick="guardarEdicion(\'' + docId + '\', \'' + idp + '\')">💾 Guardar</button> ' +
+        '<button type="button" onclick="abrirEditar(\'' + docId + '\', \'' + idp + '\')" style="background:#718096;">Cancelar</button></div>' +
+      '</div>';
+  }
+
+  async function guardarEdicion(docId, idp) {
+    const nombre = document.getElementById('eNom_' + idp).value.trim();
+    const wa = document.getElementById('eWa_' + idp).value.replace(/\D/g, '');
+    const eco = document.getElementById('eEco_' + idp).checked;
+    const em = document.getElementById('eEm_' + idp).checked;
+    if (!nombre) { alert('El nombre no puede quedar vacío'); return; }
+    const ecoNiveles = eco ? Array.from(document.querySelectorAll('.eN_' + idp + ':checked')).map(el => Number(el.value)) : [];
+    const diplomados = em ? Array.from(document.querySelectorAll('.eD_' + idp + ':checked')).map(el => {
+      const d = catalogoDips.find(x => x.id === el.value);
+      return { id: el.value, nombre: d ? d.nombre : '' };
+    }) : [];
+    try {
+      await db.collection('usuarios').doc(docId).update({
+        nombreCompleto: nombre, whatsapp: wa, eco: eco, em: em, ecoNiveles: ecoNiveles, diplomados: diplomados
+      });
+      cargarLista();
+    } catch (e) {
+      console.error(e);
+      alert(e.code === 'permission-denied'
+        ? 'Sin permiso: con las reglas actuales solo el Administrador puede editar usuarios.'
+        : 'Error: ' + e.message);
     }
   }
 
@@ -169,15 +245,18 @@
   // =============================================
   // WHATSAPP
   // =============================================
+  const LINK_SISTEMA = 'https://iafcj-terceradecolima.netlify.app/';
   function mensajeAcceso(nombre, correo, pass, esTemporal) {
     let m = '¡Paz de Cristo herman@ ' + nombre + '!\n\n' +
       'Es un gusto saludarte. Te compartimos tus datos de acceso al Sistema de Educación Cristiana:\n\n' +
-      'Usuario: ' + correo + '\n';
-    if (pass) m += (esTemporal ? 'Contraseña temporal: ' : 'Contraseña: ') + pass + '\n';
+      'Link: ' + LINK_SISTEMA + '\n\n' +
+      'Usuario: ' + correo + '\n\n';
+    if (pass) m += (esTemporal ? 'Contraseña temporal: ' : 'Contraseña: ') + pass + '\n\n';
     if (esTemporal) {
-      m += '\nPor seguridad, al ingresar por primera vez, es importante que cambies tu contraseña por una personal.\n';
+      m += 'Por seguridad, al ingresar por primera vez, es importante que cambies tu contraseña por una personal.\n\n';
     }
-    m += '\nDios te bendiga.\nSistema de Educación Cristiana · Tercera de Colima';
+    m += 'El correo no recibe ni envía, solo es para poder entrar al sistema.\n\n' +
+      '¡Dios te bendiga!\nSistema de Educación Cristiana · Tercera de Colima';
     return m;
   }
 
@@ -197,6 +276,9 @@
     const esSubAdmin = document.getElementById('esSubAdmin').checked;
     const esEco = document.getElementById('esEco').checked;
     const esEm = document.getElementById('esEm').checked;
+    const ecoNiveles = esEco
+      ? Array.from(document.querySelectorAll('.chkNivelEco:checked')).map(el => Number(el.value))
+      : [];
     const diplomados = esEm
       ? Array.from(document.querySelectorAll('.chkDiplomado:checked')).map(el => ({ id: el.value, nombre: el.dataset.nombre }))
       : [];
@@ -223,6 +305,7 @@
         contraseñaActual: contraseñaTemp,
         eco: esEco,
         em: esEm,
+        ecoNiveles: ecoNiveles,
         diplomados: diplomados,
         roles: {
           subAdmin: esSubAdmin,
@@ -247,6 +330,8 @@
       document.getElementById('esEm').checked = false;
       document.querySelectorAll('.chkDiplomado').forEach(el => el.checked = false);
       document.getElementById('bloqueDiplomados').style.display = 'none';
+      document.querySelectorAll('.chkNivelEco').forEach(el => el.checked = false);
+      document.getElementById('bloqueNiveles').style.display = 'none';
 
     } catch (e) {
       alert('Error: ' + e.message);
