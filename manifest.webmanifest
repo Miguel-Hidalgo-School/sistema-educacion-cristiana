@@ -1,0 +1,16 @@
+{
+  "name": "Sistema de Educación Cristiana",
+  "short_name": "Educación Cristiana",
+  "description": "Sistema de Educación Cristiana · Tercera de Colima",
+  "start_url": "index.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e50c8",
+  "theme_color": "#1e50c8",
+  "lang": "es-MX",
+  "icons": [
+    { "src": "logo.jpg", "sizes": "192x192", "type": "image/jpeg", "purpose": "any" },
+    { "src": "logo.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

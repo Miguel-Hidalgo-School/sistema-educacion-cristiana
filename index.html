@@ -266,6 +266,12 @@ body{
   font-size:0.9rem;
 }
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1e50c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Educación Cristiana">
+<link rel="apple-touch-icon" href="logo.jpg">
 </head>
 <body>
 
@@ -300,6 +306,8 @@ body{
 
   <button id="btnEntrar" class="btn-entrar">✅ Entrar</button>
   <button id="btnHuella" type="button" class="btn-entrar oculto" style="margin-top:10px;background:#1e50c8;">👆 Entrar con huella</button>
+  <button type="button" class="btn-entrar oculto js-instalar" style="margin-top:10px;background:#047857;">📲 Instalar como app</button>
+  <div class="oculto js-ayuda-ios" style="margin-top:12px;padding:10px;border-radius:8px;background:#eff6ff;color:#1e3a8a;font-size:14px;">📲 Para instalar la app: toca <b>Compartir</b> y elige <b>Añadir a pantalla de inicio</b>.</div>
   <div id="mensaje" class="mensaje"></div>
 
   <div class="credito-login">
@@ -317,6 +325,7 @@ body{
     <button class="btn-salir" id="btnSalir">🚪 Salir</button>
   </div>
 
+  <div class="oculto js-instalar-caja" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;font-size:14px;color:#1f2937;">📲 <b>Instala la app</b> en tu pantalla de inicio para abrirla más rápido.<br><button type="button" class="js-instalar" style="margin-top:10px;padding:9px 14px;border:none;border-radius:8px;background:#047857;color:#fff;font-weight:bold;">Instalar como app</button></div>
   <div id="bannerHuella" class="oculto" style="background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;font-size:14px;color:#1f2937;"></div>
 
   <a href="alumnos.html" class="tarjeta">
@@ -554,6 +563,7 @@ async function activarHuella(email) {
     return true;
   } catch (e) {
     console.error(e);
+    activarHuella.ultimoError = (e && (e.name || e.message)) || 'desconocido';
     return false;
   }
 }
@@ -580,7 +590,12 @@ async function mostrarBannerHuella(usuario) {
     document.getElementById('bioOn').onclick = async () => {
       const ok = await activarHuella(usuario.email);
       if (ok) { mostrarBannerHuella(usuario); }
-      else { bn.innerHTML = 'No se pudo activar la huella en este dispositivo. Verifica que tengas una huella registrada en el celular.'; }
+      else {
+        const nav = /Brave/i.test(navigator.userAgent) || (navigator.brave !== undefined);
+        bn.innerHTML = 'No se pudo activar la huella (' + (activarHuella.ultimoError || 'error') + ').<br>' +
+          (nav ? 'Parece que usas Brave, que en Android no siempre permite la huella en sitios web. Abre el sistema en Chrome e inténtalo ahí.'
+               : 'Verifica que tengas una huella registrada en el celular, y que el sitio abra con https.');
+      }
     };
   }
 }
@@ -667,6 +682,36 @@ btnEntrar.addEventListener('click', () => {
   }
   iniciarSesion(c, p, false);
 });
+
+// ===== INSTALAR COMO APP (PWA) =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(e => console.error('SW', e));
+  });
+}
+let eventoInstalar = null;
+const yaInstalada = () => window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+function pintarInstalar() {
+  const mostrar = !!eventoInstalar && !yaInstalada();
+  document.querySelectorAll('.js-instalar').forEach(b => b.classList.toggle('oculto', !mostrar));
+  document.querySelectorAll('.js-instalar-caja').forEach(b => b.classList.toggle('oculto', !mostrar));
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !yaInstalada();
+  document.querySelectorAll('.js-ayuda-ios').forEach(b => b.classList.toggle('oculto', !ios));
+}
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  eventoInstalar = e;
+  pintarInstalar();
+});
+window.addEventListener('appinstalled', () => { eventoInstalar = null; pintarInstalar(); });
+document.querySelectorAll('.js-instalar').forEach(b => b.addEventListener('click', async () => {
+  if (!eventoInstalar) return;
+  eventoInstalar.prompt();
+  await eventoInstalar.userChoice;
+  eventoInstalar = null;
+  pintarInstalar();
+}));
+pintarInstalar();
 
 // Salir
 btnSalir.addEventListener('click', () => {
