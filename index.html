@@ -346,7 +346,7 @@ body{
     <p>Registro diario</p>
   </a>
 
-  <a href="usuarios-admin.html" class="tarjeta">
+  <a href="usuarios-admin.html" class="tarjeta oculto" id="tarjetaUsuarios">
     <div class="icono">👤</div>
     <h3>Administrar Usuarios</h3>
     <p>Crear y gestionar accesos</p>
@@ -408,12 +408,17 @@ const btnEntrar = document.getElementById('btnEntrar');
 const btnSalir = document.getElementById('btnSalir');
 const mensaje = document.getElementById('mensaje');
 const correoUsuario = document.getElementById('correoUsuario');
+const nombreUsuario = document.getElementById('nombreUsuario');
 
-function mostrarPanel(usuario) {
+function mostrarPanel(usuario, datosPerfil) {
   pantallaLogin.classList.add('oculto');
   pantallaPrincipal.classList.remove('oculto');
   textoPuntero.style.display = 'none';
   correoUsuario.textContent = usuario.email;
+  if (datosPerfil && datosPerfil.nombreCompleto) nombreUsuario.textContent = datosPerfil.nombreCompleto;
+  const roles = (datosPerfil && datosPerfil.roles) || {};
+  const esAdministrador = roles.superAdmin === true || roles.subAdmin === true;
+  document.getElementById('tarjetaUsuarios').classList.toggle('oculto', !esAdministrador);
   window.scrollTo(0, 0);
 }
 
@@ -467,7 +472,8 @@ btnCambiar.addEventListener('click', async () => {
       contraseñaTemporal: false
     });
     pantallaCambio.classList.add('oculto');
-    mostrarPanel(usuarioCambio);
+    const dPost = await db.collection('usuarios').doc(usuarioCambio.email).get();
+    mostrarPanel(usuarioCambio, dPost.exists ? dPost.data() : null);
   } catch (e) {
     console.error(e);
     if (e.code === 'auth/requires-recent-login') {
@@ -490,12 +496,14 @@ document.getElementById('cancelarCambio').addEventListener('click', (e) => {
 // Sesión activa
 auth.onAuthStateChanged(async usuario => {
   if (usuario) {
+    let datosPerfil = null;
     try {
       const d = await Promise.race([
         db.collection('usuarios').doc(usuario.email).get(),
         new Promise((_, rej) => setTimeout(() => rej(new Error('timeout firestore')), 10000))
       ]);
-      if (d.exists && d.data().contraseñaTemporal === true) {
+      if (d.exists) datosPerfil = d.data();
+      if (datosPerfil && datosPerfil.contraseñaTemporal === true) {
         mostrarCambio(usuario);
         return;
       }
@@ -503,7 +511,7 @@ auth.onAuthStateChanged(async usuario => {
       console.error(e);
     }
     pantallaCambio.classList.add('oculto');
-    mostrarPanel(usuario);
+    mostrarPanel(usuario, datosPerfil);
   } else {
     pantallaCambio.classList.add('oculto');
     mostrarLogin();
