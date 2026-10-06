@@ -50,7 +50,7 @@
       <input type="checkbox" id="esEco"> ECO
     </label>
     <label style="display:inline-block; font-weight:normal;">
-      <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EM
+      <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EMI
     </label>
   </div>
   <div class="campo" id="bloqueDiplomados" style="display:none;">
@@ -127,7 +127,7 @@
         const yaCambio = u.contraseñaTemporal === false;
         const msgWA = mensajeAcceso(nombre, correo, pass, !yaCambio);
         const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
-        const escuelas = [u.eco ? 'ECO' : '', u.em ? 'EM' : ''].filter(Boolean).join(' · ');
+        const escuelas = [u.eco ? 'ECO' : '', u.em ? 'EMI' : ''].filter(Boolean).join(' · ');
         const diplomadosTxt = Array.isArray(u.diplomados) && u.diplomados.length
           ? u.diplomados.map(d => d.nombre).join(', ') : '';
 

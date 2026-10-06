@@ -100,7 +100,7 @@ function iniciarLista(cfg){
       const s = document.createElement('div'); s.className = 'sub';
       const diplomadosTxt = Array.isArray(x.diplomados) && x.diplomados.length
         ? x.diplomados.map(d2 => d2.nombre).join(', ') : '';
-      s.textContent = [x.whatsapp, x.eco ? 'ECO' : '', x.em ? 'EM' : '', diplomadosTxt].filter(Boolean).join(' · ');
+      s.textContent = [x.whatsapp, x.eco ? 'ECO' : '', x.em ? 'EMI' : '', diplomadosTxt].filter(Boolean).join(' · ');
       info.append(n, s);
       const b = document.createElement('button'); b.className = 'borrar'; b.textContent = '🗑️';
       b.onclick = async () => {
