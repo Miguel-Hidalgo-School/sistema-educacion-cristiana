@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Tareas</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:500px;margin:0 auto}
+.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
+header{text-align:center;color:white;margin-bottom:25px}
+header h1{font-size:1.5rem;margin-bottom:8px}
+.tarjeta{background:white;border-radius:12px;padding:20px;margin-bottom:16px}
+.tarjeta h3{font-size:1.15rem;color:#1f2937;margin-bottom:12px}
+.campo{margin-bottom:12px}
+.campo label.t{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
+input[type=text],input[type=date],select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+textarea{resize:vertical}
+.btn{width:100%;padding:12px;background:#1e50c8;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
+.btn.cafe{background:#9a3412}
+.btn2{padding:9px 14px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.9rem}
+.btn2.azul{background:#1e50c8;color:#fff}
+.msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.oculto{display:none !important}
+.lugar{display:flex;gap:10px}
+.lugar label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border:2px solid #d1d5db;border-radius:8px;font-weight:bold;cursor:pointer}
+.lugar input{display:none}
+.lugar input:checked + span{color:#1e50c8}
+.lugar label:has(input:checked){border-color:#1e50c8;background:#eff6ff}
+details.t{background:#fff;border-radius:12px;margin-bottom:12px;padding:14px}
+details.t summary{cursor:pointer;list-style:none}
+details.t summary::-webkit-details-marker{display:none}
+.fila{display:flex;align-items:center;gap:12px}
+.ico{font-size:1.5rem}
+.info{flex:1}
+.nom{font-weight:bold;color:#1f2937}
+.sub{color:#6b7280;font-size:.85rem;margin-top:3px}
+.venc{color:#b91c1c;font-weight:bold}
+.hoy{color:#b45309;font-weight:bold}
+.x{background:#fee2e2;color:#b91c1c;border:none;border-radius:8px;width:42px;height:42px;font-size:1.1rem;cursor:pointer}
+.det{margin-top:14px;border-top:1px solid #e5e7eb;padding-top:12px}
+.desc{color:#374151;font-size:.95rem;margin-bottom:10px;white-space:pre-wrap}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.al{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f1f5f9;font-size:.95rem;cursor:pointer}
+.al input{width:22px;height:22px}
+.vacio{color:#fff;font-style:italic;text-align:center;padding:10px}
+.vacio.b{color:#6b7280}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="contenedor">
+<a href="escuelas.html" class="volver">← Volver a Escuelas</a>
+<header><h1>📝 Tareas</h1><p id="subtitulo"></p></header>
+
+<div id="msg" class="msg"></div>
+
+<div class="tarjeta" id="tarjFiltro">
+  <h3>Cumplimiento de tareas</h3>
+  <div class="campo"><label class="t" id="lblScope">Diplomado</label><select id="scope" onchange="cambiarScope(this.value)"></select></div>
+  <button class="btn" id="btnNueva" onclick="abrirForm()">➕ Nueva tarea</button>
+</div>
+
+<div class="tarjeta oculto" id="tarjForm">
+  <h3 id="formTitulo">Nueva tarea</h3>
+  <div class="campo"><label class="t">Tarea</label><input type="text" id="fTitulo" placeholder="Ej. Leer el capítulo 3 y resumirlo"></div>
+  <div class="campo"><label class="t">Fecha de entrega</label><input type="date" id="fFecha"></div>
+  <div class="campo"><label class="t">¿Dónde se realiza?</label>
+    <div class="lugar">
+      <label><input type="radio" name="lugar" value="iglesia" checked><span>⛪ En la iglesia</span></label>
+      <label><input type="radio" name="lugar" value="casa"><span>🏠 En casa</span></label>
+    </div>
+  </div>
+  <div class="campo"><label class="t">Indicaciones (opcional)</label><textarea id="fDesc" rows="3" placeholder="Detalles de la tarea"></textarea></div>
+  <button class="btn cafe" id="btnGuardar" onclick="guardarTarea()">💾 Guardar tarea</button>
+  <button class="btn2" style="width:100%;margin-top:8px" onclick="cerrarForm()">Cancelar</button>
+</div>
+
+<div id="lista"></div>
+
+<div class="pie">© 2026 Chavarría Producciones</div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp(window.firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const params = new URLSearchParams(window.location.search);
+const ESC = (params.get('escuela') || '').toLowerCase() === 'eco' ? 'ECO' : 'EMIN';
+
+let esAdmin = false, perfil = {};
+let alumnos = [], dips = [], tareas = [];
+let scope = '', scopeNombre = '', editId = null;
+const abiertas = new Set();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const hoyISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const fechaBonita = f => { const p = String(f || '').split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ''; };
+
+function aviso(t, ok = true) {
+  const m = $('msg');
+  m.textContent = t;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { m.className = 'msg'; }, 5000);
+}
+function errorTexto(e) {
+  if (e && e.code === 'permission-denied') return 'Sin permiso. Falta agregar "tareas" en las reglas de Firestore, o tu usuario no es docente ni administrador.';
+  return 'Error: ' + (e && e.message ? e.message : e);
+}
+
+$('subtitulo').textContent = ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios';
+$('lblScope').textContent = ESC === 'ECO' ? 'Nivel' : 'Diplomado';
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  try {
+    const d = await db.collection('usuarios').doc(u.email).get();
+    perfil = d.exists ? d.data() : {};
+    esAdmin = !!(perfil.roles && (perfil.roles.superAdmin || perfil.roles.subAdmin));
+  } catch (e) { console.error(e); }
+  await cargarTodo();
+});
+
+async function cargarTodo() {
+  try {
+    const [sa, st] = await Promise.all([
+      db.collection('alumnos').get(),
+      db.collection('tareas').where('escuela', '==', ESC).get()
+    ]);
+    alumnos = sa.docs.map(d => ({ id: d.id, ...d.data() }));
+    tareas = st.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    console.error(e);
+    $('lista').innerHTML = '<p class="vacio">' + esc(errorTexto(e)) + '</p>';
+    return;
+  }
+  if (ESC === 'EMIN') {
+    try {
+      const sc = await db.collection('catalogo').where('tipo', '==', 'diplomado').get();
+      dips = sc.docs.map(d => ({ id: d.id, nombre: d.data().nombre || '' })).sort((a, b) => norm(a.nombre).localeCompare(norm(b.nombre)));
+    } catch (e) { console.error(e); dips = []; }
+  }
+  armarSelect();
+  pintar();
+}
+
+function opcionesScope() {
+  if (ESC === 'ECO') {
+    const niv = esAdmin ? [1, 2, 3] : (perfil.ecoNiveles || []).map(Number).filter(n => [1, 2, 3].includes(n));
+    return niv.map(n => ({ id: String(n), nombre: 'Nivel ' + n }));
+  }
+  if (esAdmin) return dips;
+  const ids = new Set((perfil.diplomados || []).map(d => d.id));
+  return dips.filter(d => ids.has(d.id));
+}
+
+function armarSelect() {
+  const ops = opcionesScope();
+  if (!ops.length) {
+    $('tarjFiltro').innerHTML = '<h3>Cumplimiento de tareas</h3><p class="vacio b">' +
+      (ESC === 'ECO' ? 'No tienes niveles de ECO asignados.' : 'No tienes diplomados asignados.') +
+      ' Pide al administrador que te los asigne en Usuarios → Editar.</p>';
+    return;
+  }
+  if (!ops.some(o => o.id === scope)) scope = ops[0].id;
+  scopeNombre = (ops.find(o => o.id === scope) || {}).nombre || '';
+  $('scope').innerHTML = ops.map(o => '<option value="' + o.id + '" ' + (o.id === scope ? 'selected' : '') + '>' + esc(o.nombre) + '</option>').join('');
+}
+
+function cambiarScope(v) {
+  scope = v;
+  const o = opcionesScope().find(x => x.id === v);
+  scopeNombre = o ? o.nombre : '';
+  cerrarForm();
+  pintar();
+}
+
+function alumnosDelScope() {
+  let l;
+  if (ESC === 'ECO') l = alumnos.filter(a => a.eco === true && String(a.ecoNivel || '') === scope);
+  else l = alumnos.filter(a => a.em === true && (a.inscripciones || []).some(i => i.diplomadoId === scope && i.estado !== 'concluido'));
+  return l.sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+}
+
+function pintar() {
+  if (!scope) { $('lista').innerHTML = ''; return; }
+  const als = alumnosDelScope();
+  const hoy = hoyISO();
+  const lista = tareas.filter(t => t.scopeId === scope)
+    .sort((a, b) => String(b.fechaEntrega || '').localeCompare(String(a.fechaEntrega || '')));
+  if (!lista.length) { $('lista').innerHTML = '<p class="vacio">Aún no hay tareas para ' + esc(scopeNombre) + '</p>'; return; }
+
+  $('lista').innerHTML = lista.map(t => {
+    const cum = t.cumplimiento || {};
+    const c = als.filter(a => cum[a.id] === true).length;
+    const ico = t.lugar === 'casa' ? '🏠' : '⛪';
+    let est = '';
+    if (t.fechaEntrega && c < als.length) {
+      if (t.fechaEntrega < hoy) est = ' · <span class="venc">Vencida</span>';
+      else if (t.fechaEntrega === hoy) est = ' · <span class="hoy">Vence hoy</span>';
+    }
+    const filas = als.length ? als.map(a =>
+      '<label class="al"><input type="checkbox" ' + (cum[a.id] === true ? 'checked' : '') +
+      ' onchange="marcar(\'' + t.id + '\',\'' + a.id + '\', this.checked)"><span>' + esc(a.nombreCompleto) + '</span></label>').join('')
+      : '<p class="vacio b">No hay alumnos en ' + esc(scopeNombre) + '</p>';
+    return '<details class="t" data-id="' + t.id + '" ' + (abiertas.has(t.id) ? 'open' : '') + '>' +
+      '<summary><div class="fila"><div class="ico">' + ico + '</div>' +
+      '<div class="info"><div class="nom">' + esc(t.titulo) + '</div>' +
+      '<div class="sub">' + (t.lugar === 'casa' ? 'En casa' : 'En la iglesia') + ' · Entrega ' + fechaBonita(t.fechaEntrega) + ' · ' + c + '/' + als.length + ' cumplieron' + est + '</div></div>' +
+      '<button class="x" onclick="event.preventDefault();event.stopPropagation();borrar(\'' + t.id + '\')">✕</button></div></summary>' +
+      '<div class="det">' + (t.descripcion ? '<div class="desc">' + esc(t.descripcion) + '</div>' : '') +
+      '<div class="acciones"><button class="btn2 azul" onclick="marcarTodos(\'' + t.id + '\', true)">✔ Marcar todos</button>' +
+      '<button class="btn2" onclick="marcarTodos(\'' + t.id + '\', false)">Limpiar</button>' +
+      '<button class="btn2" onclick="abrirForm(\'' + t.id + '\')">✏️ Editar</button></div>' + filas + '</div></details>';
+  }).join('');
+}
+
+$('lista').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d && d.matches && d.matches('details.t')) { if (d.open) abiertas.add(d.dataset.id); else abiertas.delete(d.dataset.id); }
+}, true);
+
+/* ---------- formulario ---------- */
+function abrirForm(id) {
+  if (!scope) return;
+  editId = id || null;
+  const t = id ? tareas.find(x => x.id === id) : null;
+  $('formTitulo').textContent = (t ? 'Editar tarea' : 'Nueva tarea') + ' — ' + scopeNombre;
+  $('fTitulo').value = t ? t.titulo || '' : '';
+  $('fFecha').value = t ? t.fechaEntrega || '' : '';
+  $('fDesc').value = t ? t.descripcion || '' : '';
+  const lugar = t && t.lugar === 'casa' ? 'casa' : 'iglesia';
+  document.querySelector('input[name="lugar"][value="' + lugar + '"]').checked = true;
+  $('tarjForm').classList.remove('oculto');
+  $('tarjForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function cerrarForm() { editId = null; $('tarjForm').classList.add('oculto'); }
+
+async function guardarTarea() {
+  const titulo = $('fTitulo').value.trim().replace(/\s+/g, ' ');
+  const fecha = $('fFecha').value;
+  const lugar = document.querySelector('input[name="lugar"]:checked').value;
+  const desc = $('fDesc').value.trim();
+  if (!titulo) { aviso('Escribe la tarea', false); return; }
+  if (!fecha) { aviso('Elige la fecha de entrega', false); return; }
+
+  const btn = $('btnGuardar');
+  btn.disabled = true;
+  try {
+    const datos = { escuela: ESC, scopeId: scope, scopeNombre: scopeNombre, titulo: titulo, fechaEntrega: fecha, lugar: lugar, descripcion: desc };
+    if (editId) {
+      await db.collection('tareas').doc(editId).update(datos);
+      aviso('✅ Tarea actualizada');
+    } else {
+      await db.collection('tareas').add(Object.assign(datos, { cumplimiento: {}, creadoPor: auth.currentUser.email, fechaCreacion: new Date() }));
+      aviso('✅ Tarea agregada');
+    }
+    cerrarForm();
+    await recargarTareas();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  btn.disabled = false;
+}
+
+async function recargarTareas() {
+  const st = await db.collection('tareas').where('escuela', '==', ESC).get();
+  tareas = st.docs.map(d => ({ id: d.id, ...d.data() }));
+  pintar();
+}
+
+/* ---------- cumplimiento ---------- */
+async function marcar(id, alId, val) {
+  const t = tareas.find(x => x.id === id);
+  if (!t) return;
+  t.cumplimiento = t.cumplimiento || {};
+  t.cumplimiento[alId] = val;
+  pintar();
+  try {
+    await db.collection('tareas').doc(id).update({ ['cumplimiento.' + alId]: val });
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+    await recargarTareas();
+  }
+}
+
+async function marcarTodos(id, val) {
+  const t = tareas.find(x => x.id === id);
+  if (!t) return;
+  const mapa = Object.assign({}, t.cumplimiento || {});
+  alumnosDelScope().forEach(a => { mapa[a.id] = val; });
+  t.cumplimiento = mapa;
+  pintar();
+  try {
+    await db.collection('tareas').doc(id).update({ cumplimiento: mapa });
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+    await recargarTareas();
+  }
+}
+
+async function borrar(id) {
+  const t = tareas.find(x => x.id === id);
+  if (!t || !confirm('¿Eliminar la tarea "' + t.titulo + '"? Se pierde también su registro de cumplimiento.')) return;
+  try {
+    await db.collection('tareas').doc(id).delete();
+    aviso('Tarea eliminada');
+    await recargarTareas();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+}
+</script>
+</body>
+</html>
