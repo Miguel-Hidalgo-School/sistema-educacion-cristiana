@@ -26,17 +26,20 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
 .sub{color:#6b7280;font-size:.85rem}
 .vacio{color:#6b7280;font-style:italic;text-align:center}
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:25px;font-size:.9rem}
-.leccion{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6}
-.leccion:last-child{border-bottom:none}
-.leccion .num{width:70px;font-size:.85rem;color:#374151;font-weight:bold}
-.leccion input{width:70px;text-align:center;padding:7px}
-.leccion .pct{font-size:.72rem;color:#9ca3af;width:44px}
-.leccion .cand{flex:1;font-size:.72rem;color:#b45309}
-.leccion .cerrado{flex:1;font-size:.8rem;color:#6b7280}
-.leccion .lock{background:none;border:none;font-size:1rem;cursor:pointer}
+.fila{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.fila:last-child{border-bottom:none}
+.fila .num{width:78px;font-size:.85rem;color:#374151;font-weight:bold}
+.fila input{width:70px;text-align:center;padding:7px}
+.fila .pct{font-size:.72rem;color:#9ca3af;width:40px}
+.fila .cand{flex:1;font-size:.72rem;color:#b45309}
+.fila .cerrado{flex:1;font-size:.75rem;color:#6b7280}
+.fila .lock{background:none;border:none;font-size:1rem;cursor:pointer}
 .resumen{background:#eff6ff;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px}
 .resumen .num{font-size:1.8rem;font-weight:bold;color:#1e50c8}
 .aviso-equidad{background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px;font-size:.82rem;color:#7c2d12;margin-top:8px;display:none}
+.tareaChip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin:3px;font-size:.78rem}
+.tareaChip input{width:50px;padding:4px;text-align:center}
+.tareasGrid{display:flex;flex-wrap:wrap;margin:-3px;}
 </style>
 </head>
 <body>
@@ -65,25 +68,30 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
   <div id="bloqueAlumno" style="display:none;">
     <div class="tarjeta resumen">
       <div class="num" id="calcFinal">—</div>
-      <div class="sub" id="calcDetalle">Sin lecciones capturadas</div>
+      <div class="sub" id="calcDetalle">Sin rubros capturados</div>
     </div>
 
     <div class="tarjeta">
       <h3>⚙️ Forma de evaluación <span class="sub" id="pctSuma"></span></h3>
-      <p class="sub" style="margin-bottom:8px;">Porcentaje que vale cada una de las 16 lecciones (debe sumar 100%).</p>
+      <p class="sub" style="margin-bottom:8px;">Porcentaje que vale cada rubro (debe sumar 100%). "Tareas" se calcula solo, con el promedio de las 16 tareas.</p>
       <div id="listaPct"></div>
       <button class="btn btn-sec" id="btnGuardarPct" style="margin-top:8px;">💾 Guardar forma de evaluación</button>
       <div id="msgPct" class="msg"></div>
     </div>
 
     <div class="tarjeta">
-      <h3>📝 Lecciones (1–16)</h3>
-      <div id="listaLecciones"></div>
-      <div id="avisoEquidad" class="aviso-equidad">
-        ⚠️ <strong>No tienes permiso para modificar una calificación ya registrada.</strong><br>
-        Por equidad y justicia hacia todos los alumnos, los cambios a una calificación ya guardada solo los puede autorizar la administración. Si consideras que hay un error, solicítalo por escrito (indicando el alumno, la lección y el motivo) a tu Administrador o Subadministrador.
-      </div>
-      <div id="msgLecciones" class="msg"></div>
+      <h3>📝 Tareas (1–16) <span class="sub" id="tareasProm"></span></h3>
+      <p class="sub" style="margin-bottom:8px;">Cada tarea se califica de 5 a 10.</p>
+      <div class="tareasGrid" id="listaTareas"></div>
+      <div id="avisoEquidadTareas" class="aviso-equidad"></div>
+      <div id="msgTareas" class="msg"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>📋 Otros rubros</h3>
+      <div id="listaRubros"></div>
+      <div id="avisoEquidadRubros" class="aviso-equidad"></div>
+      <div id="msgRubros" class="msg"></div>
     </div>
   </div>
 </div>
@@ -100,13 +108,25 @@ firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const ESCUELA = 'ministerios';
-const NUM_LECCIONES = 16;
+const NUM_TAREAS = 16;
+const TAREA_MIN = 5, TAREA_MAX = 10;
+const RUBROS_EXTRA = [
+  { id: 'participacion', nombre: 'Participación' },
+  { id: 'examen', nombre: 'Examen' },
+  { id: 'asistencia', nombre: 'Asistencia' },
+  { id: 'proyecto', nombre: 'Proyecto' }
+];
+const PORCENTAJES_DEFAULT = { tareas: 75, participacion: 10, examen: 5, asistencia: 5, proyecto: 5 };
+
+const AVISO_EQUIDAD = `⚠️ <strong>No tienes permiso para modificar una calificación ya registrada.</strong><br>
+Por equidad y justicia hacia todos los alumnos, los cambios a una calificación ya guardada solo los puede autorizar la administración. Si consideras que hay un error, solicítalo por escrito (indicando el alumno, el rubro y el motivo) a tu Administrador o Subadministrador.`;
 
 let miPerfil = null, esAdmin = false, puedoEvaluar = false;
 let alumnos = [];
 let alumnoSel = null, dipSel = null, contexto = null;
-let porcentajes = Array(NUM_LECCIONES).fill(100 / NUM_LECCIONES);
-let calificaciones = {};
+let porcentajes = { ...PORCENTAJES_DEFAULT };
+let tareas = {};
+let rubros = {};
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -157,49 +177,69 @@ $('selDiplomado').addEventListener('change', async () => {
   contexto = dipId;
   $('bloqueAlumno').style.display = 'block';
   await cargarFormaEvaluar();
-  await cargarCalificaciones();
+  await cargarTareas();
+  await cargarRubros();
   pintarTodo();
 });
+
+function puedoEditarContexto() { return esAdmin || misDiplomadosIds()[contexto] === true; }
 
 async function cargarFormaEvaluar() {
   const id = ESCUELA + '_' + contexto;
   const d = await db.collection('formaEvaluar').doc(id).get();
-  porcentajes = d.exists && Array.isArray(d.data().porcentajes) && d.data().porcentajes.length === NUM_LECCIONES
-    ? d.data().porcentajes : Array(NUM_LECCIONES).fill(100 / NUM_LECCIONES);
+  porcentajes = d.exists && d.data().porcentajes ? { ...PORCENTAJES_DEFAULT, ...d.data().porcentajes } : { ...PORCENTAJES_DEFAULT };
 }
-async function cargarCalificaciones() {
-  calificaciones = {};
+async function cargarTareas() {
+  tareas = {};
   const snap = await db.collection('calificaciones')
     .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
-  snap.forEach(d => { calificaciones[d.data().leccion] = { id: d.id, ...d.data() }; });
+  snap.forEach(d => { tareas[d.data().leccion] = { id: d.id, ...d.data() }; });
+}
+async function cargarRubros() {
+  rubros = {};
+  const snap = await db.collection('rubrosCalificacion')
+    .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
+  snap.forEach(d => { rubros[d.data().rubroId] = { id: d.id, ...d.data() }; });
 }
 
-function puedoEditarContexto() { return esAdmin || misDiplomadosIds()[contexto] === true; }
+function promedioTareas() {
+  const vals = Object.values(tareas).map(t => t.valor).filter(v => typeof v === 'number');
+  return vals.length ? vals.reduce((a,b)=>a+b,0) / vals.length : null;
+}
 
-function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarLecciones(); }
+function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarTareas(); pintarRubros(); }
+
 function pintarResumen() {
-  let suma = 0, pesoCapturado = 0, n = 0;
-  for (let i = 1; i <= NUM_LECCIONES; i++) {
-    const c = calificaciones[i];
-    if (c) { suma += c.valor * (porcentajes[i-1] / 100); pesoCapturado += porcentajes[i-1]; n++; }
-  }
-  $('calcFinal').textContent = n ? suma.toFixed(2) : '—';
-  $('calcDetalle').textContent = n + '/16 lecciones capturadas' + (n ? ' · ' + pesoCapturado.toFixed(1) + '% del encuadre' : '');
+  const prom = promedioTareas();
+  let total = 0, pesoCapturado = 0;
+  if (prom !== null) { total += (prom/10) * porcentajes.tareas; pesoCapturado += porcentajes.tareas; }
+  RUBROS_EXTRA.forEach(r => {
+    const d = rubros[r.id];
+    if (d) { total += (d.valor/10) * porcentajes[r.id]; pesoCapturado += porcentajes[r.id]; }
+  });
+  $('calcFinal').textContent = pesoCapturado > 0 ? total.toFixed(2) : '—';
+  $('calcDetalle').textContent = pesoCapturado > 0
+    ? 'Calificación parcial con ' + pesoCapturado.toFixed(1) + '% del encuadre capturado'
+    : 'Sin rubros capturados';
+  $('tareasProm').textContent = prom !== null ? '— promedio: ' + prom.toFixed(2) : '';
 }
+
 function pintarPorcentajes() {
-  const suma = porcentajes.reduce((a,b)=>a+b,0);
+  const suma = Object.values(porcentajes).reduce((a,b)=>a+(Number(b)||0),0);
   $('pctSuma').textContent = '(suma: ' + suma.toFixed(1) + '%)';
   $('pctSuma').style.color = Math.abs(suma-100) < 0.05 ? '#059669' : '#dc2626';
   const editable = puedoEditarContexto();
-  $('listaPct').innerHTML = porcentajes.map((p,i) => `
-    <div class="leccion"><span class="num">Lección ${i+1}</span>
-      <input type="number" min="0" max="100" step="0.1" value="${p}" ${editable?'':'disabled'} onchange="porcentajes[${i}]=parseFloat(this.value)||0;pintarPorcentajes();pintarResumen();">
+  const todos = [{ id: 'tareas', nombre: 'Tareas (promedio de 16)' }, ...RUBROS_EXTRA];
+  $('listaPct').innerHTML = todos.map(r => `
+    <div class="fila"><span class="num">${r.nombre}</span>
+      <input type="number" min="0" max="100" step="0.1" value="${porcentajes[r.id]}" ${editable?'':'disabled'}
+        onchange="porcentajes['${r.id}']=parseFloat(this.value)||0;pintarPorcentajes();pintarResumen();">
       <span class="pct">%</span>
     </div>`).join('');
   $('btnGuardarPct').style.display = editable ? 'inline-block' : 'none';
 }
 $('btnGuardarPct').addEventListener('click', async () => {
-  const suma = porcentajes.reduce((a,b)=>a+b,0);
+  const suma = Object.values(porcentajes).reduce((a,b)=>a+(Number(b)||0),0);
   if (Math.abs(suma - 100) > 0.05) { avisar('msgPct', 'Los porcentajes deben sumar 100% (ahora suman ' + suma.toFixed(1) + '%).', false); return; }
   try {
     await db.collection('formaEvaluar').doc(ESCUELA + '_' + contexto).set({
@@ -211,42 +251,32 @@ $('btnGuardarPct').addEventListener('click', async () => {
   } catch (e) { avisar('msgPct', 'Error: ' + e.message, false); }
 });
 
-function pintarLecciones() {
+function pintarTareas() {
   const soyAsignado = puedoEditarContexto();
-  $('listaLecciones').innerHTML = '';
-  for (let i = 1; i <= NUM_LECCIONES; i++) {
-    const c = calificaciones[i];
-    const fila = document.createElement('div');
-    fila.className = 'leccion';
-    if (!c) {
-      fila.innerHTML = `<span class="num">Lección ${i}</span>
-        <input type="number" min="0" max="10" step="0.1" placeholder="—" ${soyAsignado?'':'disabled'} id="nueva_${i}">
-        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
-        ${soyAsignado ? `<span class="cand">Aún sin capturar</span>` : `<span class="cerrado">Sin capturar</span>`}`;
-      if (soyAsignado) fila.querySelector('input').addEventListener('change', (e) => guardarLeccionNueva(i, e.target));
+  $('listaTareas').innerHTML = '';
+  $('avisoEquidadTareas').style.display = 'none';
+  for (let i = 1; i <= NUM_TAREAS; i++) {
+    const t = tareas[i];
+    const chip = document.createElement('div');
+    chip.className = 'tareaChip';
+    if (!t) {
+      chip.innerHTML = `#${i} <input type="number" min="${TAREA_MIN}" max="${TAREA_MAX}" step="0.1" placeholder="—" ${soyAsignado?'':'disabled'}>`;
+      if (soyAsignado) chip.querySelector('input').addEventListener('change', (e) => guardarTareaNueva(i, e.target));
     } else if (esAdmin) {
-      fila.innerHTML = `<span class="num">Lección ${i}</span>
-        <input type="number" min="0" max="10" step="0.1" value="${c.valor}" id="edit_${i}">
-        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
-        <span class="cerrado">${c.editado ? '✏️ Editada (antes: ' + c.valorAnterior + ')' : ''}</span>`;
-      fila.querySelector('input').addEventListener('change', (e) => editarLeccion(i, c, e.target));
+      chip.innerHTML = `#${i} <input type="number" min="${TAREA_MIN}" max="${TAREA_MAX}" step="0.1" value="${t.valor}">${t.editado ? ' ✏️' : ''}`;
+      chip.title = t.editado ? 'Editada (antes: ' + t.valorAnterior + ')' : '';
+      chip.querySelector('input').addEventListener('change', (e) => editarTarea(i, t, e.target));
     } else {
-      fila.innerHTML = `<span class="num">Lección ${i}</span>
-        <input type="number" value="${c.valor}" disabled>
-        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
-        <button class="lock" title="Ya capturada" onclick="mostrarAvisoEquidad()">🔒</button>`;
+      chip.innerHTML = `#${i} <input type="number" value="${t.valor}" disabled> <button class="lock" onclick="mostrarAviso('avisoEquidadTareas')">🔒</button>`;
     }
-    $('listaLecciones').appendChild(fila);
+    $('listaTareas').appendChild(chip);
   }
 }
-function mostrarAvisoEquidad() {
-  $('avisoEquidad').style.display = 'block';
-  $('avisoEquidad').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+function mostrarAviso(id) { const el = $(id); el.innerHTML = AVISO_EQUIDAD; el.style.display = 'block'; el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
 
-async function guardarLeccionNueva(leccion, input) {
+async function guardarTareaNueva(leccion, input) {
   const valor = parseFloat(input.value);
-  if (isNaN(valor) || valor < 0 || valor > 10) { avisar('msgLecciones', 'La calificación debe ser de 0 a 10.', false); return; }
+  if (isNaN(valor) || valor < TAREA_MIN || valor > TAREA_MAX) { avisar('msgTareas', 'La tarea se califica de ' + TAREA_MIN + ' a ' + TAREA_MAX + '.', false); return; }
   const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_L' + leccion;
   try {
     await db.collection('calificaciones').doc(id).set({
@@ -255,33 +285,94 @@ async function guardarLeccionNueva(leccion, input) {
       capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
       editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
     });
-    calificaciones[leccion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, leccion, valor, editado: false, valorAnterior: null };
-    pintarResumen(); pintarLecciones();
-    avisar('msgLecciones', '✅ Lección ' + leccion + ' guardada', true);
+    tareas[leccion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, leccion, valor, editado: false, valorAnterior: null };
+    pintarResumen(); pintarTareas();
+    avisar('msgTareas', '✅ Tarea ' + leccion + ' guardada', true);
   } catch (e) {
-    avisar('msgLecciones', e.code === 'permission-denied' ? 'Sin permiso para capturar esta lección.' : 'Error: ' + e.message, false);
+    avisar('msgTareas', e.code === 'permission-denied' ? 'Sin permiso para capturar esta tarea.' : 'Error: ' + e.message, false);
   }
 }
-async function editarLeccion(leccion, actual, input) {
+async function editarTarea(leccion, actual, input) {
   const nuevo = parseFloat(input.value);
-  if (isNaN(nuevo) || nuevo < 0 || nuevo > 10) { avisar('msgLecciones', 'La calificación debe ser de 0 a 10.', false); input.value = actual.valor; return; }
+  if (isNaN(nuevo) || nuevo < TAREA_MIN || nuevo > TAREA_MAX) { avisar('msgTareas', 'La tarea se califica de ' + TAREA_MIN + ' a ' + TAREA_MAX + '.', false); input.value = actual.valor; return; }
   if (nuevo === actual.valor) return;
-  if (!confirm('¿Cambiar la calificación de la Lección ' + leccion + ' de ' + actual.valor + ' a ' + nuevo + '? Quedará marcada como editada y visible la nota anterior.')) {
-    input.value = actual.valor; return;
-  }
+  if (!confirm('¿Cambiar la tarea ' + leccion + ' de ' + actual.valor + ' a ' + nuevo + '? Quedará marcada como editada y visible la nota anterior.')) { input.value = actual.valor; return; }
   const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_L' + leccion;
   try {
     await db.collection('calificaciones').doc(id).update({
       valor: nuevo, editado: true, valorAnterior: actual.valor,
       editadoPor: auth.currentUser.email, fechaEdicion: new Date()
     });
-    calificaciones[leccion] = { ...actual, valor: nuevo, editado: true, valorAnterior: actual.valor };
-    pintarResumen(); pintarLecciones();
-    avisar('msgLecciones', '✅ Lección ' + leccion + ' editada', true);
+    tareas[leccion] = { ...actual, valor: nuevo, editado: true, valorAnterior: actual.valor };
+    pintarResumen(); pintarTareas();
+    avisar('msgTareas', '✅ Tarea ' + leccion + ' editada', true);
+  } catch (e) { avisar('msgTareas', 'Error: ' + e.message, false); input.value = actual.valor; }
+}
+
+function pintarRubros() {
+  const soyAsignado = puedoEditarContexto();
+  $('listaRubros').innerHTML = '';
+  $('avisoEquidadRubros').style.display = 'none';
+  RUBROS_EXTRA.forEach(r => {
+    const d = rubros[r.id];
+    const fila = document.createElement('div');
+    fila.className = 'fila';
+    if (!d) {
+      fila.innerHTML = `<span class="num">${r.nombre}</span>
+        <input type="number" min="0" max="10" step="0.1" placeholder="—" ${soyAsignado?'':'disabled'}>
+        <span class="pct">${porcentajes[r.id]}%</span>
+        ${soyAsignado ? `<span class="cand">Aún sin capturar</span>` : `<span class="cerrado">Sin capturar</span>`}`;
+      if (soyAsignado) fila.querySelector('input').addEventListener('change', (e) => guardarRubroNuevo(r.id, r.nombre, e.target));
+    } else if (esAdmin) {
+      fila.innerHTML = `<span class="num">${r.nombre}</span>
+        <input type="number" min="0" max="10" step="0.1" value="${d.valor}">
+        <span class="pct">${porcentajes[r.id]}%</span>
+        <span class="cerrado">${d.editado ? '✏️ Editada (antes: ' + d.valorAnterior + ')' : ''}</span>`;
+      fila.querySelector('input').addEventListener('change', (e) => editarRubro(r.id, d, e.target));
+    } else {
+      fila.innerHTML = `<span class="num">${r.nombre}</span>
+        <input type="number" value="${d.valor}" disabled>
+        <span class="pct">${porcentajes[r.id]}%</span>
+        <button class="lock" onclick="mostrarAviso('avisoEquidadRubros')">🔒</button>`;
+    }
+    $('listaRubros').appendChild(fila);
+  });
+}
+async function guardarRubroNuevo(rubroId, rubroNombre, input) {
+  const valor = parseFloat(input.value);
+  if (isNaN(valor) || valor < 0 || valor > 10) { avisar('msgRubros', 'La calificación debe ser de 0 a 10.', false); return; }
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_' + rubroId;
+  try {
+    await db.collection('rubrosCalificacion').doc(id).set({
+      alumnoId: alumnoSel.id, alumnoNombre: alumnoSel.nombreCompleto, escuela: ESCUELA,
+      contexto, contextoNombre: dipSel.nombre, rubroId, rubroNombre, valor,
+      capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
+      editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
+    });
+    rubros[rubroId] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, rubroId, valor, editado: false, valorAnterior: null };
+    pintarResumen(); pintarRubros();
+    avisar('msgRubros', '✅ ' + rubroNombre + ' guardado', true);
   } catch (e) {
-    avisar('msgLecciones', 'Error: ' + e.message, false); input.value = actual.valor;
+    avisar('msgRubros', e.code === 'permission-denied' ? 'Sin permiso para capturar este rubro.' : 'Error: ' + e.message, false);
   }
 }
+async function editarRubro(rubroId, actual, input) {
+  const nuevo = parseFloat(input.value);
+  if (isNaN(nuevo) || nuevo < 0 || nuevo > 10) { avisar('msgRubros', 'La calificación debe ser de 0 a 10.', false); input.value = actual.valor; return; }
+  if (nuevo === actual.valor) return;
+  if (!confirm('¿Cambiar esta calificación de ' + actual.valor + ' a ' + nuevo + '? Quedará marcada como editada y visible la nota anterior.')) { input.value = actual.valor; return; }
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_' + rubroId;
+  try {
+    await db.collection('rubrosCalificacion').doc(id).update({
+      valor: nuevo, editado: true, valorAnterior: actual.valor,
+      editadoPor: auth.currentUser.email, fechaEdicion: new Date()
+    });
+    rubros[rubroId] = { ...actual, valor: nuevo, editado: true, valorAnterior: actual.valor };
+    pintarResumen(); pintarRubros();
+    avisar('msgRubros', '✅ Calificación editada', true);
+  } catch (e) { avisar('msgRubros', 'Error: ' + e.message, false); input.value = actual.valor; }
+}
+
 function avisar(elId, texto, ok) {
   const el = $(elId);
   el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err');
