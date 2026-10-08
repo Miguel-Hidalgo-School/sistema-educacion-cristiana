@@ -7,46 +7,360 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
-.contenedor{max-width:500px;margin:0 auto}
+.contenedor{max-width:520px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
-.volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:40px}
-header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
-.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+header{text-align:center;color:white;margin-bottom:22px}
+header h1{font-size:1.5rem;margin-bottom:6px}
+.tarjeta{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px}
+.tarjeta h3{font-size:1.1rem;color:#1f2937;margin-bottom:10px}
+.campo{margin-bottom:12px}
+.campo label.t{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
+select{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+.tabs{display:flex;gap:8px;margin-bottom:6px}
+.tab{flex:1;padding:12px;border:2px solid #d1d5db;border-radius:10px;background:#fff;font-weight:bold;font-size:.95rem;cursor:pointer;color:#374151}
+.tab.on{background:#1e50c8;border-color:#1e50c8;color:#fff}
+.ses{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.s{padding:9px 0;border:1px solid #d1d5db;border-radius:8px;background:#fff;font-weight:bold;cursor:pointer;font-size:.9rem;color:#374151}
+.s.on{background:#1e50c8;border-color:#1e50c8;color:#fff}
+.s.hecha{border-color:#16a34a;color:#166534;background:#f0fdf4}
+.s.on.hecha{background:#1e50c8;color:#fff}
+.fila{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f1f5f9}
+.fila:last-child{border-bottom:none}
+.nom{flex:1;font-size:.95rem;color:#1f2937;font-weight:bold}
+.nom small{display:block;font-weight:normal;color:#6b7280;font-size:.75rem}
+.bt{width:46px;height:42px;border:2px solid #d1d5db;border-radius:8px;background:#fff;font-weight:bold;cursor:pointer;color:#6b7280}
+.bt.A.on{background:#16a34a;border-color:#16a34a;color:#fff}
+.bt.F.on{background:#dc2626;border-color:#dc2626;color:#fff}
+.bt.FJ.on{background:#d97706;border-color:#d97706;color:#fff}
+.btn{width:100%;padding:13px;border:none;border-radius:8px;background:#1e50c8;color:#fff;font-weight:bold;font-size:1rem;cursor:pointer;margin-top:10px}
+.btn.cafe{background:#9a3412}
+.btn.gris{background:#e5e7eb;color:#1f2937}
+.btn:disabled{opacity:.6}
+.acc{display:flex;gap:8px;margin-bottom:8px}
+.acc button{flex:1;padding:9px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.85rem}
+.msg{margin-bottom:14px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.vacio{color:#6b7280;font-style:italic;text-align:center;padding:8px}
+.oculto{display:none !important}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{padding:6px 4px;border-bottom:1px solid #e5e7eb;text-align:center}
+th:first-child,td:first-child{text-align:left}
+.leyenda{font-size:.8rem;color:#6b7280;margin-bottom:10px}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:26px;font-size:.9rem}
 </style>
 </head>
 <body>
-
 <div class="contenedor">
 <a href="index.html" class="volver">← Volver al Panel Principal</a>
+<header><h1>📅 Asistencia</h1><p>Lista por sesión</p></header>
 
-<header>
-<h1>📅 Asistencia</h1>
-<p>Registro diario</p>
-</header>
+<div id="msg" class="msg"></div>
 
 <div class="tarjeta">
-<h3>Registro de Asistencia</h3>
-<p>Aquí se registrará la asistencia diaria</p>
+  <div class="tabs" id="tabsEsc"></div>
+  <div class="campo" style="margin-top:12px"><label class="t" id="lblScope">Nivel</label><select id="scope" onchange="cambiarScope(this.value)"></select></div>
+  <div class="campo"><label class="t">Sesión</label><div class="ses" id="ses"></div></div>
 </div>
 
-<div class="pie">
-© 2026 Chavarría Producciones
+<div class="tarjeta" id="tarjLista">
+  <h3 id="tituloLista">Lista</h3>
+  <p class="leyenda"><b>A</b> asistió · <b>F</b> faltó · <b>FJ</b> falta justificada</p>
+  <div class="acc"><button onclick="marcarTodos('A')">Todos A</button><button onclick="marcarTodos('')">Limpiar</button></div>
+  <div id="lista"><p class="vacio">Cargando...</p></div>
+  <button class="btn cafe" id="btnGuardar" onclick="guardarLista()">💾 Guardar lista</button>
 </div>
+
+<div class="tarjeta oculto" id="tarjFin">
+  <h3>🏁 Finalizar curso</h3>
+  <p class="leyenda" id="txtFin"></p>
+  <div class="campo oculto" id="campoSig"><label class="t">Inscribir en el siguiente diplomado (opcional)</label><select id="sigDip"></select></div>
+  <button class="btn gris" onclick="finalizarCurso()">💾 Guardar lista y finalizar</button>
+</div>
+
+<div class="tarjeta">
+  <h3>📊 Resumen de asistencia</h3>
+  <div id="resumen"><p class="vacio">—</p></div>
+</div>
+
+<div class="pie">© 2026 Chavarría Producciones</div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
-firebase.auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'index.html';
-});
-</script>
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
+const NUM = 16;
 
+let esAdmin = false, perfil = {};
+let ESC = '';            // 'eco' | 'ministerios'
+let scope = '', scopeNombre = '', sesion = 1;
+let alumnos = [], dips = [], regs = {}, marcas = {};
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const ahora = () => new Date().toISOString();
+const nuevoId = () => 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function aviso(t, ok = true) {
+  const m = $('msg');
+  m.textContent = t;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { m.className = 'msg'; }, 6000);
+}
+function errorTexto(e) {
+  if (e && e.code === 'permission-denied') return 'Sin permiso para esta acción. Los docentes registran la lista una vez; corregirla es del administrador.';
+  return 'Error: ' + (e && e.message ? e.message : e);
+}
+const contexto = () => ESC === 'eco' ? 'nivel' + scope : scope;
+const docId = (alId, s) => alId + '_' + ESC + '_' + contexto() + '_S' + s;
+const estadoDe = r => r ? (r.estado || (r.presente ? 'A' : 'F')) : '';
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  try {
+    const d = await db.collection('usuarios').doc(u.email).get();
+    perfil = d.exists ? d.data() : {};
+    esAdmin = !!(perfil.roles && (perfil.roles.superAdmin || perfil.roles.subAdmin));
+  } catch (e) { console.error(e); }
+  try {
+    const [sa, sc] = await Promise.all([
+      db.collection('alumnos').get(),
+      db.collection('catalogo').where('tipo', '==', 'diplomado').get()
+    ]);
+    alumnos = sa.docs.map(d => ({ id: d.id, ...d.data() }));
+    dips = sc.docs.map(d => ({ id: d.id, nombre: d.data().nombre || '' })).sort((a, b) => norm(a.nombre).localeCompare(norm(b.nombre)));
+  } catch (e) {
+    console.error(e);
+    $('lista').innerHTML = '<p class="vacio">' + esc(errorTexto(e)) + '</p>';
+    return;
+  }
+  armarTabs();
+});
+
+function armarTabs() {
+  const t = [];
+  if (esAdmin || perfil.eco === true) t.push(['eco', '🏫 ECO']);
+  if (esAdmin || perfil.em === true) t.push(['ministerios', '⛪ EMI']);
+  if (!t.length) {
+    $('tabsEsc').innerHTML = '';
+    $('lista').innerHTML = '<p class="vacio">Tu usuario no tiene escuela asignada. Pide al administrador que te la asigne en Usuarios → Editar.</p>';
+    $('btnGuardar').classList.add('oculto');
+    return;
+  }
+  $('tabsEsc').innerHTML = t.map(x => '<button class="tab" data-e="' + x[0] + '" onclick="elegirEscuela(\'' + x[0] + '\')">' + x[1] + '</button>').join('');
+  elegirEscuela(ESC && t.some(x => x[0] === ESC) ? ESC : t[0][0]);
+}
+
+function opcionesScope() {
+  if (ESC === 'eco') {
+    const niv = esAdmin ? [1, 2, 3] : (perfil.ecoNiveles || []).map(Number).filter(n => [1, 2, 3].includes(n));
+    return niv.map(n => ({ id: String(n), nombre: 'Nivel ' + n }));
+  }
+  if (esAdmin) return dips;
+  const ids = new Set((perfil.diplomados || []).map(d => d.id).concat(Object.keys(perfil.diplomadosIds || {})));
+  return dips.filter(d => ids.has(d.id));
+}
+
+function elegirEscuela(e) {
+  ESC = e;
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.e === e));
+  $('lblScope').textContent = e === 'eco' ? 'Nivel' : 'Diplomado';
+  const ops = opcionesScope();
+  if (!ops.length) {
+    $('scope').innerHTML = '';
+    $('lista').innerHTML = '<p class="vacio">' + (e === 'eco' ? 'No tienes niveles de ECO asignados.' : 'No tienes diplomados asignados.') + ' Pide al administrador que te los asigne en Usuarios → Editar.</p>';
+    $('ses').innerHTML = ''; $('resumen').innerHTML = '<p class="vacio">—</p>';
+    $('btnGuardar').classList.add('oculto'); $('tarjFin').classList.add('oculto');
+    return;
+  }
+  $('btnGuardar').classList.remove('oculto');
+  $('scope').innerHTML = ops.map(o => '<option value="' + o.id + '">' + esc(o.nombre) + '</option>').join('');
+  scope = ops[0].id;
+  cambiarScope(scope);
+}
+
+async function cambiarScope(v) {
+  scope = v;
+  const o = opcionesScope().find(x => x.id === v);
+  scopeNombre = o ? o.nombre : '';
+  sesion = 1;
+  await cargarRegistros();
+}
+
+function alumnosDelScope() {
+  let l;
+  if (ESC === 'eco') l = alumnos.filter(a => a.eco === true && String(a.ecoNivel || '') === scope);
+  else l = alumnos.filter(a => a.em === true && (a.inscripciones || []).some(i => i.diplomadoId === scope && i.estado !== 'concluido'));
+  return l.sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+}
+
+async function cargarRegistros() {
+  regs = {};
+  try {
+    const snap = await db.collection('asistenciaSesiones').where('escuela', '==', ESC).where('contexto', '==', contexto()).get();
+    snap.forEach(d => { const x = d.data(); regs[x.alumnoId + '_' + x.sesion] = { id: d.id, ...x }; });
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  pintarSesiones();
+  cargarMarcas();
+  pintarResumen();
+  pintarFin();
+}
+
+function pintarSesiones() {
+  const hechas = new Set(Object.values(regs).map(r => r.sesion));
+  let h = '';
+  for (let i = 1; i <= NUM; i++) h += '<button class="s ' + (i === sesion ? 'on ' : '') + (hechas.has(i) ? 'hecha' : '') + '" onclick="elegirSesion(' + i + ')">' + i + '</button>';
+  $('ses').innerHTML = h;
+}
+function elegirSesion(i) { sesion = i; pintarSesiones(); cargarMarcas(); }
+
+function cargarMarcas() {
+  marcas = {};
+  alumnosDelScope().forEach(a => { const e = estadoDe(regs[a.id + '_' + sesion]); if (e) marcas[a.id] = e; });
+  pintarLista();
+}
+
+function pintarLista() {
+  const als = alumnosDelScope();
+  $('tituloLista').textContent = scopeNombre + ' — Sesión ' + sesion;
+  if (!als.length) { $('lista').innerHTML = '<p class="vacio">No hay alumnos inscritos en ' + esc(scopeNombre) + '.</p>'; return; }
+  $('lista').innerHTML = als.map(a => {
+    const m = marcas[a.id] || '';
+    const bloq = !!regs[a.id + '_' + sesion] && !esAdmin;
+    const b = x => '<button class="bt ' + x + (m === x ? ' on' : '') + '" ' + (bloq ? 'disabled style="opacity:.6"' : '') + ' onclick="marcar(\'' + a.id + '\',\'' + x + '\')">' + x + '</button>';
+    return '<div class="fila"><div class="nom">' + esc(a.nombreCompleto) + (bloq ? '<small>🔒 Ya registrada (solo el administrador la corrige)</small>' : '') + '</div>' + b('A') + b('F') + b('FJ') + '</div>';
+  }).join('');
+}
+
+function marcar(id, v) { marcas[id] = marcas[id] === v ? '' : v; pintarLista(); }
+function marcarTodos(v) {
+  alumnosDelScope().forEach(a => { if (esAdmin || !regs[a.id + '_' + sesion]) marcas[a.id] = v; });
+  pintarLista();
+}
+
+async function persistir() {
+  const als = alumnosDelScope();
+  let nuevos = 0, cambios = 0, bloqueados = 0, fallos = 0;
+  for (const a of als) {
+    const m = marcas[a.id];
+    if (!m) continue;
+    const rec = regs[a.id + '_' + sesion];
+    const id = docId(a.id, sesion);
+    const presente = m === 'A';
+    try {
+      if (!rec) {
+        await db.collection('asistenciaSesiones').doc(id).set({
+          alumnoId: a.id, alumnoNombre: a.nombreCompleto, escuela: ESC, contexto: contexto(), contextoNombre: scopeNombre,
+          sesion: sesion, presente: presente, estado: m, capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
+          editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
+        });
+        regs[a.id + '_' + sesion] = { id, alumnoId: a.id, escuela: ESC, contexto: contexto(), sesion, presente, estado: m };
+        nuevos++;
+      } else if (estadoDe(rec) !== m) {
+        if (!esAdmin) { bloqueados++; continue; }
+        await db.collection('asistenciaSesiones').doc(rec.id).update({
+          presente: presente, estado: m, estadoAnterior: estadoDe(rec), editado: true, valorAnterior: !!rec.presente,
+          editadoPor: auth.currentUser.email, fechaEdicion: new Date()
+        });
+        regs[a.id + '_' + sesion] = Object.assign({}, rec, { presente, estado: m });
+        cambios++;
+      }
+    } catch (e) { console.error(e); fallos++; }
+  }
+  return { nuevos, cambios, bloqueados, fallos };
+}
+
+async function guardarLista() {
+  const btn = $('btnGuardar'); btn.disabled = true;
+  const r = await persistir();
+  btn.disabled = false;
+  pintarSesiones(); pintarLista(); pintarResumen();
+  let t = '✅ Sesión ' + sesion + ' guardada';
+  if (r.nuevos || r.cambios) t += ' (' + r.nuevos + ' nuevas' + (r.cambios ? ', ' + r.cambios + ' corregidas' : '') + ')';
+  if (r.bloqueados) t += '. ' + r.bloqueados + ' ya estaban registradas: solo el administrador las corrige.';
+  if (r.fallos) { aviso('Hubo ' + r.fallos + ' registros con error (¿permisos?). Revisa que las reglas de Firestore estén publicadas.', false); return; }
+  if (!r.nuevos && !r.cambios && !r.bloqueados) t = 'No hay nada nuevo que guardar';
+  aviso(t, true);
+}
+
+/* ---------- resumen ---------- */
+function pintarResumen() {
+  const als = alumnosDelScope();
+  if (!als.length) { $('resumen').innerHTML = '<p class="vacio">—</p>'; return; }
+  let h = '<table><tr><th>Alumno</th><th>A</th><th>F</th><th>FJ</th><th>%</th></tr>';
+  als.forEach(a => {
+    let A = 0, F = 0, FJ = 0;
+    for (let i = 1; i <= NUM; i++) { const e = estadoDe(regs[a.id + '_' + i]); if (e === 'A') A++; else if (e === 'F') F++; else if (e === 'FJ') FJ++; }
+    h += '<tr><td>' + esc(a.nombreCompleto) + '</td><td>' + A + '</td><td>' + F + '</td><td>' + FJ + '</td><td><b>' + Math.round(A / NUM * 100) + '%</b></td></tr>';
+  });
+  $('resumen').innerHTML = h + '</table><p class="leyenda" style="margin-top:8px">El porcentaje cuenta las asistencias (A) de las 16 sesiones.</p>';
+}
+
+/* ---------- finalizar curso ---------- */
+function pintarFin() {
+  const caja = $('tarjFin');
+  if (!esAdmin || !alumnosDelScope().length) { caja.classList.add('oculto'); return; }
+  caja.classList.remove('oculto');
+  if (ESC === 'eco') {
+    const n = Number(scope);
+    $('txtFin').textContent = n < 3
+      ? 'Guarda la lista y pasa a los alumnos de Nivel ' + n + ' al Nivel ' + (n + 1) + '. La lista del nuevo nivel empieza vacía; la de este queda guardada.'
+      : 'Guarda la lista y da por egresados a los alumnos de Nivel 3 (salen de ECO; su historial se conserva).';
+    $('campoSig').classList.add('oculto');
+  } else {
+    $('txtFin').textContent = 'Guarda la lista y marca el diplomado como concluido para todos los alumnos de esta lista. Opcionalmente los inscribe en el siguiente diplomado.';
+    $('campoSig').classList.remove('oculto');
+    $('sigDip').innerHTML = '<option value="">No inscribir en otro por ahora</option>' + dips.filter(d => d.id !== scope).map(d => '<option value="' + d.id + '">' + esc(d.nombre) + '</option>').join('');
+  }
+}
+
+async function finalizarCurso() {
+  const als = alumnosDelScope();
+  if (!als.length) return;
+  const sig = ESC === 'ministerios' ? $('sigDip').value : '';
+  const sigNombre = (dips.find(d => d.id === sig) || {}).nombre || '';
+  if (!confirm('¿Finalizar ' + scopeNombre + ' para ' + als.length + ' alumno(s)? Se guardará la lista de la sesión ' + sesion + ' y no podrás deshacerlo desde aquí.')) return;
+  const r = await persistir();
+  if (r.fallos) { aviso('No se pudo guardar la lista (' + r.fallos + ' con error). El curso no se finalizó.', false); return; }
+  let ok = 0, mal = 0;
+  for (const a of als) {
+    try {
+      if (ESC === 'eco') {
+        const n = Number(scope);
+        if (n < 3) {
+          await db.collection('alumnos').doc(a.id).update({ ecoNivel: n + 1, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'ECO', accion: 'cambio de nivel', de: n, a: n + 1 }) });
+        } else {
+          await db.collection('alumnos').doc(a.id).update({ eco: false, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'ECO', accion: 'estado', a: 'Egresó de ECO (Nivel 3)' }) });
+        }
+      } else {
+        let insc = (a.inscripciones || []).map(i => i.diplomadoId === scope ? Object.assign({}, i, { estado: 'concluido' }) : i);
+        const hist = [{ fecha: ahora(), escuela: 'EMIN', accion: 'estado', a: 'Concluyó: ' + scopeNombre }];
+        if (sig && !insc.some(i => i.diplomadoId === sig && i.estado !== 'concluido')) {
+          insc = insc.concat([{ id: nuevoId(), diplomadoId: sig, diplomadoNombre: sigNombre, moduloId: '', moduloNombre: '', estado: 'cursando', fecha: ahora() }]);
+          hist.push({ fecha: ahora(), escuela: 'EMIN', accion: 'inscripcion', a: sigNombre });
+        }
+        await db.collection('alumnos').doc(a.id).update({ inscripciones: insc, historial: FV.arrayUnion(...hist) });
+      }
+      ok++;
+    } catch (e) { console.error(e); mal++; }
+  }
+  try { const sa = await db.collection('alumnos').get(); alumnos = sa.docs.map(d => ({ id: d.id, ...d.data() })); } catch (e) {}
+  aviso(mal ? '⚠️ Finalizado con ' + mal + ' errores' : '✅ Curso finalizado para ' + ok + ' alumno(s)' + (sigNombre ? '. Inscritos en ' + sigNombre : ''), !mal);
+  if (ESC === 'eco') { const ops = opcionesScope(); }
+  cambiarScope(scope);
+}
+</script>
 </body>
 </html>
