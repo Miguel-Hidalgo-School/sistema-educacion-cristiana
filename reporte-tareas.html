@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cumplimiento de tareas</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+html,body{overflow-x:hidden;max-width:100vw}
+body{background:#1e50c8;min-height:100vh;padding:20px 14px}
+main{max-width:560px;margin:0 auto}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px}
+h1{font-size:1.15rem;color:#0f172a;margin-bottom:4px}
+.sub{font-size:.8rem;color:#64748b;margin-bottom:10px}
+.nombre{font-weight:bold;font-size:1.1rem;color:#0f172a}
+.resumen{display:flex;gap:8px;margin-top:12px}
+.box{flex:1;text-align:center;border-radius:10px;padding:10px}
+.box .num{font-weight:bold;font-size:1.4rem}
+.box .lbl{font-size:.68rem;color:#64748b}
+.tarea{border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:10px}
+.tarea.cumplio{border-color:#bbf7d0;background:#f0fdf4}
+.tarea.pendiente{border-color:#fecaca;background:#fef2f2}
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.titulo{font-weight:bold;font-size:.9rem;color:#0f172a}
+.meta{font-size:.75rem;color:#64748b;margin-top:3px}
+.pill{font-size:.7rem;font-weight:bold;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.obs{font-size:.8rem;color:#475569;margin-top:8px;background:#fff;border-radius:8px;padding:8px;white-space:pre-wrap}
+.venc{color:#b91c1c;font-weight:bold}
+.centro{min-height:80vh;display:flex;align-items:center;justify-content:center;text-align:center;color:#fff;padding:24px}
+.centro .ico{font-size:2.6rem;margin-bottom:10px}
+.centro .t{font-weight:bold;font-size:1.15rem;margin-bottom:6px}
+.centro .s{opacity:.85;font-size:.95rem}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:20px;font-size:.85rem}
+</style>
+</head>
+<body>
+<div id="app"><div class="centro"><div><div class="ico">⏳</div><div class="t">Cargando...</div></div></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="config.js"></script>
+<script>
+const app = document.getElementById('app');
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoyISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+function mensaje(ico, titulo, sub) {
+  app.innerHTML = '<div class="centro"><div><div class="ico">' + ico + '</div><div class="t">' + esc(titulo) + '</div><div class="s">' + esc(sub) + '</div></div></div>';
+}
+
+function pintar(d) {
+  const tareas = d.tareas || [];
+  const total = tareas.length;
+  const cumplidas = tareas.filter(t => t.cumplio).length;
+  const hoy = hoyISO();
+  const vence = d.expiresAt ? new Date(d.expiresAt).toLocaleDateString('es-MX') : '';
+  let h = '<main><div class="card"><h1>📝 Cumplimiento de Tareas</h1>' +
+    '<p class="sub">' + esc(d.schoolName) + ' · ' + esc(d.scopeNombre) + (d.nivelTexto ? ' · ' + esc(d.nivelTexto) : '') + '</p>' +
+    '<p class="nombre">' + esc(d.studentName) + '</p>' +
+    '<div class="resumen">' +
+      '<div class="box" style="background:#f0fdf4;"><div class="num" style="color:#16a34a;">' + cumplidas + '</div><div class="lbl">CUMPLIDAS</div></div>' +
+      '<div class="box" style="background:#fef2f2;"><div class="num" style="color:#dc2626;">' + (total - cumplidas) + '</div><div class="lbl">PENDIENTES</div></div>' +
+      '<div class="box" style="background:#eff6ff;"><div class="num" style="color:#2563eb;">' + total + '</div><div class="lbl">TOTAL</div></div>' +
+    '</div></div><div class="card">';
+  if (!tareas.length) {
+    h += '<p class="sub">Aún no hay tareas registradas.</p>';
+  } else {
+    tareas.forEach(t => {
+      const venc = !t.cumplio && t.fecha && t.fecha < hoy;
+      h += '<div class="tarea ' + (t.cumplio ? 'cumplio' : 'pendiente') + '"><div class="top"><div>' +
+        '<p class="titulo">' + (t.tipo === 'casa' ? '🏠' : '⛪') + ' ' + esc(t.titulo) + '</p>' +
+        '<p class="meta">' + esc(t.materia) + ' · ' + (t.tipo === 'casa' ? 'En casa' : 'En la iglesia') + (t.fecha ? ' · Entrega ' + esc(t.fecha) : '') + (venc ? ' · <span class="venc">Vencida</span>' : '') + '</p></div>' +
+        '<span class="pill" style="background:' + (t.cumplio ? '#dcfce7' : '#fee2e2') + ';color:' + (t.cumplio ? '#166534' : '#991b1b') + ';">' + (t.cumplio ? '✅ Cumplió' : '⏳ Pendiente') + '</span></div>' +
+        (t.observaciones ? '<p class="obs">' + esc(t.observaciones) + '</p>' : '') + '</div>';
+    });
+  }
+  h += '</div><p class="pie">Reporte válido hasta el ' + esc(vence) + '<br>Sistema de Educación Cristiana · Tercera de Colima</p></main>';
+  app.innerHTML = h;
+}
+
+async function iniciar() {
+  const token = new URLSearchParams(window.location.search).get('t');
+  if (!token) { mensaje('⚠️', 'Link no válido', 'Falta información para mostrar el reporte. Pide que te compartan el link de nuevo.'); return; }
+  try {
+    firebase.initializeApp(window.firebaseConfig);
+    const doc = await firebase.firestore().collection('reportesTareas').doc(token).get();
+    if (!doc.exists) { mensaje('🔒', 'Link no encontrado', 'Este link no existe o ya fue eliminado. Pide uno nuevo.'); return; }
+    const d = doc.data();
+    if (d.expiresAt && d.expiresAt < Date.now()) { mensaje('⏰', 'Este link ya expiró', 'Los links son válidos por 15 días. Pide que te compartan uno nuevo.'); return; }
+    pintar(d);
+  } catch (e) {
+    console.error(e);
+    mensaje('🔒', 'No se pudo abrir el reporte', 'El link expiró o no es válido. Pide que te compartan uno nuevo.');
+  }
+}
+iniciar();
+</script>
+</body>
+</html>

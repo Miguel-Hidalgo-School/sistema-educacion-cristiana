@@ -39,6 +39,7 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
 .aviso-equidad{background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px;font-size:.82rem;color:#7c2d12;margin-top:8px;display:none}
 .tareaChip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin:3px;font-size:.78rem}
 .tareaChip input{width:50px;padding:4px;text-align:center}
+.tareaChip select{padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:.9rem}
 .tareasGrid{display:flex;flex-wrap:wrap;margin:-3px;}
 </style>
 </head>
@@ -92,6 +93,14 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
     </div>
 
     <div class="tarjeta">
+      <h3>📅 Asistencia (sesiones 1–16) <span class="sub" id="asistProm"></span></h3>
+      <p class="sub" style="margin-bottom:8px;">Marca cada sesión: ✅ asistió, ❌ faltó. Las 16 asistencias completas dan el porcentaje de Asistencia.</p>
+      <div class="tareasGrid" id="listaAsistencia"></div>
+      <div id="avisoEquidadAsistencia" class="aviso-equidad"></div>
+      <div id="msgAsistencia" class="msg"></div>
+    </div>
+
+    <div class="tarjeta">
       <h3>📋 Otros rubros</h3>
       <div id="listaRubros"></div>
       <div id="avisoEquidadRubros" class="aviso-equidad"></div>
@@ -114,10 +123,18 @@ const db = firebase.firestore();
 const ESCUELA = 'eco';
 const NUM_TAREAS = 16;
 const TAREA_MIN = 5, TAREA_MAX = 10;
+const NUM_SESIONES = 16;
+// Rubros que se califican de 0 a 10 (la asistencia se calcula con la lista de 16 sesiones)
 const RUBROS_EXTRA = [
   { id: 'participacion', nombre: 'Participación' },
   { id: 'examen', nombre: 'Examen' },
-  { id: 'asistencia', nombre: 'Asistencia' },
+  { id: 'proyecto', nombre: 'Proyecto' }
+];
+const RUBROS_PCT_LIST = [
+  { id: 'tareas', nombre: 'Tareas (promedio de 16)' },
+  { id: 'participacion', nombre: 'Participación' },
+  { id: 'examen', nombre: 'Examen' },
+  { id: 'asistencia', nombre: 'Asistencia (16 sesiones)' },
   { id: 'proyecto', nombre: 'Proyecto' }
 ];
 const PORCENTAJES_DEFAULT = { tareas: 75, participacion: 10, examen: 5, asistencia: 5, proyecto: 5 };
@@ -130,7 +147,8 @@ let alumnos = [];
 let alumnoSel = null, contexto = null;
 let porcentajes = { ...PORCENTAJES_DEFAULT };
 let tareas = {};   // leccion(1-16) -> doc
-let rubros = {};   // rubroId -> doc
+let rubros = {};
+let asistencias = {};   // sesion(1-16) -> doc   // rubroId -> doc
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -172,6 +190,7 @@ $('selAlumno').addEventListener('change', async () => {
   await cargarFormaEvaluar();
   await cargarTareas();
   await cargarRubros();
+  await cargarAsistencias();
   pintarTodo();
 });
 
@@ -188,6 +207,12 @@ async function cargarTareas() {
     .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
   snap.forEach(d => { tareas[d.data().leccion] = { id: d.id, ...d.data() }; });
 }
+async function cargarAsistencias() {
+  asistencias = {};
+  const snap = await db.collection('asistenciaSesiones')
+    .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
+  snap.forEach(d => { asistencias[d.data().sesion] = { id: d.id, ...d.data() }; });
+}
 async function cargarRubros() {
   rubros = {};
   const snap = await db.collection('rubrosCalificacion')
@@ -200,7 +225,12 @@ function promedioTareas() {
   return vals.length ? vals.reduce((a,b)=>a+b,0) / vals.length : null;
 }
 
-function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarTareas(); pintarRubros(); }
+function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarTareas(); pintarAsistencia(); pintarRubros(); }
+
+function resumenAsistencia() {
+  const regs = Object.values(asistencias);
+  return { reg: regs.length, asist: regs.filter(x => x.presente === true).length };
+}
 
 function pintarResumen() {
   const prom = promedioTareas();
@@ -210,11 +240,21 @@ function pintarResumen() {
     const d = rubros[r.id];
     if (d) { total += (d.valor/10) * porcentajes[r.id]; pesoCapturado += porcentajes[r.id]; }
   });
-  $('calcFinal').textContent = pesoCapturado > 0 ? total.toFixed(2) : '—';
+  // Asistencia: las 16 sesiones completas valen el porcentaje de Asistencia
+  const as = resumenAsistencia();
+  if (as.reg > 0) {
+    total += porcentajes.asistencia * as.asist / NUM_SESIONES;
+    pesoCapturado += porcentajes.asistencia * as.reg / NUM_SESIONES;
+  }
+  // "total" está sobre 100; se muestra sobre 10
+  $('calcFinal').textContent = pesoCapturado > 0 ? (total/10).toFixed(1) : '—';
   $('calcDetalle').textContent = pesoCapturado > 0
-    ? 'Calificación parcial con ' + pesoCapturado.toFixed(1) + '% del encuadre capturado'
+    ? 'Calificación sobre 10 · con ' + pesoCapturado.toFixed(1) + '% del encuadre capturado'
     : 'Sin rubros capturados';
   $('tareasProm').textContent = prom !== null ? '— promedio: ' + prom.toFixed(2) : '';
+  $('asistProm').textContent = as.reg > 0
+    ? '— ' + as.asist + '/' + NUM_SESIONES + ' asistencias (aporta ' + (porcentajes.asistencia * as.asist / NUM_SESIONES).toFixed(2) + '% de ' + porcentajes.asistencia + '%)'
+    : '';
 }
 
 function pintarPorcentajes() {
@@ -222,7 +262,7 @@ function pintarPorcentajes() {
   $('pctSuma').textContent = '(suma: ' + suma.toFixed(1) + '%)';
   $('pctSuma').style.color = Math.abs(suma-100) < 0.05 ? '#059669' : '#dc2626';
   const editable = puedoEditarContexto();
-  const todos = [{ id: 'tareas', nombre: 'Tareas (promedio de 16)' }, ...RUBROS_EXTRA];
+  const todos = RUBROS_PCT_LIST;
   $('listaPct').innerHTML = todos.map(r => `
     <div class="fila"><span class="num">${r.nombre}</span>
       <input type="number" min="0" max="100" step="0.1" value="${porcentajes[r.id]}" ${editable?'':'disabled'}
@@ -302,6 +342,70 @@ async function editarTarea(leccion, actual, input) {
   } catch (e) { avisar('msgTareas', 'Error: ' + e.message, false); input.value = actual.valor; }
 }
 
+function opcionesAsist(v) {
+  return `<option value="" ${v===''?'selected':''}>—</option><option value="P" ${v==='P'?'selected':''}>✅</option><option value="F" ${v==='F'?'selected':''}>❌</option>`;
+}
+function pintarAsistencia() {
+  const soyAsignado = puedoEditarContexto();
+  $('listaAsistencia').innerHTML = '';
+  $('avisoEquidadAsistencia').style.display = 'none';
+  for (let i = 1; i <= NUM_SESIONES; i++) {
+    const a = asistencias[i];
+    const chip = document.createElement('div');
+    chip.className = 'tareaChip';
+    if (!a) {
+      chip.innerHTML = `#${i} <select ${soyAsignado?'':'disabled'}>${opcionesAsist('')}</select>`;
+      if (soyAsignado) chip.querySelector('select').addEventListener('change', (e) => guardarAsistencia(i, e.target));
+    } else if (esAdmin) {
+      chip.innerHTML = `#${i} <select>${opcionesAsist(a.presente ? 'P' : 'F')}</select>${a.editado ? ' ✏️' : ''}`;
+      chip.title = a.editado ? 'Editada (antes: ' + (a.valorAnterior ? 'asistió' : 'faltó') + ')' : '';
+      chip.querySelector('select').addEventListener('change', (e) => editarAsistencia(i, a, e.target));
+    } else {
+      chip.innerHTML = `#${i} <select disabled>${opcionesAsist(a.presente ? 'P' : 'F')}</select> <button class="lock" onclick="mostrarAviso('avisoEquidadAsistencia')">🔒</button>`;
+    }
+    $('listaAsistencia').appendChild(chip);
+  }
+}
+
+async function guardarAsistencia(sesion, sel) {
+  if (!sel.value) return;
+  const presente = sel.value === 'P';
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_S' + sesion;
+  try {
+    await db.collection('asistenciaSesiones').doc(id).set({
+      alumnoId: alumnoSel.id, alumnoNombre: alumnoSel.nombreCompleto, escuela: ESCUELA,
+      contexto, contextoNombre: CTX_NOMBRE(), sesion, presente,
+      capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
+      editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
+    });
+    asistencias[sesion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, sesion, presente, editado: false, valorAnterior: null };
+    pintarResumen(); pintarAsistencia();
+    avisar('msgAsistencia', '✅ Sesión ' + sesion + ': ' + (presente ? 'asistió' : 'faltó'), true);
+  } catch (e) {
+    sel.value = '';
+    avisar('msgAsistencia', e.code === 'permission-denied' ? 'Sin permiso para registrar asistencia (revisa las reglas de Firestore).' : 'Error: ' + e.message, false);
+  }
+}
+async function editarAsistencia(sesion, actual, sel) {
+  const nuevo = sel.value === 'P';
+  if (!sel.value) { sel.value = actual.presente ? 'P' : 'F'; return; }
+  if (nuevo === actual.presente) return;
+  if (!confirm('¿Cambiar la sesión ' + sesion + ' de ' + (actual.presente ? 'asistió' : 'faltó') + ' a ' + (nuevo ? 'asistió' : 'faltó') + '? Quedará marcada como editada.')) { sel.value = actual.presente ? 'P' : 'F'; return; }
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_S' + sesion;
+  try {
+    await db.collection('asistenciaSesiones').doc(id).update({
+      presente: nuevo, editado: true, valorAnterior: actual.presente,
+      editadoPor: auth.currentUser.email, fechaEdicion: new Date()
+    });
+    asistencias[sesion] = { ...actual, presente: nuevo, editado: true, valorAnterior: actual.presente };
+    pintarResumen(); pintarAsistencia();
+    avisar('msgAsistencia', '✅ Sesión ' + sesion + ' editada', true);
+  } catch (e) {
+    sel.value = actual.presente ? 'P' : 'F';
+    avisar('msgAsistencia', 'Error: ' + e.message, false);
+  }
+}
+
 function pintarRubros() {
   const soyAsignado = puedoEditarContexto();
   $('listaRubros').innerHTML = '';
@@ -366,6 +470,7 @@ async function editarRubro(rubroId, actual, input) {
   } catch (e) { avisar('msgRubros', 'Error: ' + e.message, false); input.value = actual.valor; }
 }
 
+function CTX_NOMBRE() { return 'Nivel ' + alumnoSel.ecoNivel; }
 function avisar(elId, texto, ok) {
   const el = $(elId);
   el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err');

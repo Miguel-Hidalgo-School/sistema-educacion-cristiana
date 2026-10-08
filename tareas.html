@@ -19,6 +19,9 @@ input[type=text],input[type=date],select,textarea{width:100%;padding:11px;border
 textarea{resize:vertical}
 .btn{width:100%;padding:12px;background:#1e50c8;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
 .btn.cafe{background:#9a3412}
+.btn.oscuro{background:#1f2937}
+.botonesFila{display:flex;gap:10px}
+.botonesFila .btn{flex:1;line-height:1.2}
 .btn2{padding:9px 14px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.9rem}
 .btn2.azul{background:#1e50c8;color:#fff}
 .msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
@@ -59,9 +62,15 @@ details.t summary::-webkit-details-marker{display:none}
 <div id="msg" class="msg"></div>
 
 <div class="tarjeta" id="tarjFiltro">
-  <h3>Cumplimiento de tareas</h3>
+  <h3 id="tituloFiltro">📝 Cumplimiento de Tareas</h3>
   <div class="campo"><label class="t" id="lblScope">Diplomado</label><select id="scope" onchange="cambiarScope(this.value)"></select></div>
-  <button class="btn" id="btnNueva" onclick="abrirForm()">➕ Nueva tarea</button>
+  <div class="campo" id="campoNivel"><label class="t">Nivel</label>
+    <select id="nivelSel" onchange="cambiarNivel(this.value)"><option value="">Todos los niveles</option><option value="1">Nivel 1</option><option value="2">Nivel 2</option></select>
+  </div>
+  <div class="botonesFila">
+    <button class="btn" id="btnNueva" onclick="abrirForm()">➕ Nueva tarea</button>
+    <button class="btn oscuro" onclick="descargarPDF()">📄 Descargar PDF<br><small>(lista completa)</small></button>
+  </div>
 </div>
 
 <div class="tarjeta oculto" id="tarjForm">
@@ -79,11 +88,21 @@ details.t summary::-webkit-details-marker{display:none}
   <button class="btn2" style="width:100%;margin-top:8px" onclick="cerrarForm()">Cancelar</button>
 </div>
 
+<div class="tarjeta" id="tarjReporte">
+  <h3>👤 Reporte por alumno</h3>
+  <p class="sub" style="margin-bottom:10px">Genera un link para que el alumno vea sus tareas cumplidas y pendientes. Vale 15 días.</p>
+  <div class="campo"><select id="repAlumno"></select></div>
+  <button class="btn" id="btnReporte" onclick="generarReporte()">🔗 Generar link del reporte</button>
+  <div id="repResultado" class="oculto" style="margin-top:12px;"></div>
+</div>
+
 <div id="lista"></div>
 
 <div class="pie">© 2026 Chavarría Producciones</div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
@@ -98,7 +117,7 @@ const ESC = (params.get('escuela') || '').toLowerCase() === 'eco' ? 'ECO' : 'EMI
 
 let esAdmin = false, perfil = {};
 let alumnos = [], dips = [], tareas = [];
-let scope = '', scopeNombre = '', editId = null;
+let scope = '', scopeNombre = '', editId = null, nivelFiltro = '';
 const abiertas = new Set();
 
 const $ = id => document.getElementById(id);
@@ -121,6 +140,12 @@ function errorTexto(e) {
 
 $('subtitulo').textContent = ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios';
 $('lblScope').textContent = ESC === 'ECO' ? 'Nivel' : 'Diplomado';
+if (ESC === 'ECO') $('campoNivel').style.display = 'none';
+function actualizarTitulo() {
+  const el = $('tituloFiltro');
+  if (el) el.textContent = '📝 Cumplimiento de Tareas — ' + scopeNombre + (ESC === 'EMIN' && nivelFiltro ? ' — Nivel ' + nivelFiltro : '');
+}
+function cambiarNivel(v) { nivelFiltro = v; actualizarTitulo(); pintar(); }
 
 auth.onAuthStateChanged(async u => {
   if (!u) { window.location.href = 'index.html'; return; }
@@ -161,13 +186,14 @@ function opcionesScope() {
     return niv.map(n => ({ id: String(n), nombre: 'Nivel ' + n }));
   }
   if (esAdmin) return dips;
-  const ids = new Set((perfil.diplomados || []).map(d => d.id));
+  const ids = new Set((perfil.diplomados || []).map(d => d.id).concat(Object.keys(perfil.diplomadosIds || {})));
   return dips.filter(d => ids.has(d.id));
 }
 
 function armarSelect() {
   const ops = opcionesScope();
   if (!ops.length) {
+    $('tarjReporte').classList.add('oculto');
     $('tarjFiltro').innerHTML = '<h3>Cumplimiento de tareas</h3><p class="vacio b">' +
       (ESC === 'ECO' ? 'No tienes niveles de ECO asignados.' : 'No tienes diplomados asignados.') +
       ' Pide al administrador que te los asigne en Usuarios → Editar.</p>';
@@ -175,6 +201,7 @@ function armarSelect() {
   }
   if (!ops.some(o => o.id === scope)) scope = ops[0].id;
   scopeNombre = (ops.find(o => o.id === scope) || {}).nombre || '';
+  actualizarTitulo();
   $('scope').innerHTML = ops.map(o => '<option value="' + o.id + '" ' + (o.id === scope ? 'selected' : '') + '>' + esc(o.nombre) + '</option>').join('');
 }
 
@@ -182,6 +209,7 @@ function cambiarScope(v) {
   scope = v;
   const o = opcionesScope().find(x => x.id === v);
   scopeNombre = o ? o.nombre : '';
+  actualizarTitulo();
   cerrarForm();
   pintar();
 }
@@ -190,12 +218,18 @@ function alumnosDelScope() {
   let l;
   if (ESC === 'ECO') l = alumnos.filter(a => a.eco === true && String(a.ecoNivel || '') === scope);
   else l = alumnos.filter(a => a.em === true && (a.inscripciones || []).some(i => i.diplomadoId === scope && i.estado !== 'concluido'));
+  if (ESC === 'EMIN' && nivelFiltro) l = l.filter(a => String(a.emNivel || '') === nivelFiltro);
   return l.sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
 }
 
 function pintar() {
   if (!scope) { $('lista').innerHTML = ''; return; }
   const als = alumnosDelScope();
+  const selPrev = $('repAlumno').value;
+  $('repAlumno').innerHTML = als.length
+    ? als.map(a => '<option value="' + a.id + '" ' + (a.id === selPrev ? 'selected' : '') + '>' + esc(a.nombreCompleto) + '</option>').join('')
+    : '<option value="">No hay alumnos aquí</option>';
+  $('repResultado').classList.add('oculto');
   const hoy = hoyISO();
   const lista = tareas.filter(t => t.scopeId === scope)
     .sort((a, b) => String(b.fechaEntrega || '').localeCompare(String(a.fechaEntrega || '')));
@@ -217,7 +251,7 @@ function pintar() {
     return '<details class="t" data-id="' + t.id + '" ' + (abiertas.has(t.id) ? 'open' : '') + '>' +
       '<summary><div class="fila"><div class="ico">' + ico + '</div>' +
       '<div class="info"><div class="nom">' + esc(t.titulo) + '</div>' +
-      '<div class="sub">' + (t.lugar === 'casa' ? 'En casa' : 'En la iglesia') + ' · Entrega ' + fechaBonita(t.fechaEntrega) + ' · ' + c + '/' + als.length + ' cumplieron' + est + '</div></div>' +
+      '<div class="sub">' + esc(t.scopeNombre || scopeNombre) + ' · ' + (t.lugar === 'casa' ? 'En casa' : 'En la iglesia') + ' · ' + (t.fechaEntrega || '') + ' · ' + c + '/' + als.length + ' cumplieron' + est + '</div></div>' +
       '<button class="x" onclick="event.preventDefault();event.stopPropagation();borrar(\'' + t.id + '\')">✕</button></div></summary>' +
       '<div class="det">' + (t.descripcion ? '<div class="desc">' + esc(t.descripcion) + '</div>' : '') +
       '<div class="acciones"><button class="btn2 azul" onclick="marcarTodos(\'' + t.id + '\', true)">✔ Marcar todos</button>' +
@@ -324,6 +358,102 @@ async function borrar(id) {
     console.error(e);
     aviso(errorTexto(e), false);
   }
+}
+
+
+/* ---------- REPORTE PARA COMPARTIR ---------- */
+function nuevoToken() {
+  const b = crypto.getRandomValues(new Uint8Array(18));
+  return Array.from(b).map(x => x.toString(36).padStart(2, '0')).join('').slice(0, 30);
+}
+
+async function generarReporte() {
+  const id = $('repAlumno').value;
+  const a = alumnos.find(x => x.id === id);
+  if (!a) { aviso('Elige un alumno', false); return; }
+  const lista = tareas.filter(t => t.scopeId === scope)
+    .sort((x, y) => String(x.fechaEntrega || '').localeCompare(String(y.fechaEntrega || '')));
+  if (!lista.length) { aviso('Aún no hay tareas para generar el reporte', false); return; }
+
+  const nivel = ESC === 'ECO' ? a.ecoNivel : a.emNivel;
+  const token = nuevoToken();
+  const datos = {
+    studentName: a.nombreCompleto,
+    schoolName: ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios',
+    scopeNombre: scopeNombre,
+    nivelTexto: ESC === 'EMIN' && nivel ? 'Nivel ' + nivel : '',
+    tareas: lista.map(t => ({
+      titulo: t.titulo, tipo: t.lugar === 'casa' ? 'casa' : 'iglesia',
+      materia: t.scopeNombre || scopeNombre, fecha: t.fechaEntrega || '',
+      cumplio: !!(t.cumplimiento && t.cumplimiento[a.id] === true),
+      observaciones: t.descripcion || ''
+    })),
+    creadoPor: auth.currentUser.email, fechaCreacion: new Date(),
+    expiresAt: Date.now() + 15 * 24 * 60 * 60 * 1000
+  };
+  const btn = $('btnReporte');
+  btn.disabled = true;
+  try {
+    await db.collection('reportesTareas').doc(token).set(datos);
+  } catch (e) {
+    console.error(e);
+    aviso(e.code === 'permission-denied' ? 'Sin permiso. Falta publicar las reglas de Firestore con "reportesTareas".' : errorTexto(e), false);
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+
+  const link = new URL('reporte-tareas.html?t=' + token, window.location.href).href;
+  const texto = '¡Paz de Cristo herman@ ' + a.nombreCompleto + '!\n\n' +
+    'Te compartimos tu reporte de cumplimiento de tareas (' + scopeNombre + '):\n' + link + '\n\n' +
+    'El enlace estará disponible por 15 días.\n\n¡Dios te bendiga!\nSistema de Educación Cristiana · Tercera de Colima';
+  let num = String(a.whatsapp || '').replace(/\D/g, '');
+  if (num.length === 10) num = '52' + num;
+  const wa = 'https://wa.me/' + num + '?text=' + encodeURIComponent(texto);
+
+  $('repResultado').innerHTML =
+    '<div class="sub" style="word-break:break-all;margin-bottom:10px">' + esc(link) + '</div>' +
+    '<div class="acciones">' +
+      '<a class="btn2 azul" style="text-decoration:none" target="_blank" href="' + wa + '">📲 Enviar por WhatsApp</a>' +
+      '<button class="btn2" id="btnCopiar">🔗 Copiar link</button>' +
+    '</div>';
+  $('repResultado').classList.remove('oculto');
+  $('btnCopiar').onclick = () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(link).then(() => aviso('✅ Link copiado'));
+  };
+}
+
+/* ---------- PDF ---------- */
+function descargarPDF() {
+  if (!(window.jspdf && window.jspdf.jsPDF)) { aviso('No se pudo cargar el generador de PDF. Revisa tu conexión e intenta de nuevo.', false); return; }
+  const als = alumnosDelScope();
+  const orden = tareas.filter(t => t.scopeId === scope)
+    .sort((a, b) => String(a.fechaEntrega || '').localeCompare(String(b.fechaEntrega || '')));
+  if (!orden.length) { aviso('No hay tareas para exportar', false); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: orden.length > 6 ? 'landscape' : 'portrait', unit: 'pt', format: 'letter' });
+  const cum = (t, a) => !!(t.cumplimiento && t.cumplimiento[a.id] === true);
+  doc.setFontSize(14);
+  doc.text('Cumplimiento de tareas — ' + (ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios'), 40, 40);
+  doc.setFontSize(10);
+  doc.text(scopeNombre + (ESC === 'EMIN' && nivelFiltro ? ' · Nivel ' + nivelFiltro : '') + '    Emitido: ' + hoyISO(), 40, 58);
+  doc.autoTable({
+    startY: 72,
+    head: [['#', 'Tarea', 'Lugar', 'Entrega', 'Cumplieron']],
+    body: orden.map((t, i) => [i + 1, t.titulo, t.lugar === 'casa' ? 'En casa' : 'En la iglesia', t.fechaEntrega || '', als.filter(a => cum(t, a)).length + '/' + als.length]),
+    styles: { fontSize: 9 }, headStyles: { fillColor: [30, 80, 200] }
+  });
+  doc.autoTable({
+    startY: doc.lastAutoTable.finalY + 20,
+    head: [['Alumno'].concat(orden.map((_, i) => String(i + 1)), ['Total'])],
+    body: als.map(a => {
+      const m = orden.map(t => cum(t, a));
+      return [a.nombreCompleto].concat(m.map(x => x ? 'Sí' : 'No'), [m.filter(Boolean).length + '/' + orden.length]);
+    }),
+    styles: { fontSize: 8 }, headStyles: { fillColor: [30, 80, 200] }
+  });
+  const nombre = 'tareas-' + norm(scopeNombre).replace(/[^a-z0-9]+/g, '-').slice(0, 40) + '-' + hoyISO() + '.pdf';
+  doc.save(nombre);
 }
 </script>
 </body>
