@@ -7,46 +7,286 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
-.contenedor{max-width:500px;margin:0 auto}
+.contenedor{max-width:560px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
 .volver:hover{text-decoration:underline}
-header{text-align:center;color:white;margin-bottom:40px}
+header{text-align:center;color:white;margin-bottom:30px}
 header h1{font-size:1.5rem;margin-bottom:8px}
-.tarjeta{background:white;border-radius:12px;padding:25px;margin-bottom:20px;text-align:center}
-.tarjeta h3{font-size:1.3rem;color:#1f2937;margin-bottom:5px}
-.tarjeta p{color:#6b7280;font-size:.95rem}
-.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+.tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:18px}
+.tarjeta h3{font-size:1.15rem;color:#1f2937;margin-bottom:10px}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151;font-size:.9rem}
+select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
+.btn{padding:10px 16px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:.9rem;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-sec{background:#1e50c8}
+.msg{margin-top:10px;padding:10px;border-radius:6px;font-weight:bold;display:none;font-size:.9rem}
+.msg.ok{background:#d1fae5;color:#065f46;display:block}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.sub{color:#6b7280;font-size:.85rem}
+.vacio{color:#6b7280;font-style:italic;text-align:center}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:25px;font-size:.9rem}
+.leccion{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6}
+.leccion:last-child{border-bottom:none}
+.leccion .num{width:70px;font-size:.85rem;color:#374151;font-weight:bold}
+.leccion input{width:70px;text-align:center;padding:7px}
+.leccion .pct{font-size:.72rem;color:#9ca3af;width:44px}
+.leccion .cand{flex:1;font-size:.72rem;color:#b45309}
+.leccion .cerrado{flex:1;font-size:.8rem;color:#6b7280}
+.leccion .lock{background:none;border:none;font-size:1rem;cursor:pointer}
+.resumen{background:#eff6ff;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px}
+.resumen .num{font-size:1.8rem;font-weight:bold;color:#1e50c8}
+.aviso-equidad{background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px;font-size:.82rem;color:#7c2d12;margin-top:8px;display:none}
 </style>
 </head>
 <body>
-
 <div class="contenedor">
 <a href="escuelas.html" class="volver">← Volver a Escuelas</a>
+<header><h1>📊 ECO — Calificaciones</h1><p id="subt" style="opacity:.85">Escuela de Consolidación</p></header>
 
-<header>
-<h1>📊 ECO — Calificaciones</h1>
-<p>Escuela de Consolidación</p>
-</header>
-
-<div class="tarjeta">
-<h3>Calificaciones de ECO</h3>
-<p>Control de calificaciones y tareas</p>
+<div id="sinAcceso" class="tarjeta" style="display:none;text-align:center;color:#b91c1c;">
+  No tienes acceso a esta sección.
 </div>
 
-<div class="pie">
-© 2026 Chavarría Producciones
+<div id="contenido" style="display:none;">
+  <div class="tarjeta">
+    <h3>Alumno</h3>
+    <div class="campo">
+      <label>Nivel</label>
+      <select id="filtroNivel">
+        <option value="todos">Todos</option>
+        <option value="1">Nivel 1</option>
+        <option value="2">Nivel 2</option>
+        <option value="3">Nivel 3</option>
+      </select>
+    </div>
+    <div class="campo">
+      <label>Alumno</label>
+      <select id="selAlumno"><option value="">— Selecciona —</option></select>
+    </div>
+  </div>
+
+  <div id="bloqueAlumno" style="display:none;">
+    <div class="tarjeta resumen">
+      <div class="num" id="calcFinal">—</div>
+      <div class="sub" id="calcDetalle">Sin lecciones capturadas</div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>⚙️ Forma de evaluación <span class="sub" id="pctSuma"></span></h3>
+      <p class="sub" style="margin-bottom:8px;">Porcentaje que vale cada una de las 16 lecciones (debe sumar 100%).</p>
+      <div id="listaPct"></div>
+      <button class="btn btn-sec" id="btnGuardarPct" style="margin-top:8px;">💾 Guardar forma de evaluación</button>
+      <div id="msgPct" class="msg"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>📝 Lecciones (1–16)</h3>
+      <div id="listaLecciones"></div>
+      <div id="avisoEquidad" class="aviso-equidad">
+        ⚠️ <strong>No tienes permiso para modificar una calificación ya registrada.</strong><br>
+        Por equidad y justicia hacia todos los alumnos, los cambios a una calificación ya guardada solo los puede autorizar la administración. Si consideras que hay un error, solicítalo por escrito (indicando el alumno, la lección y el motivo) a tu Administrador o Subadministrador.
+      </div>
+      <div id="msgLecciones" class="msg"></div>
+    </div>
+  </div>
 </div>
+
+<div class="pie">© 2026 Chavarría Producciones</div>
 </div>
 
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script>
 firebase.initializeApp(window.firebaseConfig);
-firebase.auth().onAuthStateChanged(u => {
-  if (!u) window.location.href = 'index.html';
-});
-</script>
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
+const ESCUELA = 'eco';
+const NUM_LECCIONES = 16;
 
+let miPerfil = null, esAdmin = false, puedoEvaluar = false;
+let alumnos = [];
+let alumnoSel = null, contexto = null;
+let porcentajes = Array(NUM_LECCIONES).fill(100 / NUM_LECCIONES);
+let calificaciones = {}; // leccion -> doc data (o null)
+
+function $(id){ return document.getElementById(id); }
+function esc(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  try {
+    const d = await db.collection('usuarios').doc(u.email).get();
+    miPerfil = d.exists ? d.data() : {};
+  } catch (e) { miPerfil = {}; }
+  const roles = miPerfil.roles || {};
+  esAdmin = roles.superAdmin === true || roles.subAdmin === true;
+  puedoEvaluar = esAdmin || miPerfil.eco === true;
+  if (!puedoEvaluar) { $('sinAcceso').style.display = 'block'; return; }
+  $('contenido').style.display = 'block';
+  await cargarAlumnos();
+});
+
+async function cargarAlumnos() {
+  const snap = await db.collection('alumnos').where('eco', '==', true).get();
+  alumnos = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => (a.nombreCompleto||'').localeCompare(b.nombreCompleto||''));
+  pintarSelectorAlumnos();
+}
+function pintarSelectorAlumnos() {
+  const f = $('filtroNivel').value;
+  const lista = f === 'todos' ? alumnos : alumnos.filter(a => (a.ecoNivel||0) === Number(f));
+  $('selAlumno').innerHTML = '<option value="">— Selecciona —</option>' +
+    lista.map(a => `<option value="${a.id}">${esc(a.nombreCompleto)} (Nivel ${a.ecoNivel||'—'})</option>`).join('');
+}
+$('filtroNivel').addEventListener('change', pintarSelectorAlumnos);
+$('selAlumno').addEventListener('change', async () => {
+  const id = $('selAlumno').value;
+  if (!id) { $('bloqueAlumno').style.display = 'none'; return; }
+  const a = alumnos.find(x => x.id === id);
+  if (!a.ecoNivel) { alert('Este alumno no tiene un Nivel asignado en ECO todavía. Asígnalo primero en Alumnos.'); $('selAlumno').value=''; return; }
+  alumnoSel = a;
+  contexto = 'nivel' + a.ecoNivel;
+  $('bloqueAlumno').style.display = 'block';
+  await cargarFormaEvaluar();
+  await cargarCalificaciones();
+  pintarTodo();
+});
+
+async function cargarFormaEvaluar() {
+  const id = ESCUELA + '_' + contexto;
+  const d = await db.collection('formaEvaluar').doc(id).get();
+  porcentajes = d.exists && Array.isArray(d.data().porcentajes) && d.data().porcentajes.length === NUM_LECCIONES
+    ? d.data().porcentajes : Array(NUM_LECCIONES).fill(100 / NUM_LECCIONES);
+}
+async function cargarCalificaciones() {
+  calificaciones = {};
+  const snap = await db.collection('calificaciones')
+    .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
+  snap.forEach(d => { calificaciones[d.data().leccion] = { id: d.id, ...d.data() }; });
+}
+
+function puedoEditarContexto() { return esAdmin || miPerfil.eco === true; }
+
+function pintarTodo() {
+  pintarResumen();
+  pintarPorcentajes();
+  pintarLecciones();
+}
+function pintarResumen() {
+  let suma = 0, pesoCapturado = 0, n = 0;
+  for (let i = 1; i <= NUM_LECCIONES; i++) {
+    const c = calificaciones[i];
+    if (c) { suma += c.valor * (porcentajes[i-1] / 100); pesoCapturado += porcentajes[i-1]; n++; }
+  }
+  $('calcFinal').textContent = n ? suma.toFixed(2) : '—';
+  $('calcDetalle').textContent = n + '/16 lecciones capturadas' + (n ? ' · ' + pesoCapturado.toFixed(1) + '% del encuadre' : '');
+}
+function pintarPorcentajes() {
+  const suma = porcentajes.reduce((a,b)=>a+b,0);
+  $('pctSuma').textContent = '(suma: ' + suma.toFixed(1) + '%)';
+  $('pctSuma').style.color = Math.abs(suma-100) < 0.05 ? '#059669' : '#dc2626';
+  const editable = puedoEditarContexto();
+  $('listaPct').innerHTML = porcentajes.map((p,i) => `
+    <div class="leccion"><span class="num">Lección ${i+1}</span>
+      <input type="number" min="0" max="100" step="0.1" value="${p}" ${editable?'':'disabled'} onchange="porcentajes[${i}]=parseFloat(this.value)||0;pintarPorcentajes();pintarResumen();">
+      <span class="pct">%</span>
+    </div>`).join('');
+  $('btnGuardarPct').style.display = editable ? 'inline-block' : 'none';
+}
+$('btnGuardarPct').addEventListener('click', async () => {
+  const suma = porcentajes.reduce((a,b)=>a+b,0);
+  if (Math.abs(suma - 100) > 0.05) { avisar('msgPct', 'Los porcentajes deben sumar 100% (ahora suman ' + suma.toFixed(1) + '%).', false); return; }
+  try {
+    await db.collection('formaEvaluar').doc(ESCUELA + '_' + contexto).set({
+      escuela: ESCUELA, contexto, contextoNombre: 'Nivel ' + alumnoSel.ecoNivel,
+      porcentajes, actualizadoPor: auth.currentUser.email, fecha: new Date()
+    });
+    avisar('msgPct', '✅ Forma de evaluación guardada', true);
+    pintarResumen();
+  } catch (e) { avisar('msgPct', 'Error: ' + e.message, false); }
+});
+
+function pintarLecciones() {
+  const soyAsignado = puedoEditarContexto();
+  $('listaLecciones').innerHTML = '';
+  for (let i = 1; i <= NUM_LECCIONES; i++) {
+    const c = calificaciones[i];
+    const fila = document.createElement('div');
+    fila.className = 'leccion';
+    if (!c) {
+      fila.innerHTML = `<span class="num">Lección ${i}</span>
+        <input type="number" min="0" max="10" step="0.1" placeholder="—" ${soyAsignado?'':'disabled'} id="nueva_${i}">
+        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
+        ${soyAsignado ? `<span class="cand">Aún sin capturar</span>` : `<span class="cerrado">Sin capturar</span>`}`;
+      if (soyAsignado) {
+        fila.querySelector('input').addEventListener('change', (e) => guardarLeccionNueva(i, e.target));
+      }
+    } else if (esAdmin) {
+      fila.innerHTML = `<span class="num">Lección ${i}</span>
+        <input type="number" min="0" max="10" step="0.1" value="${c.valor}" id="edit_${i}">
+        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
+        <span class="cerrado">${c.editado ? '✏️ Editada (antes: ' + c.valorAnterior + ')' : ''}</span>`;
+      fila.querySelector('input').addEventListener('change', (e) => editarLeccion(i, c, e.target));
+    } else {
+      fila.innerHTML = `<span class="num">Lección ${i}</span>
+        <input type="number" value="${c.valor}" disabled>
+        <span class="pct">${porcentajes[i-1].toFixed(1)}%</span>
+        <button class="lock" title="Ya capturada" onclick="mostrarAvisoEquidad()">🔒</button>`;
+    }
+    $('listaLecciones').appendChild(fila);
+  }
+}
+function mostrarAvisoEquidad() {
+  $('avisoEquidad').style.display = 'block';
+  $('avisoEquidad').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+async function guardarLeccionNueva(leccion, input) {
+  const valor = parseFloat(input.value);
+  if (isNaN(valor) || valor < 0 || valor > 10) { avisar('msgLecciones', 'La calificación debe ser de 0 a 10.', false); return; }
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_L' + leccion;
+  try {
+    await db.collection('calificaciones').doc(id).set({
+      alumnoId: alumnoSel.id, alumnoNombre: alumnoSel.nombreCompleto, escuela: ESCUELA,
+      contexto, contextoNombre: 'Nivel ' + alumnoSel.ecoNivel, leccion, valor,
+      capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
+      editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
+    });
+    calificaciones[leccion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, leccion, valor, editado: false, valorAnterior: null };
+    pintarResumen(); pintarLecciones();
+    avisar('msgLecciones', '✅ Lección ' + leccion + ' guardada', true);
+  } catch (e) {
+    avisar('msgLecciones', e.code === 'permission-denied' ? 'Sin permiso para capturar esta lección.' : 'Error: ' + e.message, false);
+  }
+}
+async function editarLeccion(leccion, actual, input) {
+  const nuevo = parseFloat(input.value);
+  if (isNaN(nuevo) || nuevo < 0 || nuevo > 10) { avisar('msgLecciones', 'La calificación debe ser de 0 a 10.', false); input.value = actual.valor; return; }
+  if (nuevo === actual.valor) return;
+  if (!confirm('¿Cambiar la calificación de la Lección ' + leccion + ' de ' + actual.valor + ' a ' + nuevo + '? Quedará marcada como editada y visible la nota anterior.')) {
+    input.value = actual.valor; return;
+  }
+  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_L' + leccion;
+  try {
+    await db.collection('calificaciones').doc(id).update({
+      valor: nuevo, editado: true, valorAnterior: actual.valor,
+      editadoPor: auth.currentUser.email, fechaEdicion: new Date()
+    });
+    calificaciones[leccion] = { ...actual, valor: nuevo, editado: true, valorAnterior: actual.valor };
+    pintarResumen(); pintarLecciones();
+    avisar('msgLecciones', '✅ Lección ' + leccion + ' editada', true);
+  } catch (e) {
+    avisar('msgLecciones', 'Error: ' + e.message, false); input.value = actual.valor;
+  }
+}
+function avisar(elId, texto, ok) {
+  const el = $(elId);
+  el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err');
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+</script>
 </body>
 </html>
