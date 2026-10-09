@@ -138,7 +138,7 @@ function errorTexto(e) {
   return 'Error: ' + (e && e.message ? e.message : e);
 }
 
-$('subtitulo').textContent = ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de EMID y Diplomados (EMID)';
+$('subtitulo').textContent = ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios y Diplomados (EMID)';
 $('lblScope').textContent = ESC === 'ECO' ? 'Nivel' : 'Diplomado';
 if (ESC === 'ECO') $('campoNivel').style.display = 'none';
 function actualizarTitulo() {
@@ -379,7 +379,7 @@ async function generarReporte() {
   const token = nuevoToken();
   const datos = {
     studentName: a.nombreCompleto,
-    schoolName: ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de EMID y Diplomados (EMID)',
+    schoolName: ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios y Diplomados (EMID)',
     scopeNombre: scopeNombre,
     nivelTexto: ESC === 'EMIN' && nivel ? 'Nivel ' + nivel : '',
     tareas: lista.map(t => ({
@@ -434,7 +434,7 @@ function descargarPDF() {
   const doc = new jsPDF({ orientation: orden.length > 6 ? 'landscape' : 'portrait', unit: 'pt', format: 'letter' });
   const cum = (t, a) => !!(t.cumplimiento && t.cumplimiento[a.id] === true);
   doc.setFontSize(14);
-  doc.text('Cumplimiento de tareas — ' + (ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de EMID y Diplomados (EMID)'), 40, 40);
+  doc.text('Cumplimiento de tareas — ' + (ESC === 'ECO' ? 'Escuela de Consolidación' : 'Escuela de Ministerios y Diplomados (EMID)'), 40, 40);
   doc.setFontSize(10);
   doc.text(scopeNombre + (ESC === 'EMIN' && nivelFiltro ? ' · Nivel ' + nivelFiltro : '') + '    Emitido: ' + hoyISO(), 40, 58);
   doc.autoTable({

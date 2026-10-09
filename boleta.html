@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Boleta de calificaciones</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
+body{background:#1e50c8;min-height:100vh;padding:30px 20px}
+.contenedor{max-width:560px;margin:0 auto}
+.volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
+header.top{text-align:center;color:white;margin-bottom:25px}
+header.top h1{font-size:1.5rem;margin-bottom:8px}
+.tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:20px}
+.tabs{display:flex;gap:8px;margin-bottom:12px}
+.tab{flex:1;padding:11px;border-radius:8px;border:1px solid #d1d5db;background:#fff;font-weight:bold;cursor:pointer;color:#374151}
+.tab.on{background:#1e50c8;color:#fff;border-color:#1e50c8}
+.campo{margin-bottom:12px}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151;font-size:.9rem}
+select,input[type=text]{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+.btn{width:100%;padding:13px;border:none;border-radius:8px;background:#1e50c8;color:#fff;font-weight:bold;font-size:1rem;cursor:pointer;margin-top:6px}
+.btn.gris{background:#e5e7eb;color:#374151}
+.msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.msg.err{background:#fee2e2;color:#b91c1c;display:block}
+.vacio{color:#6b7280;font-style:italic;text-align:center}
+.pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+
+/* ---- Boleta ---- */
+.boleta{background:#fff;color:#111;border-radius:12px;padding:22px;margin-bottom:20px;font-size:.88rem}
+.b-enc{text-align:center;border-bottom:3px double #1e50c8;padding-bottom:10px;margin-bottom:12px}
+.b-enc .ig{font-size:.8rem;color:#374151;letter-spacing:.5px}
+.b-enc h2{font-size:1.15rem;color:#1e50c8;margin:4px 0}
+.b-enc .esc{font-weight:bold}
+.b-datos{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px;margin-bottom:12px}
+.b-datos div b{color:#374151}
+.b-datos .ancho{grid-column:1/-1}
+table.b{width:100%;border-collapse:collapse;margin-bottom:12px}
+table.b th,table.b td{border:1px solid #9ca3af;padding:5px 7px;text-align:left;font-size:.82rem}
+table.b th{background:#e0e9ff}
+table.b td.c,table.b th.c{text-align:center}
+.b-final{display:flex;justify-content:space-between;align-items:center;border:2px solid #1e50c8;border-radius:10px;padding:10px 14px;margin-bottom:12px}
+.b-final .num{font-size:1.9rem;font-weight:bold;color:#1e50c8}
+.b-nota{font-size:.75rem;color:#4b5563;margin-bottom:10px}
+.b-firmas{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:34px;text-align:center;font-size:.8rem}
+.b-firmas div{border-top:1px solid #111;padding-top:4px}
+.b-res{text-align:center;font-weight:bold;font-size:1rem;border-radius:8px;padding:8px;margin-bottom:12px}
+.b-res.ap{background:#d1fae5;color:#065f46}.b-res.no{background:#fee2e2;color:#b91c1c}.b-res.pr{background:#fef3c7;color:#92400e}
+.ok{color:#047857;font-weight:bold}.mal{color:#b45309;font-weight:bold}
+
+@media print{
+  body{background:#fff;padding:0}
+  .contenedor{max-width:none}
+  .noprint,.volver,header.top,.pie{display:none !important}
+  .boleta{border-radius:0;margin:0;padding:14mm;page-break-after:always;break-after:page}
+  .boleta:last-child{page-break-after:auto;break-after:auto}
+  @page{size:letter;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="contenedor">
+<a href="escuelas.html" class="volver noprint">← Volver</a>
+<header class="top noprint"><h1>📄 Boleta de calificaciones</h1><p>Una por escuela</p></header>
+
+<div class="tarjeta noprint" id="panel">
+  <div id="msg" class="msg"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="campo"><label id="lblScope">Nivel</label><select id="scope"></select></div>
+  <div class="campo"><label>Alumno</label><select id="alumno"><option value="">Todo el grupo (una boleta por alumno)</option></select></div>
+  <div class="campo"><label>Ciclo o periodo (opcional)</label><input type="text" id="ciclo" placeholder="Ej. Agosto – Diciembre 2026"></div>
+  <button class="btn" id="btnGenerar" onclick="generar()">📄 Generar boleta</button>
+</div>
+
+<div id="boletas"></div>
+<div class="tarjeta noprint" id="acciones" style="display:none">
+  <button class="btn" onclick="window.print()">🖨️ Imprimir o guardar como PDF</button>
+  <p class="vacio" style="margin-top:8px;font-size:.8rem">En el celular: Imprimir → «Guardar como PDF».</p>
+</div>
+<div class="pie noprint">© 2026 Chavarría Producciones</div>
+</div>
+
+<script src="config.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+firebase.initializeApp(window.firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+
+const NUM = 16;
+const PCT_DEFAULT = { tareas: 75, participacion: 10, examen: 5, asistencia: 5, proyecto: 5 };
+const MIN_ASIST = 75; // % mínimo de asistencia (ECO y EMID)
+const MIN_APROBAR = 7.0; // calificación mínima aprobatoria (sobre 10)
+
+// Temario ECO (iafcj.org/eco): 4 unidades x 4 lecciones por nivel
+const ECO_TEMARIO = {
+  1: { nombre: 'Carácter y estilo de vida cristiana', u: [
+    ['El carácter cristiano', ['Hábitos espirituales', 'Integridad', 'Superación permanente', 'Carácter del servidor']],
+    ['La familia', ['Modelo bíblico', 'Roles y compromisos', 'La familia como núcleo del reino', 'Cuidados familiares']],
+    ['La iglesia', ['Cuerpo de Cristo', 'Pertenencia', 'Vida comunitaria', 'Servicio']],
+    ['La sociedad y sus propuestas', ['Valores y antivalores', 'Tendencias frente a la Palabra de Dios', 'El mensaje de Jesús', 'Compromiso con el llamado']] ] },
+  2: { nombre: 'Las bases de nuestra fe', u: [
+    ['La unicidad de Dios', ['Un solo Dios', 'Jesucristo', 'El Espíritu Santo', 'La resurrección']],
+    ['Fundamentos de la doctrina', ['La Biblia', 'La salvación', 'La gracia', 'La fe']],
+    ['Institucionalidad y tiempos finales', ['La iglesia y el Estado', 'Sistema económico', 'Cuerpo ministerial', 'Tiempos finales']],
+    ['Afirmación de la pertenencia', ['Bautismo y comunión', 'Matrimonio', 'Sanidad divina', 'Santidad frente al pecado de muerte']] ] },
+  3: { nombre: 'Discipulado y ministerios', u: [
+    ['El discipulado', ['Definición', 'Propósito', 'Responsabilidad personal', 'Estrategia bíblica']],
+    ['Perfil del discípulo discipulador', ['Actitud como fruto del Espíritu', 'Estilo de vida', 'Compromiso', 'Lealtad']],
+    ['Principios del proceso discipular', ['Capacidades personales', 'Discipulado y ministerios', 'Proyecto de vida ministerial', 'Desafíos actuales']],
+    ['Dones y su función', ['Los dones como equipamiento', 'Dones en 1 Corintios 12:8-10', 'Dones en Romanos 12:6-8 y Efesios 4:8-13', 'Identifica tus dones']] ] }
+};
+
+let perfil = {}, esAdmin = false;
+let ESC = 'eco';
+let alumnos = [], dips = [];
+let scopes = [];
+
+function aviso(t) { const m = $('msg'); m.textContent = t; m.className = 'msg err'; }
+function limpiarAviso() { $('msg').className = 'msg'; }
+
+auth.onAuthStateChanged(async u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  try { const d = await db.collection('usuarios').doc(u.email).get(); perfil = d.exists ? d.data() : {}; } catch (e) { perfil = {}; }
+  const r = perfil.roles || {};
+  esAdmin = r.superAdmin === true || r.subAdmin === true;
+  if (!esAdmin && perfil.eco !== true && perfil.em !== true) {
+    $('panel').innerHTML = '<p class="vacio">Solo administradores y docentes pueden generar boletas.</p>';
+    return;
+  }
+  try {
+    const [a, c] = await Promise.all([
+      db.collection('alumnos').get(),
+      db.collection('catalogo').where('tipo', '==', 'diplomado').get()
+    ]);
+    alumnos = a.docs.map(d => ({ id: d.id, ...d.data() }));
+    dips = c.docs.map(d => ({ id: d.id, ...d.data() })).sort((x, y) => norm(x.nombre).localeCompare(norm(y.nombre)));
+  } catch (e) { console.error(e); aviso('No se pudieron cargar los datos: ' + e.message); return; }
+  const t = [];
+  if (esAdmin || perfil.eco === true) t.push(['eco', '🏫 ECO']);
+  if (esAdmin || perfil.em === true) t.push(['ministerios', '⛪ EMID']);
+  $('tabs').innerHTML = t.map(x => '<button class="tab" data-e="' + x[0] + '" onclick="elegirEsc(\'' + x[0] + '\')">' + x[1] + '</button>').join('');
+  const p = new URLSearchParams(location.search).get('escuela');
+  elegirEsc(t.some(x => x[0] === p) ? p : t[0][0]);
+});
+
+function elegirEsc(e) {
+  ESC = e;
+  limpiarAviso();
+  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.e === e));
+  $('lblScope').textContent = e === 'eco' ? 'Nivel' : 'Diplomado';
+  if (e === 'eco') {
+    const niv = esAdmin ? [1, 2, 3] : (perfil.ecoNiveles || []).map(Number);
+    scopes = niv.map(n => ({ id: 'nivel' + n, nombre: 'Nivel ' + n + ' — ' + ECO_TEMARIO[n].nombre, n }));
+  } else {
+    const ids = perfil.diplomadosIds || {};
+    scopes = dips.filter(d => esAdmin || ids[d.id] === true).map(d => ({ id: d.id, nombre: d.nombre }));
+  }
+  $('scope').innerHTML = scopes.length ? scopes.map(s => '<option value="' + s.id + '">' + esc(s.nombre) + '</option>').join('') : '<option value="">(sin asignaciones)</option>';
+  $('scope').onchange = pintarAlumnos;
+  pintarAlumnos();
+  $('boletas').innerHTML = ''; $('acciones').style.display = 'none';
+}
+
+function alumnosDelScope() {
+  const s = $('scope').value;
+  if (!s) return [];
+  let l;
+  if (ESC === 'eco') l = alumnos.filter(a => a.eco === true && 'nivel' + a.ecoNivel === s);
+  else l = alumnos.filter(a => a.em === true && (a.inscripciones || []).some(i => i.diplomadoId === s));
+  return l.sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+}
+function pintarAlumnos() {
+  $('alumno').innerHTML = '<option value="">Todo el grupo (una boleta por alumno)</option>' +
+    alumnosDelScope().map(a => '<option value="' + a.id + '">' + esc(a.nombreCompleto) + '</option>').join('');
+}
+
+const estadoDe = r => r ? (r.estado || (r.presente ? 'A' : 'F')) : '';
+
+async function generar() {
+  limpiarAviso();
+  const s = $('scope').value;
+  if (!s) { aviso('Elige un nivel o diplomado'); return; }
+  const sc = scopes.find(x => x.id === s);
+  let als = alumnosDelScope();
+  const uno = $('alumno').value;
+  if (uno) als = als.filter(a => a.id === uno);
+  if (!als.length) { aviso('No hay alumnos inscritos aquí'); return; }
+  const btn = $('btnGenerar'); btn.disabled = true; btn.textContent = 'Generando...';
+  try {
+    const q = col => db.collection(col).where('escuela', '==', ESC).where('contexto', '==', s).get();
+    const [cal, rub, asi, forma] = await Promise.all([
+      q('calificaciones'), q('rubrosCalificacion'),
+      q('asistenciaSesiones').catch(() => null),
+      db.collection('formaEvaluar').doc(ESC + '_' + s).get().catch(() => null)
+    ]);
+    const pct = Object.assign({}, PCT_DEFAULT, forma && forma.exists && forma.data().porcentajes ? forma.data().porcentajes : {});
+    const T = {}, R = {}, A = {};
+    cal.forEach(d => { const x = d.data(); (T[x.alumnoId] = T[x.alumnoId] || {})[x.leccion] = x.valor; });
+    rub.forEach(d => { const x = d.data(); (R[x.alumnoId] = R[x.alumnoId] || {})[x.rubroId] = x.valor; });
+    if (asi) asi.forEach(d => { const x = d.data(); (A[x.alumnoId] = A[x.alumnoId] || {})[x.sesion] = estadoDe(x); });
+    const ciclo = $('ciclo').value.trim();
+    $('boletas').innerHTML = als.map(a => boleta(a, sc, pct, T[a.id] || {}, R[a.id] || {}, A[a.id] || {}, ciclo, !!asi)).join('');
+    $('acciones').style.display = 'block';
+    $('boletas').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    console.error(e);
+    aviso(e.code === 'permission-denied' ? 'Sin permiso para leer estos datos.' : 'Error: ' + e.message);
+  }
+  btn.disabled = false; btn.textContent = '📄 Generar boleta';
+}
+
+function nombreLeccion(n, sc) {
+  if (ESC !== 'eco') return 'Tarea ' + n;
+  const t = ECO_TEMARIO[sc.n], u = Math.floor((n - 1) / 4), l = (n - 1) % 4;
+  return 'U' + (u + 1) + ' · ' + t.u[u][1][l];
+}
+const f1 = n => (Math.round(n * 10) / 10).toFixed(1);
+
+function boleta(a, sc, pct, tareas, rubros, asist, ciclo, hayAsistencia) {
+  const vals = Object.values(tareas).filter(v => typeof v === 'number');
+  const prom = vals.length ? vals.reduce((x, y) => x + y, 0) / vals.length : null;
+  let total = 0, peso = 0;
+  if (prom !== null) { total += prom / 10 * pct.tareas; peso += pct.tareas; }
+  ['participacion', 'examen', 'proyecto'].forEach(id => { if (typeof rubros[id] === 'number') { total += rubros[id] / 10 * pct[id]; peso += pct[id]; } });
+  let nA = 0, nF = 0, nFJ = 0;
+  for (let i = 1; i <= NUM; i++) { const e = asist[i]; if (e === 'A') nA++; else if (e === 'F') nF++; else if (e === 'FJ') nFJ++; }
+  const reg = nA + nF + nFJ;
+  if (reg > 0) { total += pct.asistencia * nA / NUM; peso += pct.asistencia * reg / NUM; }
+  const final = peso > 0 ? f1(total / 10) : '—';
+  const pctAsist = Math.round(nA / NUM * 100);
+
+  let filas = '';
+  for (let i = 1; i <= NUM; i++) {
+    const v = tareas[i];
+    const e = asist[i] || '';
+    filas += '<tr><td class="c">' + i + '</td><td>' + esc(nombreLeccion(i, sc)) + '</td><td class="c">' + (typeof v === 'number' ? f1(v) : '—') + '</td><td class="c">' + (e || '—') + '</td></tr>';
+  }
+  const rub = (id, nom) => '<tr><td>' + nom + '</td><td class="c">' + pct[id] + '%</td><td class="c">' + (typeof rubros[id] === 'number' ? f1(rubros[id]) : '—') + '</td></tr>';
+
+  const esEco = ESC === 'eco';
+  // Resultado: aprobado con 7.0 o más (y 75% de asistencia, en ambas escuelas). "En proceso" si aún no está todo capturado.
+  const finalNum = peso > 0 ? Math.round(total / 10 * 10) / 10 : null;
+  const completo = peso >= 99.9 && reg === NUM && vals.length === NUM;
+  let resHTML;
+  if (finalNum === null || !completo) {
+    resHTML = '<div class="b-res pr">EN PROCESO — faltan calificaciones o asistencias por capturar</div>';
+  } else if (finalNum < MIN_APROBAR) {
+    resHTML = '<div class="b-res no">NO APROBADO — mínimo aprobatorio ' + f1(MIN_APROBAR) + '</div>';
+  } else if (pctAsist < MIN_ASIST) {
+    resHTML = '<div class="b-res no">NO APROBADO — asistencia menor al ' + MIN_ASIST + '% requerido</div>';
+  } else {
+    resHTML = '<div class="b-res ap">APROBADO</div>';
+  }
+  const nivDip = esEco ? '' : (() => { const i = (a.inscripciones || []).find(x => x.diplomadoId === sc.id); return a.emNivel ? 'Nivel ' + a.emNivel + (a.emNivel === 1 ? ' (teórico)' : ' (práctico)') : ''; })();
+  const cumple = hayAsistencia && reg > 0 ? (pctAsist >= MIN_ASIST ? '<span class="ok">Cumple</span>' : '<span class="mal">No cumple</span>') : '—';
+
+  return '<div class="boleta">' +
+    '<div class="b-enc"><div class="ig">IGLESIA APOSTÓLICA DE LA FE EN CRISTO JESÚS · TERCERA DE COLIMA</div>' +
+      '<h2>BOLETA DE CALIFICACIONES</h2>' +
+      '<div class="esc">' + (esEco ? 'Escuela de Consolidación (ECO)' : 'Escuela de Ministerios y Diplomados (EMID)') + '</div></div>' +
+    '<div class="b-datos">' +
+      '<div class="ancho"><b>Alumno:</b> ' + esc(a.nombreCompleto) + '</div>' +
+      '<div><b>' + (esEco ? 'Nivel' : 'Diplomado') + ':</b> ' + esc(sc.nombre) + '</div>' +
+      (nivDip ? '<div><b>Grado:</b> ' + nivDip + '</div>' : '<div><b>Fecha:</b> ' + new Date().toLocaleDateString('es-MX') + '</div>') +
+      (ciclo ? '<div><b>Ciclo:</b> ' + esc(ciclo) + '</div>' : '') +
+      (nivDip ? '<div><b>Fecha:</b> ' + new Date().toLocaleDateString('es-MX') + '</div>' : '') +
+    '</div>' +
+    '<table class="b"><tr><th class="c">#</th><th>' + (esEco ? 'Lección' : 'Tarea / lección') + '</th><th class="c">Calif. (tarea)</th><th class="c">Asist.</th></tr>' + filas +
+      '<tr><th colspan="2">Promedio de tareas</th><th class="c">' + (prom !== null ? f1(prom) : '—') + '</th><th class="c">' + nA + '/' + NUM + '</th></tr></table>' +
+    '<table class="b"><tr><th>Rubro</th><th class="c">Valor</th><th class="c">Calif. (0–10)</th></tr>' +
+      '<tr><td>Tareas (promedio)</td><td class="c">' + pct.tareas + '%</td><td class="c">' + (prom !== null ? f1(prom) : '—') + '</td></tr>' +
+      rub('participacion', 'Participación') + rub('examen', 'Examen') + rub('proyecto', 'Proyecto') +
+      '<tr><td>Asistencia (' + nA + ' de ' + NUM + ' sesiones)</td><td class="c">' + pct.asistencia + '%</td><td class="c">' + (reg ? f1(nA / NUM * 10) : '—') + '</td></tr></table>' +
+    '<div class="b-final"><div><b>Calificación final</b><div class="b-nota" style="margin:2px 0 0">Sobre 10 · mínimo aprobatorio ' + f1(MIN_APROBAR) + (peso > 0 && peso < 99.9 ? ' · con ' + f1(peso) + '% del encuadre capturado' : '') + '</div></div><div class="num">' + final + '</div></div>' +
+    resHTML +
+    '<div class="b-nota"><b>Asistencia:</b> A ' + nA + ' · F ' + nF + ' · FJ ' + nFJ + ' · ' + pctAsist + '%' + ' · Mínimo requerido (' + MIN_ASIST + '%): ' + cumple +
+      '<br>A = asistió · F = faltó · FJ = falta justificada (no suma asistencia).</div>' +
+    '<div class="b-firmas"><div>Docente</div><div>Administración</div></div>' +
+  '</div>';
+}
+</script>
+</body>
+</html>

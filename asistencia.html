@@ -336,13 +336,13 @@ async function guardarLista() {
 function pintarResumen() {
   const als = alumnosDelScope();
   if (!als.length) { $('resumen').innerHTML = '<p class="vacio">—</p>'; return; }
-  let h = '<table><tr><th>Alumno</th><th>A</th><th>F</th><th>FJ</th><th>%</th>' + (ESC === 'eco' ? '<th>75%</th>' : '') + '</tr>';
+  let h = '<table><tr><th>Alumno</th><th>A</th><th>F</th><th>FJ</th><th>%</th>' + '<th>75%</th>' + '</tr>';
   als.forEach(a => {
     let A = 0, F = 0, FJ = 0;
     for (let i = 1; i <= NUM; i++) { const e = estadoDe(regs[a.id + '_' + i]); if (e === 'A') A++; else if (e === 'F') F++; else if (e === 'FJ') FJ++; }
-    h += '<tr><td>' + esc(a.nombreCompleto) + '</td><td>' + A + '</td><td>' + F + '</td><td>' + FJ + '</td><td><b>' + Math.round(A / NUM * 100) + '%</b></td>' + (ESC === 'eco' ? '<td>' + (A / NUM * 100 >= MIN_ASIST_ECO ? '✅' : '⚠️') + '</td>' : '') + '</tr>';
+    h += '<tr><td>' + esc(a.nombreCompleto) + '</td><td>' + A + '</td><td>' + F + '</td><td>' + FJ + '</td><td><b>' + Math.round(A / NUM * 100) + '%</b></td>' + '<td>' + (A / NUM * 100 >= MIN_ASIST_ECO ? '✅' : '⚠️') + '</td>' + '</tr>';
   });
-  $('resumen').innerHTML = h + '</table><p class="leyenda" style="margin-top:8px">El porcentaje cuenta las asistencias (A) de las 16 sesiones.' + (ESC === 'eco' ? ' Para egresar de ECO se requiere al menos 75% (12 de 16).' : '') + '</p>';
+  $('resumen').innerHTML = h + '</table><p class="leyenda" style="margin-top:8px">El porcentaje cuenta las asistencias (A) de las 16 sesiones.' + ' Para aprobar se requiere al menos 75% de asistencia (12 de 16).' + '</p>';
 }
 
 /* ---------- finalizar curso ---------- */
