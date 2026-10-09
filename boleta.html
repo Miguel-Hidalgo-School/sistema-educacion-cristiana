@@ -28,6 +28,7 @@ select,input[type=text]{width:100%;padding:11px;border:1px solid #d1d5db;border-
 /* ---- Boleta ---- */
 .boleta{background:#fff;color:#111;border-radius:12px;padding:22px;margin-bottom:20px;font-size:.88rem}
 .b-enc{text-align:center;border-bottom:3px double #1e50c8;padding-bottom:10px;margin-bottom:12px}
+.b-enc .ig{font-size:.8rem;color:#374151;letter-spacing:.5px;margin-top:2px}
 .b-enc .logo{display:block;margin:0 auto 4px;width:78px;height:78px}
 .b-pie{text-align:center;margin-top:18px}
 .b-pie img{width:105px;height:auto}
@@ -267,6 +268,7 @@ function boleta(a, sc, pct, tareas, rubros, asist, ciclo, hayAsistencia) {
 
   return '<div class="boleta">' +
     '<div class="b-enc"><img class="logo" src="' + LOGO + '" alt="Logo">' +
+      '<div class="ig">IGLESIA APOSTÓLICA DE LA FE EN CRISTO JESÚS · TERCERA DE COLIMA</div>' +
       '<h2>BOLETA DE CALIFICACIONES</h2>' +
       '<div class="esc">' + (esEco ? 'Escuela de Consolidación (ECO)' : 'Escuela de Ministerios y Diplomados (EMID)') + '</div></div>' +
     '<div class="b-datos">' +
