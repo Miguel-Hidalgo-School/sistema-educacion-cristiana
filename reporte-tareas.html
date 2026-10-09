@@ -58,9 +58,9 @@ function pintar(d) {
     '<p class="sub">' + esc(d.schoolName) + ' · ' + esc(d.scopeNombre) + (d.nivelTexto ? ' · ' + esc(d.nivelTexto) : '') + '</p>' +
     '<p class="nombre">' + esc(d.studentName) + '</p>' +
     '<div class="resumen">' +
-      '<div class="box" style="background:#f0fdf4;"><div class="num" style="color:#16a34a;">' + cumplidas + '</div><div class="lbl">CUMPLIDAS</div></div>' +
+      '<div class="box" style="background:#f0fdf4;"><div class="num" style="color:#16a34a;">' + cumplidas + '</div><div class="lbl">CALIFICADAS</div></div>' +
       '<div class="box" style="background:#fef2f2;"><div class="num" style="color:#dc2626;">' + (total - cumplidas) + '</div><div class="lbl">PENDIENTES</div></div>' +
-      '<div class="box" style="background:#eff6ff;"><div class="num" style="color:#2563eb;">' + total + '</div><div class="lbl">TOTAL</div></div>' +
+      '<div class="box" style="background:#eff6ff;"><div class="num" style="color:#2563eb;">' + (typeof d.promedio === 'number' ? (Math.round(d.promedio * 10) / 10).toFixed(1) : '—') + '</div><div class="lbl">PROMEDIO</div></div>' +
     '</div></div><div class="card">';
   if (!tareas.length) {
     h += '<p class="sub">Aún no hay tareas registradas.</p>';
@@ -70,7 +70,7 @@ function pintar(d) {
       h += '<div class="tarea ' + (t.cumplio ? 'cumplio' : 'pendiente') + '"><div class="top"><div>' +
         '<p class="titulo">' + (t.tipo === 'casa' ? '🏠' : '⛪') + ' ' + esc(t.titulo) + '</p>' +
         '<p class="meta">' + esc(t.materia) + ' · ' + (t.tipo === 'casa' ? 'En casa' : 'En la iglesia') + (t.fecha ? ' · Entrega ' + esc(t.fecha) : '') + (venc ? ' · <span class="venc">Vencida</span>' : '') + '</p></div>' +
-        '<span class="pill" style="background:' + (t.cumplio ? '#dcfce7' : '#fee2e2') + ';color:' + (t.cumplio ? '#166534' : '#991b1b') + ';">' + (t.cumplio ? '✅ Cumplió' : '⏳ Pendiente') + '</span></div>' +
+        '<span class="pill" style="background:' + (t.cumplio ? '#dcfce7' : '#fee2e2') + ';color:' + (t.cumplio ? '#166534' : '#991b1b') + ';">' + (t.cumplio ? '✅ ' + (typeof t.nota === 'number' ? t.nota : 'Calificada') : '⏳ Sin calificar') + '</span></div>' +
         (t.observaciones ? '<p class="obs">' + esc(t.observaciones) + '</p>' : '') + '</div>';
     });
   }

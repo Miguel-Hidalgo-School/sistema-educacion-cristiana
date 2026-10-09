@@ -154,6 +154,7 @@ table.leyenda td{border:1px solid #d1d5db;padding:3px 6px}
 firebase.initializeApp(window.firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
 
 const params = new URLSearchParams(window.location.search);
 const ESC = (params.get('escuela') || '').toLowerCase() === 'eco' ? 'ECO' : 'EMIN';
@@ -306,7 +307,7 @@ function pintar() {
 
   $('lista').innerHTML = lista.map(t => {
     const cum = t.cumplimiento || {};
-    const c = als.filter(a => cum[a.id] === true).length;
+    const c = als.filter(a => notaDe(t, a) !== null).length;
     const ico = t.lugar === 'casa' ? '🏠' : '⛪';
     let est = '';
     if (t.fechaEntrega && c < als.length) {
@@ -318,8 +319,7 @@ function pintar() {
       const ex = lec ? califs[a.id + '_' + lec] : null;
       const nota = notaDe(t, a);
       const bloq = !!ex && !esAdmin;
-      return '<div class="alw"><label class="al"><input type="checkbox" ' + (cum[a.id] === true ? 'checked' : '') +
-        ' onchange="marcar(\'' + t.id + '\',\'' + a.id + '\', this.checked)"><span>' + esc(a.nombreCompleto) + '</span></label>' +
+      return '<div class="alw"><div class="al" style="cursor:default"><span>' + esc(a.nombreCompleto) + '</span></div>' +
         '<input class="nota" type="number" min="5" max="10" step="0.1" inputmode="decimal" placeholder="—" value="' + (nota !== null ? fmtN(nota) : '') + '" ' + (bloq ? 'disabled title="Ya está en Calificaciones; solo administración la cambia"' : '') +
         ' onchange="calificar(\'' + t.id + '\',\'' + a.id + '\', this)">' +
         (ex ? '<span class="vinc" title="Vinculada a Calificaciones (lección ' + lec + ')">🔗</span>' : '') + '</div>';
@@ -328,11 +328,10 @@ function pintar() {
     return '<details class="t" data-id="' + t.id + '" ' + (abiertas.has(t.id) ? 'open' : '') + '>' +
       '<summary><div class="fila"><div class="ico">' + ico + '</div>' +
       '<div class="info"><div class="nom">' + esc(t.titulo) + '</div>' +
-      '<div class="sub">' + esc(t.scopeNombre || scopeNombre) + ' · ' + (t.lugar === 'casa' ? 'En casa' : 'En la iglesia') + ' · ' + (t.fechaEntrega || '') + ' · ' + c + '/' + als.length + ' cumplieron' + (lec ? ' · 🔗 Lección ' + lec : '') + est + '</div></div>' +
+      '<div class="sub">' + esc(t.scopeNombre || scopeNombre) + ' · ' + (t.lugar === 'casa' ? 'En casa' : 'En la iglesia') + ' · ' + (t.fechaEntrega || '') + ' · ' + c + '/' + als.length + ' calificados' + (lec ? ' · 🔗 Lección ' + lec : '') + est + '</div></div>' +
       '<button class="x" onclick="event.preventDefault();event.stopPropagation();borrar(\'' + t.id + '\')">✕</button></div></summary>' +
       '<div class="det">' + (t.descripcion ? '<div class="desc">' + esc(t.descripcion) + '</div>' : '') +
-      '<div class="acciones"><button class="btn2 azul" onclick="marcarTodos(\'' + t.id + '\', true)">✔ Marcar todos</button>' +
-      '<button class="btn2" onclick="marcarTodos(\'' + t.id + '\', false)">Limpiar</button>' +
+      '<div class="acciones"><button class="btn2 azul" onclick="calificarTodos(\'' + t.id + '\')">⚡ Calificar a todos</button>' +
       '<button class="btn2" onclick="abrirForm(\'' + t.id + '\')">✏️ Editar</button></div>' + filas + '</div></details>';
   }).join('');
 }
@@ -417,7 +416,15 @@ async function calificar(id, alId, input) {
   const lec = t.leccion ? Number(t.leccion) : 0;
   const ex = lec ? califs[alId + '_' + lec] : null;
   const txt = input.value.trim();
-  if (txt === '') { pintar(); return; }
+  if (txt === '') {
+    if (ex) { pintar(); return; }
+    try {
+      await db.collection('tareas').doc(id).update({ ['cumplimiento.' + alId]: FV.delete(), ['calificaciones.' + alId]: FV.delete() });
+      if (t.cumplimiento) delete t.cumplimiento[alId];
+      if (t.calificaciones) delete t.calificaciones[alId];
+    } catch (e) { console.error(e); aviso(errorTexto(e), false); }
+    pintar(); return;
+  }
   const v = parseFloat(txt);
   if (isNaN(v) || v < 5 || v > 10) { aviso('La calificación va de 5 a 10.', false); pintar(); return; }
   try {
@@ -449,6 +456,19 @@ async function calificar(id, alId, input) {
     aviso(errorTexto(e), false);
     await recargarTareas();
   }
+}
+
+async function calificarTodos(id) {
+  const t = tareas.find(x => x.id === id);
+  if (!t) return;
+  const txt = prompt('Calificación (5 a 10) para los alumnos que aún no tienen calificación en esta tarea:', '10');
+  if (txt === null) return;
+  const v = parseFloat(String(txt).replace(',', '.'));
+  if (isNaN(v) || v < 5 || v > 10) { aviso('La calificación va de 5 a 10.', false); return; }
+  const pend = alumnosDelScope().filter(a => notaDe(t, a) === null);
+  if (!pend.length) { aviso('Todos ya tienen calificación en esta tarea'); return; }
+  for (const a of pend) { const i = document.createElement('input'); i.value = String(v); await calificar(id, a.id, i); }
+  aviso('✅ ' + pend.length + ' alumno(s) calificados con ' + v);
 }
 
 async function marcarTodos(id, val) {
@@ -505,9 +525,11 @@ async function generarReporte() {
     tareas: lista.map(t => ({
       titulo: t.titulo, tipo: t.lugar === 'casa' ? 'casa' : 'iglesia',
       materia: t.scopeNombre || scopeNombre, fecha: t.fechaEntrega || '',
-      cumplio: !!(t.cumplimiento && t.cumplimiento[a.id] === true),
+      cumplio: notaDe(t, a) !== null,
+      nota: notaDe(t, a),
       observaciones: t.descripcion || ''
     })),
+    promedio: promedioAlumno(lista, a),
     creadoPor: auth.currentUser.email, fechaCreacion: new Date(),
     expiresAt: Date.now() + 15 * 24 * 60 * 60 * 1000
   };
@@ -552,16 +574,15 @@ function datosLista() {
 }
 function celda(t, a) {
   const n = notaDe(t, a);
-  if (n !== null) return { txt: fmtN(n), cls: 'si' };
-  const c = t.cumplimiento && t.cumplimiento[a.id];
-  if (c === true) return { txt: '✔', cls: 'si' };
-  if (c === false) return { txt: '✗', cls: 'no' };
-  return { txt: '—', cls: '' };
+  return n !== null ? { txt: fmtN(n), cls: 'si' } : { txt: '—', cls: 'no' };
 }
+// Promedio = suma de calificaciones ÷ TODAS las tareas asignadas (las sin calificar cuentan como 0)
 function promedioAlumno(orden, a) {
-  const v = orden.map(t => notaDe(t, a)).filter(x => x !== null);
-  return v.length ? v.reduce((x, y) => x + y, 0) / v.length : null;
+  if (!orden.length) return null;
+  const suma = orden.reduce((x, t) => x + (notaDe(t, a) || 0), 0);
+  return suma / orden.length;
 }
+const fmt1 = n => (Math.round(n * 10) / 10).toFixed(1);
 function verLista() {
   const { als, orden } = datosLista();
   if (!orden.length) { aviso('No hay tareas para mostrar', false); return; }
@@ -569,14 +590,14 @@ function verLista() {
   let h = '<div class="v-enc"><img src="' + LOGO + '" alt="Logo"><div class="ig">IGLESIA APOSTÓLICA DE LA FE EN CRISTO JESÚS · TERCERA DE COLIMA</div>' +
     '<h2>CUMPLIMIENTO DE TAREAS</h2><div style="font-weight:bold">' + escNom + '</div>' +
     '<div class="sub">' + esc(scopeNombre) + (ESC === 'EMIN' && nivelFiltro ? ' · Nivel ' + nivelFiltro : '') + ' · Generado el ' + new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) + '</div></div>';
-  h += '<div class="v-scroll"><table class="mat"><tr><th>Alumno</th>' + orden.map((_, i) => '<th>T' + (i + 1) + '</th>').join('') + '<th>Cumplió</th><th>Prom.</th></tr>';
+  h += '<div class="v-scroll"><table class="mat"><tr><th>Alumno</th>' + orden.map((_, i) => '<th>T' + (i + 1) + '</th>').join('') + '<th>Calif.</th><th>Prom.</th></tr>';
   als.forEach(a => {
     let ok = 0;
-    const tds = orden.map(t => { const c = celda(t, a); if (c.txt !== '—' && c.txt !== '✗') ok++; return '<td class="' + c.cls + '">' + c.txt + '</td>'; }).join('');
+    const tds = orden.map(t => { const c = celda(t, a); if (c.txt !== '—') ok++; return '<td class="' + c.cls + '">' + c.txt + '</td>'; }).join('');
     const pr = promedioAlumno(orden, a);
-    h += '<tr><td class="n">' + esc(a.nombreCompleto) + '</td>' + tds + '<td><b>' + ok + '/' + orden.length + '</b></td><td><b>' + (pr !== null ? fmtN(pr) : '—') + '</b></td></tr>';
+    h += '<tr><td class="n">' + esc(a.nombreCompleto) + '</td>' + tds + '<td><b>' + ok + '/' + orden.length + '</b></td><td><b>' + (pr !== null ? fmt1(pr) : '—') + '</b></td></tr>';
   });
-  h += '</table></div><p class="v-nota">Número = calificación · ✔ = cumplió sin calificación · ✗ = no cumplió · — = sin registro</p>';
+  h += '</table></div><p class="v-nota">Número = calificación (5 a 10) · — = sin calificar (cuenta como 0) · Prom. = suma de calificaciones ÷ tareas asignadas (' + orden.length + ')</p>';
   h += '<table class="leyenda">' + orden.map((t, i) => '<tr><td><b>T' + (i + 1) + '</b></td><td>' + (t.lugar === 'casa' ? '🏠' : '⛪') + ' ' + esc(t.titulo) + (t.leccion ? ' (lección ' + t.leccion + ')' : '') + ' · ' + (t.fechaEntrega || '') + '</td></tr>').join('') + '</table>';
   $('vistaCont').innerHTML = h;
   $('vista').classList.remove('oculto');
@@ -606,8 +627,8 @@ function descargarPDF() {
   doc.text(scopeNombre + (ESC === 'EMIN' && nivelFiltro ? ' · Nivel ' + nivelFiltro : '') + '    Emitido: ' + hoyISO(), 92, 58);
   doc.autoTable({
     startY: 76,
-    head: [['#', 'Tarea', 'Lugar', 'Entrega', 'Cumplieron']],
-    body: orden.map((t, i) => [i + 1, t.titulo, t.lugar === 'casa' ? 'En casa' : 'En la iglesia', t.fechaEntrega || '', als.filter(a => celda(t, a).txt !== '—' && celda(t, a).txt !== '✗').length + '/' + als.length]),
+    head: [['#', 'Tarea', 'Lugar', 'Entrega', 'Calificados']],
+    body: orden.map((t, i) => [i + 1, t.titulo, t.lugar === 'casa' ? 'En casa' : 'En la iglesia', t.fechaEntrega || '', als.filter(a => celda(t, a).txt !== '—').length + '/' + als.length]),
     styles: { fontSize: 9 }, headStyles: { fillColor: [30, 80, 200] }
   });
   doc.autoTable({
@@ -615,7 +636,7 @@ function descargarPDF() {
     head: [['Alumno'].concat(orden.map((_, i) => 'T' + (i + 1)), ['Prom.'])],
     body: als.map(a => {
       const pr = promedioAlumno(orden, a);
-      return [a.nombreCompleto].concat(orden.map(t => { const c = celda(t, a).txt; return c === '✔' ? 'Sí' : (c === '✗' ? 'No' : c); }), [pr !== null ? fmtN(pr) : '—']);
+      return [a.nombreCompleto].concat(orden.map(t => celda(t, a).txt), [pr !== null ? fmt1(pr) : '—']);
     }),
     styles: { fontSize: 8, halign: 'center' }, columnStyles: { 0: { halign: 'left' } }, headStyles: { fillColor: [30, 80, 200] }
   });
