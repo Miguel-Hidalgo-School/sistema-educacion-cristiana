@@ -28,18 +28,18 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:25px;font-size:.9rem}
 .fila{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f3f4f6}
 .fila:last-child{border-bottom:none}
-.fila .num{width:78px;font-size:.85rem;color:#374151;font-weight:bold}
+.fila .num{width:110px;font-size:.85rem;color:#374151;font-weight:bold}
 .fila input{width:70px;text-align:center;padding:7px}
 .fila .pct{font-size:.72rem;color:#9ca3af;width:40px}
 .fila .cand{flex:1;font-size:.72rem;color:#b45309}
 .fila .cerrado{flex:1;font-size:.75rem;color:#6b7280}
+.fila .auto{flex:1;font-size:.78rem;color:#1e50c8;font-weight:bold;text-align:right}
 .fila .lock{background:none;border:none;font-size:1rem;cursor:pointer}
 .resumen{background:#eff6ff;border-radius:10px;padding:14px;text-align:center;margin-bottom:14px}
 .resumen .num{font-size:1.8rem;font-weight:bold;color:#1e50c8}
 .aviso-equidad{background:#fff7ed;border:1px solid #fdba74;border-radius:8px;padding:12px;font-size:.82rem;color:#7c2d12;margin-top:8px;display:none}
 .tareaChip{display:inline-flex;align-items:center;gap:4px;border:1px solid #e5e7eb;border-radius:8px;padding:6px 8px;margin:3px;font-size:.78rem}
 .tareaChip input{width:50px;padding:4px;text-align:center}
-.tareaChip select{padding:4px;border:1px solid #d1d5db;border-radius:6px;font-size:.9rem}
 .tareasGrid{display:flex;flex-wrap:wrap;margin:-3px;}
 </style>
 </head>
@@ -78,7 +78,7 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
 
     <div class="tarjeta">
       <h3>⚙️ Forma de evaluación <span class="sub" id="pctSuma"></span></h3>
-      <p class="sub" style="margin-bottom:8px;">Porcentaje que vale cada rubro (debe sumar 100%). "Tareas" se calcula solo, con el promedio de las 16 tareas.</p>
+      <p class="sub" style="margin-bottom:8px;">Porcentaje que vale cada rubro (debe sumar 100%). Tareas, Asistencia y Participación se calculan solas.</p>
       <div id="listaPct"></div>
       <button class="btn btn-sec" id="btnGuardarPct" style="margin-top:8px;">💾 Guardar forma de evaluación</button>
       <div id="msgPct" class="msg"></div>
@@ -93,15 +93,14 @@ select,input[type=number]{width:100%;padding:10px;border:1px solid #d1d5db;borde
     </div>
 
     <div class="tarjeta">
-      <h3>📅 Asistencia (sesiones 1–16) <span class="sub" id="asistProm"></span></h3>
-      <p class="sub" style="margin-bottom:8px;">Marca cada sesión: ✅ asistió, ❌ faltó. Las 16 asistencias completas dan el porcentaje de Asistencia.</p>
-      <div class="tareasGrid" id="listaAsistencia"></div>
-      <div id="avisoEquidadAsistencia" class="aviso-equidad"></div>
-      <div id="msgAsistencia" class="msg"></div>
+      <h3>✅ Automáticos</h3>
+      <p class="sub" style="margin-bottom:8px;">Se calculan solos con la lista de Asistencia (16 sesiones).</p>
+      <div id="listaAuto"></div>
     </div>
 
     <div class="tarjeta">
-      <h3>📋 Otros rubros</h3>
+      <h3>📋 Examen y Proyecto</h3>
+      <p class="sub" style="margin-bottom:8px;">Si no se captura Examen, se usa automáticamente el promedio de Tareas.</p>
       <div id="listaRubros"></div>
       <div id="avisoEquidadRubros" class="aviso-equidad"></div>
       <div id="msgRubros" class="msg"></div>
@@ -123,21 +122,12 @@ const db = firebase.firestore();
 const ESCUELA = 'eco';
 const NUM_TAREAS = 16;
 const TAREA_MIN = 5, TAREA_MAX = 10;
-const NUM_SESIONES = 16;
-// Rubros que se califican de 0 a 10 (la asistencia se calcula con la lista de 16 sesiones)
-const RUBROS_EXTRA = [
-  { id: 'participacion', nombre: 'Participación' },
-  { id: 'examen', nombre: 'Examen' },
-  { id: 'proyecto', nombre: 'Proyecto' }
+// Rubros que se capturan a mano (Examen tiene respaldo automático si no se captura)
+const RUBROS_MANUALES = [
+  { id: 'examen', nombre: 'Examen', conRespaldo: true },
+  { id: 'proyecto', nombre: 'Proyecto', conRespaldo: false }
 ];
-const RUBROS_PCT_LIST = [
-  { id: 'tareas', nombre: 'Tareas (promedio de 16)' },
-  { id: 'participacion', nombre: 'Participación' },
-  { id: 'examen', nombre: 'Examen' },
-  { id: 'asistencia', nombre: 'Asistencia (16 sesiones)' },
-  { id: 'proyecto', nombre: 'Proyecto' }
-];
-const PORCENTAJES_DEFAULT = { tareas: 75, participacion: 10, examen: 5, asistencia: 5, proyecto: 5 };
+const PORCENTAJES_DEFAULT = { tareas: 60, participacion: 10, asistencia: 10, examen: 15, proyecto: 5 };
 
 const AVISO_EQUIDAD = `⚠️ <strong>No tienes permiso para modificar una calificación ya registrada.</strong><br>
 Por equidad y justicia hacia todos los alumnos, los cambios a una calificación ya guardada solo los puede autorizar la administración. Si consideras que hay un error, solicítalo por escrito (indicando el alumno, el rubro y el motivo) a tu Administrador o Subadministrador.`;
@@ -146,9 +136,9 @@ let miPerfil = null, esAdmin = false, puedoEvaluar = false;
 let alumnos = [];
 let alumnoSel = null, contexto = null;
 let porcentajes = { ...PORCENTAJES_DEFAULT };
-let tareas = {};   // leccion(1-16) -> doc
-let rubros = {};
-let asistencias = {};   // sesion(1-16) -> doc   // rubroId -> doc
+let tareas = {};     // leccion(1-16) -> doc
+let rubros = {};     // rubroId -> doc (examen/proyecto)
+let asistenciaConteo = null; // {A,F,FJ,total} o null si aún no hay sesiones
 
 function $(id){ return document.getElementById(id); }
 function esc(s){ return (s||'').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -190,7 +180,7 @@ $('selAlumno').addEventListener('change', async () => {
   await cargarFormaEvaluar();
   await cargarTareas();
   await cargarRubros();
-  await cargarAsistencias();
+  await cargarAsistencia();
   pintarTodo();
 });
 
@@ -207,54 +197,62 @@ async function cargarTareas() {
     .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
   snap.forEach(d => { tareas[d.data().leccion] = { id: d.id, ...d.data() }; });
 }
-async function cargarAsistencias() {
-  asistencias = {};
-  const snap = await db.collection('asistenciaSesiones')
-    .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
-  snap.forEach(d => { asistencias[d.data().sesion] = { id: d.id, ...d.data() }; });
-}
 async function cargarRubros() {
   rubros = {};
   const snap = await db.collection('rubrosCalificacion')
     .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
   snap.forEach(d => { rubros[d.data().rubroId] = { id: d.id, ...d.data() }; });
 }
+async function cargarAsistencia() {
+  const snap = await db.collection('asistenciaSesiones')
+    .where('alumnoId', '==', alumnoSel.id).where('escuela', '==', ESCUELA).where('contexto', '==', contexto).get();
+  if (snap.empty) { asistenciaConteo = null; return; }
+  let A = 0, total = 0;
+  snap.forEach(d => { const e = d.data().estado; if (e) { total++; if (e === 'A') A++; } });
+  asistenciaConteo = { A, total };
+}
 
 function promedioTareas() {
   const vals = Object.values(tareas).map(t => t.valor).filter(v => typeof v === 'number');
   return vals.length ? vals.reduce((a,b)=>a+b,0) / vals.length : null;
 }
+// Asistencia/Participación: % de sesiones con "A" de las 16, llevado a escala 0-10.
+function valorAsistenciaAuto() {
+  if (!asistenciaConteo) return null;
+  return (asistenciaConteo.A / NUM_TAREAS) * 10;
+}
+// Examen: lo capturado a mano; si no hay, usa el promedio de tareas como respaldo.
+function valorExamen() {
+  if (rubros.examen) return { valor: rubros.examen.valor, automatico: false };
+  const pt = promedioTareas();
+  return pt !== null ? { valor: pt, automatico: true } : { valor: null, automatico: true };
+}
 
-function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarTareas(); pintarAsistencia(); pintarRubros(); }
+function pintarTodo() { pintarResumen(); pintarPorcentajes(); pintarTareas(); pintarAutomaticos(); pintarRubros(); }
 
-function resumenAsistencia() {
-  const regs = Object.values(asistencias);
-  return { reg: regs.length, asist: regs.filter(x => x.presente === true).length };
+function valoresRubros() {
+  const asis = valorAsistenciaAuto();
+  const ex = valorExamen();
+  return {
+    tareas: promedioTareas(),
+    asistencia: asis,
+    participacion: asis,
+    examen: ex.valor,
+    proyecto: rubros.proyecto ? rubros.proyecto.valor : null
+  };
 }
 
 function pintarResumen() {
-  const prom = promedioTareas();
+  const v = valoresRubros();
   let total = 0, pesoCapturado = 0;
-  if (prom !== null) { total += (prom/10) * porcentajes.tareas; pesoCapturado += porcentajes.tareas; }
-  RUBROS_EXTRA.forEach(r => {
-    const d = rubros[r.id];
-    if (d) { total += (d.valor/10) * porcentajes[r.id]; pesoCapturado += porcentajes[r.id]; }
+  Object.keys(porcentajes).forEach(k => {
+    if (v[k] !== null && v[k] !== undefined) { total += (v[k]/10) * porcentajes[k]; pesoCapturado += porcentajes[k]; }
   });
-  // Asistencia: las 16 sesiones completas valen el porcentaje de Asistencia
-  const as = resumenAsistencia();
-  if (as.reg > 0) {
-    total += porcentajes.asistencia * as.asist / NUM_SESIONES;
-    pesoCapturado += porcentajes.asistencia * as.reg / NUM_SESIONES;
-  }
-  // "total" está sobre 100; se muestra sobre 10
-  $('calcFinal').textContent = pesoCapturado > 0 ? (total/10).toFixed(1) : '—';
+  $('calcFinal').textContent = pesoCapturado > 0 ? total.toFixed(2) : '—';
   $('calcDetalle').textContent = pesoCapturado > 0
-    ? 'Calificación sobre 10 · con ' + pesoCapturado.toFixed(1) + '% del encuadre capturado'
+    ? 'Calificación parcial con ' + pesoCapturado.toFixed(1) + '% del encuadre capturado'
     : 'Sin rubros capturados';
-  $('tareasProm').textContent = prom !== null ? '— promedio: ' + prom.toFixed(2) : '';
-  $('asistProm').textContent = as.reg > 0
-    ? '— ' + as.asist + '/' + NUM_SESIONES + ' asistencias (aporta ' + (porcentajes.asistencia * as.asist / NUM_SESIONES).toFixed(2) + '% de ' + porcentajes.asistencia + '%)'
-    : '';
+  $('tareasProm').textContent = v.tareas !== null ? '— promedio: ' + v.tareas.toFixed(2) : '';
 }
 
 function pintarPorcentajes() {
@@ -262,7 +260,13 @@ function pintarPorcentajes() {
   $('pctSuma').textContent = '(suma: ' + suma.toFixed(1) + '%)';
   $('pctSuma').style.color = Math.abs(suma-100) < 0.05 ? '#059669' : '#dc2626';
   const editable = puedoEditarContexto();
-  const todos = RUBROS_PCT_LIST;
+  const todos = [
+    { id: 'tareas', nombre: 'Tareas (auto)' },
+    { id: 'asistencia', nombre: 'Asistencia (auto)' },
+    { id: 'participacion', nombre: 'Participación (auto)' },
+    { id: 'examen', nombre: 'Examen' },
+    { id: 'proyecto', nombre: 'Proyecto' }
+  ];
   $('listaPct').innerHTML = todos.map(r => `
     <div class="fila"><span class="num">${r.nombre}</span>
       <input type="number" min="0" max="100" step="0.1" value="${porcentajes[r.id]}" ${editable?'':'disabled'}
@@ -319,7 +323,7 @@ async function guardarTareaNueva(leccion, input) {
       editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
     });
     tareas[leccion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, leccion, valor, editado: false, valorAnterior: null };
-    pintarResumen(); pintarTareas();
+    pintarResumen(); pintarTareas(); pintarAutomaticos();
     avisar('msgTareas', '✅ Tarea ' + leccion + ' guardada', true);
   } catch (e) {
     avisar('msgTareas', e.code === 'permission-denied' ? 'Sin permiso para capturar esta tarea.' : 'Error: ' + e.message, false);
@@ -337,88 +341,37 @@ async function editarTarea(leccion, actual, input) {
       editadoPor: auth.currentUser.email, fechaEdicion: new Date()
     });
     tareas[leccion] = { ...actual, valor: nuevo, editado: true, valorAnterior: actual.valor };
-    pintarResumen(); pintarTareas();
+    pintarResumen(); pintarTareas(); pintarAutomaticos();
     avisar('msgTareas', '✅ Tarea ' + leccion + ' editada', true);
   } catch (e) { avisar('msgTareas', 'Error: ' + e.message, false); input.value = actual.valor; }
 }
 
-function opcionesAsist(v) {
-  return `<option value="" ${v===''?'selected':''}>—</option><option value="P" ${v==='P'?'selected':''}>✅</option><option value="F" ${v==='F'?'selected':''}>❌</option>`;
-}
-function pintarAsistencia() {
-  const soyAsignado = puedoEditarContexto();
-  $('listaAsistencia').innerHTML = '';
-  $('avisoEquidadAsistencia').style.display = 'none';
-  for (let i = 1; i <= NUM_SESIONES; i++) {
-    const a = asistencias[i];
-    const chip = document.createElement('div');
-    chip.className = 'tareaChip';
-    if (!a) {
-      chip.innerHTML = `#${i} <select ${soyAsignado?'':'disabled'}>${opcionesAsist('')}</select>`;
-      if (soyAsignado) chip.querySelector('select').addEventListener('change', (e) => guardarAsistencia(i, e.target));
-    } else if (esAdmin) {
-      chip.innerHTML = `#${i} <select>${opcionesAsist(a.presente ? 'P' : 'F')}</select>${a.editado ? ' ✏️' : ''}`;
-      chip.title = a.editado ? 'Editada (antes: ' + (a.valorAnterior ? 'asistió' : 'faltó') + ')' : '';
-      chip.querySelector('select').addEventListener('change', (e) => editarAsistencia(i, a, e.target));
-    } else {
-      chip.innerHTML = `#${i} <select disabled>${opcionesAsist(a.presente ? 'P' : 'F')}</select> <button class="lock" onclick="mostrarAviso('avisoEquidadAsistencia')">🔒</button>`;
-    }
-    $('listaAsistencia').appendChild(chip);
-  }
-}
-
-async function guardarAsistencia(sesion, sel) {
-  if (!sel.value) return;
-  const presente = sel.value === 'P';
-  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_S' + sesion;
-  try {
-    await db.collection('asistenciaSesiones').doc(id).set({
-      alumnoId: alumnoSel.id, alumnoNombre: alumnoSel.nombreCompleto, escuela: ESCUELA,
-      contexto, contextoNombre: CTX_NOMBRE(), sesion, presente,
-      capturadoPor: auth.currentUser.email, fechaCaptura: new Date(),
-      editado: false, valorAnterior: null, editadoPor: null, fechaEdicion: null
-    });
-    asistencias[sesion] = { alumnoId: alumnoSel.id, escuela: ESCUELA, contexto, sesion, presente, editado: false, valorAnterior: null };
-    pintarResumen(); pintarAsistencia();
-    avisar('msgAsistencia', '✅ Sesión ' + sesion + ': ' + (presente ? 'asistió' : 'faltó'), true);
-  } catch (e) {
-    sel.value = '';
-    avisar('msgAsistencia', e.code === 'permission-denied' ? 'Sin permiso para registrar asistencia (revisa las reglas de Firestore).' : 'Error: ' + e.message, false);
-  }
-}
-async function editarAsistencia(sesion, actual, sel) {
-  const nuevo = sel.value === 'P';
-  if (!sel.value) { sel.value = actual.presente ? 'P' : 'F'; return; }
-  if (nuevo === actual.presente) return;
-  if (!confirm('¿Cambiar la sesión ' + sesion + ' de ' + (actual.presente ? 'asistió' : 'faltó') + ' a ' + (nuevo ? 'asistió' : 'faltó') + '? Quedará marcada como editada.')) { sel.value = actual.presente ? 'P' : 'F'; return; }
-  const id = alumnoSel.id + '_' + ESCUELA + '_' + contexto + '_S' + sesion;
-  try {
-    await db.collection('asistenciaSesiones').doc(id).update({
-      presente: nuevo, editado: true, valorAnterior: actual.presente,
-      editadoPor: auth.currentUser.email, fechaEdicion: new Date()
-    });
-    asistencias[sesion] = { ...actual, presente: nuevo, editado: true, valorAnterior: actual.presente };
-    pintarResumen(); pintarAsistencia();
-    avisar('msgAsistencia', '✅ Sesión ' + sesion + ' editada', true);
-  } catch (e) {
-    sel.value = actual.presente ? 'P' : 'F';
-    avisar('msgAsistencia', 'Error: ' + e.message, false);
-  }
+function pintarAutomaticos() {
+  const asis = valorAsistenciaAuto();
+  const txt = asistenciaConteo ? asistenciaConteo.A + '/' + NUM_TAREAS + ' sesiones con asistencia' : 'Aún no hay sesiones registradas en Asistencia';
+  $('listaAuto').innerHTML = `
+    <div class="fila"><span class="num">Asistencia</span><span class="auto">${asis !== null ? asis.toFixed(2) : '—'}</span></div>
+    <div class="fila"><span class="num">Participación</span><span class="auto">${asis !== null ? asis.toFixed(2) : '—'}</span></div>
+    <p class="sub" style="margin-top:4px;">${txt}. Se captura en Asistencia, no aquí.</p>`;
 }
 
 function pintarRubros() {
   const soyAsignado = puedoEditarContexto();
   $('listaRubros').innerHTML = '';
   $('avisoEquidadRubros').style.display = 'none';
-  RUBROS_EXTRA.forEach(r => {
+  RUBROS_MANUALES.forEach(r => {
     const d = rubros[r.id];
     const fila = document.createElement('div');
     fila.className = 'fila';
     if (!d) {
+      const ex = r.conRespaldo ? valorExamen() : null;
+      const nota = r.conRespaldo
+        ? (ex.valor !== null ? `<span class="cand">Sin capturar — usando Tareas: ${ex.valor.toFixed(2)}</span>` : `<span class="cand">Sin capturar y sin Tareas aún</span>`)
+        : (soyAsignado ? `<span class="cand">Aún sin capturar</span>` : `<span class="cerrado">Sin capturar</span>`);
       fila.innerHTML = `<span class="num">${r.nombre}</span>
         <input type="number" min="0" max="10" step="0.1" placeholder="—" ${soyAsignado?'':'disabled'}>
         <span class="pct">${porcentajes[r.id]}%</span>
-        ${soyAsignado ? `<span class="cand">Aún sin capturar</span>` : `<span class="cerrado">Sin capturar</span>`}`;
+        ${nota}`;
       if (soyAsignado) fila.querySelector('input').addEventListener('change', (e) => guardarRubroNuevo(r.id, r.nombre, e.target));
     } else if (esAdmin) {
       fila.innerHTML = `<span class="num">${r.nombre}</span>
@@ -470,7 +423,6 @@ async function editarRubro(rubroId, actual, input) {
   } catch (e) { avisar('msgRubros', 'Error: ' + e.message, false); input.value = actual.valor; }
 }
 
-function CTX_NOMBRE() { return 'Nivel ' + alumnoSel.ecoNivel; }
 function avisar(elId, texto, ok) {
   const el = $(elId);
   el.textContent = texto; el.className = 'msg ' + (ok ? 'ok' : 'err');
