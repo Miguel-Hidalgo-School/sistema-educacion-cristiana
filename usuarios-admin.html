@@ -50,7 +50,7 @@
       <input type="checkbox" id="esEco" onchange="document.getElementById('bloqueNiveles').style.display = this.checked ? 'block' : 'none';"> ECO
     </label>
     <label style="display:inline-block; font-weight:normal;">
-      <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EMI
+      <input type="checkbox" id="esEm" onchange="document.getElementById('bloqueDiplomados').style.display = this.checked ? 'block' : 'none';"> EMID
     </label>
   </div>
   <div class="campo" id="bloqueNiveles" style="display:none;">
@@ -60,7 +60,7 @@
     <label style="display:inline-block;font-weight:normal;"><input type="checkbox" class="chkNivelEco" value="3"> Nivel 3</label>
   </div>
   <div class="campo" id="bloqueDiplomados" style="display:none;">
-    <label>Diplomados que imparte en EMI:</label>
+    <label>Diplomados que imparte en EMID:</label>
     <div id="listaDiplomadosForm"><span style="font-size:13px;color:#718096;">Cargando diplomados…</span></div>
   </div>
   <button onclick="crearUsuario()">Crear Usuario</button>
@@ -90,7 +90,7 @@
   const usuariosMapa = {};    // usuarios cargados, por correo
 
   // =============================================
-  // CATÁLOGO DE DIPLOMADOS (para asignar a un usuario de EMI)
+  // CATÁLOGO DE DIPLOMADOS (para asignar a un usuario de EMID)
   // =============================================
   async function cargarCatalogoDiplomados() {
     const cont = document.getElementById('listaDiplomadosForm');
@@ -141,7 +141,7 @@
         const msgWA = mensajeAcceso(nombre, correo, pass, !yaCambio);
         const idp = 'pw_' + doc.id.replace(/[^a-zA-Z0-9]/g, '_');
         const nivelesTxt = Array.isArray(u.ecoNiveles) && u.ecoNiveles.length ? ' (nivel ' + u.ecoNiveles.join(', ') + ')' : '';
-        const escuelas = [u.eco ? 'ECO' + nivelesTxt : '', u.em ? 'EMI' : ''].filter(Boolean).join(' · ');
+        const escuelas = [u.eco ? 'ECO' + nivelesTxt : '', u.em ? 'EMID' : ''].filter(Boolean).join(' · ');
         const diplomadosTxt = Array.isArray(u.diplomados) && u.diplomados.length
           ? u.diplomados.map(d => d.nombre).join(', ') : '';
 
@@ -196,7 +196,7 @@
           [1, 2, 3].map(n => '<label style="display:inline-block;margin-right:12px;font-weight:normal;"><input type="checkbox" class="eN_' + idp + '" value="' + n + '" ' + (nivSel.has(n) ? 'checked' : '') + '> Nivel ' + n + '</label>').join('') +
         '</div>' +
         '<label style="' + lbl + '"><input type="checkbox" id="eEm_' + idp + '" ' + (u.em ? 'checked' : '') +
-          ' onchange="document.getElementById(\'eDip_' + idp + '\').style.display = this.checked ? \'block\' : \'none\'"> EMI</label>' +
+          ' onchange="document.getElementById(\'eDip_' + idp + '\').style.display = this.checked ? \'block\' : \'none\'"> EMID</label>' +
         '<div id="eDip_' + idp + '" style="margin-left:22px;display:' + (u.em ? 'block' : 'none') + ';">' +
           (catalogoDips.length ? catalogoDips.map(d => '<label style="' + lbl + '"><input type="checkbox" class="eD_' + idp + '" value="' + d.id + '" ' + (dipSel.has(d.id) ? 'checked' : '') + '> ' + escAttr(d.nombre) + '</label>').join('')
             : '<span style="font-size:13px;color:#718096;">No hay diplomados en el catálogo.</span>') +

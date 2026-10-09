@@ -88,6 +88,7 @@ const FV = firebase.firestore.FieldValue;
 
 let todos = [];
 let dips = [];
+let soyAdmin = false;
 let filtro = 'todos';
 const abiertos = new Set();
 
@@ -106,7 +107,7 @@ function aviso(t, ok = true) {
   aviso.t = setTimeout(() => { m.className = 'msg'; }, 6000);
 }
 function errorTexto(e) {
-  if (e && e.code === 'permission-denied') return 'No tienes permiso para esta acción (solo administradores).';
+  if (e && e.code === 'permission-denied') return 'No tienes permiso para esta acción (solo administradores y docentes; eliminar es solo de administradores).';
   return 'Error: ' + (e && e.message ? e.message : e);
 }
 
@@ -140,9 +141,9 @@ function formHTML(p, a) {
   '<div class="esc"><label class="chk"><input type="checkbox" id="' + p + '_eco" ' + (a.eco ? 'checked' : '') + ' onchange="mostrar(\'' + p + '\')"> ECO — Escuela de Consolidación</label>' +
     '<div class="sub2" id="' + p + '_ecoBox"><label style="font-weight:bold;font-size:.9rem;color:#374151">Nivel ECO</label>' +
     '<select id="' + p + '_ecoNivel">' + [1, 2, 3].map(n => '<option value="' + n + '" ' + (a.ecoNivel === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') + '</select></div></div>' +
-  '<div class="esc"><label class="chk"><input type="checkbox" id="' + p + '_em" ' + (a.em ? 'checked' : '') + ' onchange="mostrar(\'' + p + '\')"> EMI — Escuela de Ministerios</label>' +
-    '<div class="sub2" id="' + p + '_emBox"><label style="font-weight:bold;font-size:.9rem;color:#374151">Nivel EMI</label>' +
-    '<select id="' + p + '_emNivel">' + [1, 2].map(n => '<option value="' + n + '" ' + (a.emNivel === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') + '</select>' +
+  '<div class="esc"><label class="chk"><input type="checkbox" id="' + p + '_em" ' + (a.em ? 'checked' : '') + ' onchange="mostrar(\'' + p + '\')"> EMID — Escuela de Ministerios y Diplomados</label>' +
+    '<div class="sub2" id="' + p + '_emBox"><label style="font-weight:bold;font-size:.9rem;color:#374151">Nivel EMID</label>' +
+    '<select id="' + p + '_emNivel">' + [1, 2].map(n => '<option value="' + n + '" ' + (a.emNivel === n ? 'selected' : '') + '>Nivel ' + n + (n === 1 ? ' (teórico)' : ' (práctico)') + '</option>').join('') + '</select>' +
     '<label style="font-weight:bold;font-size:.9rem;color:#374151;display:block;margin-top:10px">Inscribir en diplomado (opcional)</label>' +
     '<select id="' + p + '_dip">' + dipOpts('') + '</select></div></div>' +
 
@@ -232,7 +233,7 @@ function leer(p) {
 function validar(f) {
   const d = f.datos;
   if (!d.nombreCompleto) return 'Escribe el nombre completo del alumno';
-  if (!f.eco && !f.em) return 'Elige la escuela: ECO o EMI (o ambas)';
+  if (!f.eco && !f.em) return 'Elige la escuela: ECO o EMID (o ambas)';
   if (d.correo && !/^\S+@\S+\.\S+$/.test(d.correo)) return 'El correo no parece válido';
   const e = edadDe(d.fechaNacimiento);
   if (e !== null && e < 18 && !d.tutorNombre) return 'Es menor de edad: escribe el nombre del padre o tutor';
@@ -250,6 +251,11 @@ auth.onAuthStateChanged(u => {
 });
 
 async function iniciar() {
+  try {
+    const pf = await db.collection('usuarios').doc(auth.currentUser.email).get();
+    const r = pf.exists ? (pf.data().roles || {}) : {};
+    soyAdmin = r.superAdmin === true || r.subAdmin === true;
+  } catch (e) { console.error(e); }
   try {
     const c = await db.collection('catalogo').where('tipo', '==', 'diplomado').get();
     dips = c.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => norm(a.nombre).localeCompare(norm(b.nombre)));
@@ -281,7 +287,7 @@ function fila(t, v) { return v ? '<div><b>' + t + ':</b> ' + esc(v) + '</div>' :
 
 function textoHist(h) {
   const f = h.fecha ? new Date(h.fecha).toLocaleDateString('es-MX') : '';
-  const e = h.escuela === 'ECO' ? 'ECO' : (h.escuela === 'EMIN' ? 'EMI' : 'Registro');
+  const e = h.escuela === 'ECO' ? 'ECO' : (h.escuela === 'EMIN' ? 'EMID' : 'Registro');
   let t = '';
   if (h.accion === 'alta') t = 'Alta en ' + e + (h.a ? ' nivel ' + h.a : '');
   else if (h.accion === 'cambio de nivel') t = e + ' nivel ' + (h.de || 'sin nivel') + ' → ' + h.a;
@@ -297,7 +303,7 @@ function pintar() {
   const chips = [
     ['todos', 'Todos (' + todos.length + ')', () => true],
     ['eco', 'ECO (' + cuenta(a => a.eco === true) + ')'],
-    ['em', 'EMI (' + cuenta(a => a.em === true) + ')'],
+    ['em', 'EMID (' + cuenta(a => a.em === true) + ')'],
     ['sin', 'Sin escuela (' + cuenta(a => !a.eco && !a.em) + ')']
   ];
   $('chips').innerHTML = chips.map(c =>
@@ -315,7 +321,7 @@ function pintar() {
     const edad = edadDe(a.fechaNacimiento);
     const tags =
       (a.eco ? '<span class="tag">ECO ' + (a.ecoNivel ? 'N' + a.ecoNivel : 'sin nivel') + '</span>' : '') +
-      (a.em ? '<span class="tag em">EMI ' + (a.emNivel ? 'N' + a.emNivel : 'sin nivel') + '</span>' : '') +
+      (a.em ? '<span class="tag em">EMID ' + (a.emNivel ? 'N' + a.emNivel : 'sin nivel') + '</span>' : '') +
       (!a.eco && !a.em ? '<span class="tag no">Sin escuela</span>' : '');
     const insc = (a.inscripciones || []).map(i => (i.diplomadoNombre || '') + (i.moduloNombre ? ' — ' + i.moduloNombre : '') + ' (' + (i.estado || 'cursando') + ')');
     const hist = (a.historial || []).slice(-6).reverse().map(textoHist).map(esc).join('<br>');
@@ -337,7 +343,7 @@ function pintar() {
         '<div class="acciones">' +
           (wa ? '<a class="btn2" target="_blank" href="https://wa.me/' + (wa.length === 10 ? '52' + wa : wa) + '">📲 WhatsApp</a>' : '') +
           '<button class="btn2 azul" onclick="editar(\'' + a.id + '\')">✏️ Editar</button>' +
-          '<button class="btn2 rojo" onclick="eliminar(\'' + a.id + '\')">🗑️ Eliminar</button>' +
+          (soyAdmin ? '<button class="btn2 rojo" onclick="eliminar(\'' + a.id + '\')">🗑️ Eliminar</button>' : '') +
         '</div>' +
         (hist ? '<div class="hist"><b>Historial</b><br>' + hist + '</div>' : '') +
       '</div></details>';

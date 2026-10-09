@@ -60,7 +60,7 @@ th:first-child,td:first-child{text-align:left}
 <div class="tarjeta">
   <div class="tabs" id="tabsEsc"></div>
   <div class="campo" style="margin-top:12px"><label class="t" id="lblScope">Nivel</label><select id="scope" onchange="cambiarScope(this.value)"></select></div>
-  <div class="campo"><label class="t">Sesión</label><div class="ses" id="ses"></div></div>
+  <div class="campo"><label class="t">Sesión</label><div class="ses" id="ses"></div><p class="leyenda" id="lecc" style="margin-top:8px"></p></div>
 </div>
 
 <div class="tarjeta" id="tarjLista">
@@ -96,6 +96,34 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const FV = firebase.firestore.FieldValue;
 const NUM = 16;
+
+/* Temario ECO (iafcj.org/eco): 3 niveles x 4 unidades x 4 lecciones = 16 sesiones por nivel */
+const ECO_TEMARIO = {
+  1: { nombre: 'Carácter y estilo de vida cristiana', unidades: [
+    ['El carácter cristiano', ['Hábitos espirituales', 'Integridad', 'Superación permanente', 'Carácter del servidor']],
+    ['La familia', ['Modelo bíblico', 'Roles y compromisos', 'La familia como núcleo del reino', 'Cuidados familiares']],
+    ['La iglesia', ['Cuerpo de Cristo', 'Pertenencia', 'Vida comunitaria', 'Servicio']],
+    ['La sociedad y sus propuestas', ['Valores y antivalores', 'Tendencias frente a la Palabra de Dios', 'El mensaje de Jesús', 'Compromiso con el llamado']] ] },
+  2: { nombre: 'Las bases de nuestra fe', unidades: [
+    ['La unicidad de Dios', ['Un solo Dios', 'Jesucristo', 'El Espíritu Santo', 'La resurrección']],
+    ['Fundamentos de la doctrina', ['La Biblia', 'La salvación', 'La gracia', 'La fe']],
+    ['Institucionalidad y tiempos finales', ['La iglesia y el Estado', 'Sistema económico', 'Cuerpo ministerial', 'Tiempos finales']],
+    ['Afirmación de la pertenencia', ['Bautismo y comunión', 'Matrimonio', 'Sanidad divina', 'Santidad frente al pecado de muerte']] ] },
+  3: { nombre: 'Discipulado y ministerios', unidades: [
+    ['El discipulado', ['Definición', 'Propósito', 'Responsabilidad personal', 'Estrategia bíblica']],
+    ['Perfil del discípulo discipulador', ['Actitud como fruto del Espíritu', 'Estilo de vida', 'Compromiso', 'Lealtad']],
+    ['Principios del proceso discipular', ['Capacidades personales', 'Discipulado y ministerios', 'Proyecto de vida ministerial', 'Desafíos actuales']],
+    ['Dones y su función', ['Los dones como equipamiento', 'Dones en 1 Corintios 12:8-10', 'Dones en Romanos 12:6-8 y Efesios 4:8-13', 'Identifica tus dones']] ] }
+};
+const MIN_ASIST_ECO = 75; // % mínimo de asistencia para egresar de ECO
+function leccionDe(n) {
+  if (ESC !== 'eco') return '';
+  const t = ECO_TEMARIO[Number(String(scope).replace(/\D/g, ''))];
+  if (!t) return '';
+  const u = Math.floor((n - 1) / 4), l = (n - 1) % 4;
+  return 'Unidad ' + (u + 1) + ': ' + t.unidades[u][0] + ' · Lección ' + (l + 1) + ': ' + t.unidades[u][1][l];
+}
+
 
 let esAdmin = false, perfil = {};
 let ESC = '';            // 'eco' | 'ministerios'
@@ -149,7 +177,7 @@ auth.onAuthStateChanged(async u => {
 function armarTabs() {
   const t = [];
   if (esAdmin || perfil.eco === true) t.push(['eco', '🏫 ECO']);
-  if (esAdmin || perfil.em === true) t.push(['ministerios', '⛪ EMI']);
+  if (esAdmin || perfil.em === true) t.push(['ministerios', '⛪ EMID']);
   if (!t.length) {
     $('tabsEsc').innerHTML = '';
     $('lista').innerHTML = '<p class="vacio">Tu usuario no tiene escuela asignada. Pide al administrador que te la asigne en Usuarios → Editar.</p>';
@@ -223,6 +251,8 @@ function pintarSesiones() {
   let h = '';
   for (let i = 1; i <= NUM; i++) h += '<button class="s ' + (i === sesion ? 'on ' : '') + (hechas.has(i) ? 'hecha' : '') + '" onclick="elegirSesion(' + i + ')">' + i + '</button>';
   $('ses').innerHTML = h;
+  const lc = leccionDe(sesion);
+  $('lecc').innerHTML = lc ? '📖 <b>Sesión ' + sesion + '</b> — ' + esc(lc) : '';
 }
 function elegirSesion(i) { sesion = i; pintarSesiones(); cargarMarcas(); }
 
@@ -232,16 +262,23 @@ function cargarMarcas() {
   pintarLista();
 }
 
+function alumnosExcluidos() {
+  if (ESC === 'eco') return alumnos.filter(a => a.eco === true && !a.ecoNivel);
+  return alumnos.filter(a => a.em === true && !(a.inscripciones || []).some(i => i.estado !== 'concluido'));
+}
 function pintarLista() {
   const als = alumnosDelScope();
   $('tituloLista').textContent = scopeNombre + ' — Sesión ' + sesion;
-  if (!als.length) { $('lista').innerHTML = '<p class="vacio">No hay alumnos inscritos en ' + esc(scopeNombre) + '.</p>'; return; }
+  $('tituloLista').title = leccionDe(sesion);
+  const ex = alumnosExcluidos();
+  const nota = ex.length ? '<p class="leyenda" style="margin-top:12px;padding:10px;background:#fffbeb;border-radius:8px">⚠️ No aparecen porque no tienen ' + (ESC === 'eco' ? 'nivel asignado' : 'diplomado asignado') + ': <b>' + ex.map(a => esc(a.nombreCompleto)).join(', ') + '</b>. Asígnalo en ' + (ESC === 'eco' ? 'Escuelas → ECO → Alumnos' : 'Escuelas → Ministerios → Alumnos') + '.</p>' : '';
+  if (!als.length) { $('lista').innerHTML = '<p class="vacio">No hay alumnos inscritos en ' + esc(scopeNombre) + '.</p>' + nota; return; }
   $('lista').innerHTML = als.map(a => {
     const m = marcas[a.id] || '';
     const bloq = !!regs[a.id + '_' + sesion] && !esAdmin;
     const b = x => '<button class="bt ' + x + (m === x ? ' on' : '') + '" ' + (bloq ? 'disabled style="opacity:.6"' : '') + ' onclick="marcar(\'' + a.id + '\',\'' + x + '\')">' + x + '</button>';
     return '<div class="fila"><div class="nom">' + esc(a.nombreCompleto) + (bloq ? '<small>🔒 Ya registrada (solo el administrador la corrige)</small>' : '') + '</div>' + b('A') + b('F') + b('FJ') + '</div>';
-  }).join('');
+  }).join('') + nota;
 }
 
 function marcar(id, v) { marcas[id] = marcas[id] === v ? '' : v; pintarLista(); }
@@ -299,13 +336,13 @@ async function guardarLista() {
 function pintarResumen() {
   const als = alumnosDelScope();
   if (!als.length) { $('resumen').innerHTML = '<p class="vacio">—</p>'; return; }
-  let h = '<table><tr><th>Alumno</th><th>A</th><th>F</th><th>FJ</th><th>%</th></tr>';
+  let h = '<table><tr><th>Alumno</th><th>A</th><th>F</th><th>FJ</th><th>%</th>' + (ESC === 'eco' ? '<th>75%</th>' : '') + '</tr>';
   als.forEach(a => {
     let A = 0, F = 0, FJ = 0;
     for (let i = 1; i <= NUM; i++) { const e = estadoDe(regs[a.id + '_' + i]); if (e === 'A') A++; else if (e === 'F') F++; else if (e === 'FJ') FJ++; }
-    h += '<tr><td>' + esc(a.nombreCompleto) + '</td><td>' + A + '</td><td>' + F + '</td><td>' + FJ + '</td><td><b>' + Math.round(A / NUM * 100) + '%</b></td></tr>';
+    h += '<tr><td>' + esc(a.nombreCompleto) + '</td><td>' + A + '</td><td>' + F + '</td><td>' + FJ + '</td><td><b>' + Math.round(A / NUM * 100) + '%</b></td>' + (ESC === 'eco' ? '<td>' + (A / NUM * 100 >= MIN_ASIST_ECO ? '✅' : '⚠️') + '</td>' : '') + '</tr>';
   });
-  $('resumen').innerHTML = h + '</table><p class="leyenda" style="margin-top:8px">El porcentaje cuenta las asistencias (A) de las 16 sesiones.</p>';
+  $('resumen').innerHTML = h + '</table><p class="leyenda" style="margin-top:8px">El porcentaje cuenta las asistencias (A) de las 16 sesiones.' + (ESC === 'eco' ? ' Para egresar de ECO se requiere al menos 75% (12 de 16).' : '') + '</p>';
 }
 
 /* ---------- finalizar curso ---------- */

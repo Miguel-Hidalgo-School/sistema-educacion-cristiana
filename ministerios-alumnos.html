@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Ministerios - Alumnos</title>
+<title>EMID - Alumnos</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
@@ -55,7 +55,7 @@ details.al summary::-webkit-details-marker{display:none}
 <body>
 <div class="contenedor">
 <a href="escuelas.html" class="volver">← Volver a Escuelas</a>
-<header><h1>⛪ Ministerios — Alumnos</h1><p>Escuela de Ministerios</p></header>
+<header><h1>⛪ EMID — Alumnos</h1><p>Escuela de EMID y Diplomados (EMID)</p></header>
 
 <div class="tabs">
   <button class="chip on" id="tabA" onclick="verTab('alumnos')">👥 Alumnos</button>
@@ -83,7 +83,7 @@ details.al summary::-webkit-details-marker{display:none}
   </div>
 
   <div class="tarjeta">
-    <h3>Alumnos de Ministerios</h3>
+    <h3>Alumnos de EMID</h3>
     <div id="chips" class="chips"></div>
     <div id="filtros" class="fil"></div>
     <div id="lista"><p class="vacio">Cargando...</p></div>
@@ -96,6 +96,7 @@ details.al summary::-webkit-details-marker{display:none}
     <h3>Nuevo diplomado</h3>
     <div class="campo"><input type="text" id="nuevoDip" placeholder="Nombre del diplomado"></div>
     <button class="btn" onclick="agregarDiplomado()">➕ Agregar diplomado</button>
+    <button class="btn2 azul" style="width:100%;margin-top:10px" onclick="cargarIniciales()">📥 Cargar lista oficial de diplomados (iafcj.org/emid)</button>
   </div>
   <div class="tarjeta">
     <h3>Diplomados y módulos</h3>
@@ -210,7 +211,7 @@ function textoHist(h) {
   let t = '';
   if (h.accion === 'alta') t = 'Alta en nivel ' + h.a;
   else if (h.accion === 'cambio de nivel') t = 'Nivel ' + (h.de || 'sin nivel') + ' → ' + h.a;
-  else if (h.accion === 'baja') t = 'Baja de Ministerios';
+  else if (h.accion === 'baja') t = 'Baja de EMID';
   else if (h.accion === 'inscripcion') t = 'Inscrito: ' + h.a;
   else if (h.accion === 'estado') t = h.a;
   else if (h.accion === 'quito inscripcion') t = 'Quitado: ' + h.a;
@@ -268,7 +269,7 @@ function pintarAlumnos() {
         '</div>' +
         '<div class="acciones">' +
           (wa ? '<a class="btn2" style="text-decoration:none;color:#374151" target="_blank" href="https://wa.me/' + (wa.length === 10 ? '52' + wa : wa) + '">📲 WhatsApp</a>' : '') +
-          '<button class="btn2 rojo" onclick="quitar(\'' + a.id + '\')">Quitar de Ministerios</button>' +
+          '<button class="btn2 rojo" onclick="quitar(\'' + a.id + '\')">Quitar de EMID</button>' +
         '</div>' +
         (hist ? '<div class="hist"><b>Historial</b><br>' + hist + '</div>' : '') +
       '</div></details>';
@@ -301,7 +302,7 @@ async function guardar() {
   try {
     const existente = todos.find(a => norm(a.nombreCompleto) === norm(nombre));
     if (existente && existente.em === true) {
-      aviso('Ese alumno ya está en Ministerios. Búscalo en la lista para inscribirlo en un diplomado.', false);
+      aviso('Ese alumno ya está en EMID. Búscalo en la lista para inscribirlo en un diplomado.', false);
       btn.disabled = false;
       return;
     }
@@ -317,13 +318,13 @@ async function guardar() {
       if (wa && !existente.whatsapp) datos.whatsapp = wa;
       if (insc.length) datos.inscripciones = (existente.inscripciones || []).concat(insc);
       await db.collection('alumnos').doc(existente.id).update(datos);
-      aviso('✅ ' + nombre + ' ya estaba registrado; se agregó a Ministerios');
+      aviso('✅ ' + nombre + ' ya estaba registrado; se agregó a EMID');
     } else {
       await db.collection('alumnos').add({
         nombreCompleto: nombre, whatsapp: wa, eco: false, em: true, emNivel: nivel,
         inscripciones: insc, historial: hist, creadoPor: auth.currentUser.email, fechaCreacion: new Date()
       });
-      aviso('✅ Alumno agregado a Ministerios');
+      aviso('✅ Alumno agregado a EMID');
     }
     $('nombre').value = '';
     $('whatsapp').value = '';
@@ -394,8 +395,8 @@ function quitarInscripcion(id, inscId) {
 
 function quitar(id) {
   const a = todos.find(x => x.id === id);
-  if (!a || !confirm('¿Quitar a ' + a.nombreCompleto + ' de Ministerios? Seguirá registrado como alumno y se conserva su historial.')) return;
-  actualizar(id, { em: false, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'baja' }) }, 'Alumno quitado de Ministerios');
+  if (!a || !confirm('¿Quitar a ' + a.nombreCompleto + ' de EMID? Seguirá registrado como alumno y se conserva su historial.')) return;
+  actualizar(id, { em: false, historial: FV.arrayUnion({ fecha: ahora(), escuela: 'EMIN', accion: 'baja' }) }, 'Alumno quitado de EMID');
 }
 
 /* ================= DIPLOMADOS ================= */
@@ -459,22 +460,45 @@ async function agregarDiplomado() {
 }
 
 async function cargarIniciales() {
+  // Diplomados (ministerios) según iafcj.org/emid. Solo agrega los que aún no existen, cada uno con nivel 1 y 2.
   const nombres = [
-    'Ministerio de Intercesión y Oración de Guerra 1',
-    'Ministerio de Intercesión y Oración de Guerra 2',
-    'Ministerio para Enunciar el Evangelio por Radio y Televisión',
-    'Ministerio de Liturgia'
+    'Escuela de Entrenamiento: Padres Espirituales',
+    'Escuela de Entrenamiento: Líderes de Células',
+    'Escuela de Entrenamiento: Supervisores de Redes Celulares',
+    'Ministerio de Enseñanza',
+    'Ministerio DNA',
+    'Ministerio de Consejería Familiar',
+    'Ministerio de Intercesión y Oración de Guerra',
+    'Ministerio de Padres Espirituales',
+    'Ministerio de Liderazgo Celular',
+    'Ministerio de Supervisores',
+    'Ministerio de Movilización Misionera',
+    'Ministerios de Misericordia',
+    'Ministerio de Liturgia',
+    'Ministerio de Música y Canto',
+    'Ministerio de Predicación',
+    'Ministerio de Ujieres',
+    'Multimedia y Comunicaciones',
+    'Las Artes en los Ministerios',
+    'Ministerio de Administración y Finanzas'
   ];
+  const clave = n => norm(n).replace(/\s*\d+$/, '');
+  const existentes = new Set(dips.map(d => clave(d.nombre)));
+  // Cada diplomado se carga como grados: "... 1" (teórico) y "... 2" (práctico)
+  const faltan = [];
+  nombres.forEach(n => { if (!existentes.has(clave(n))) { faltan.push(n + ' 1'); faltan.push(n + ' 2'); } });
+  if (!faltan.length) { aviso('Ya tienes todos los diplomados de la lista', true); return; }
+  if (!confirm('Se agregarán ' + faltan.length + ' diplomado(s) que aún no tienes. ¿Continuar?')) return;
   try {
     const batch = db.batch();
-    nombres.forEach(n => batch.set(db.collection('catalogo').doc(), { tipo: 'diplomado', nombre: n, modulos: [], creadoPor: auth.currentUser.email, fechaCreacion: new Date() }));
+    faltan.forEach(n => batch.set(db.collection('catalogo').doc(), { tipo: 'diplomado', nombre: n, modulos: [], creadoPor: auth.currentUser.email, fechaCreacion: new Date() }));
     await batch.commit();
-    aviso('✅ Diplomados iniciales cargados. Agrega los módulos o materias de cada uno.');
+    aviso('✅ Se agregaron ' + faltan.length + ' diplomados.');
+    await cargarDiplomados();
   } catch (e) {
     console.error(e);
     aviso(errorTexto(e), false);
   }
-  await cargarDiplomados();
 }
 
 function renombrarDiplomado(id) {
