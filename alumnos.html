@@ -3,55 +3,453 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Alumnos</title>
+<title>Alumnos - Registro y consulta</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Segoe UI,sans-serif}
 body{background:#1e50c8;min-height:100vh;padding:30px 20px}
-.contenedor{max-width:500px;margin:0 auto}
+.contenedor{max-width:560px;margin:0 auto}
 .volver{color:white;text-decoration:none;font-weight:bold;display:inline-block;margin-bottom:20px}
 header{text-align:center;color:white;margin-bottom:25px}
 header h1{font-size:1.5rem;margin-bottom:8px}
 .tarjeta{background:white;border-radius:12px;padding:22px;margin-bottom:20px}
 .tarjeta h3{font-size:1.2rem;color:#1f2937;margin-bottom:12px}
+.sec{font-size:.95rem;color:#1e50c8;font-weight:bold;margin:18px 0 8px;padding-bottom:4px;border-bottom:2px solid #e5e7eb}
 .campo{margin-bottom:12px}
-.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151}
-.campo input[type=text]{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem}
-.chk{display:inline-block;margin:0 15px 12px 0;color:#374151}
-.btn{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer}
-.msg{margin-top:12px;padding:10px;border-radius:6px;font-weight:bold;display:none}
+.campo label{display:block;font-weight:bold;margin-bottom:5px;color:#374151;font-size:.9rem}
+input[type=text],input[type=tel],input[type=email],input[type=date],select,textarea{width:100%;padding:11px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;background:#fff}
+textarea{min-height:70px;resize:vertical}
+.fila{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){.fila{grid-template-columns:1fr}}
+.esc{border:1px solid #d1d5db;border-radius:10px;padding:12px;margin-bottom:10px}
+.esc label.chk{display:flex;align-items:center;gap:8px;font-weight:bold;color:#1f2937}
+.esc label.chk input{width:20px;height:20px}
+.esc .sub2{margin-top:10px}
+.btn{width:100%;padding:12px;background:#9a3412;color:white;border:none;border-radius:8px;font-weight:bold;font-size:1rem;cursor:pointer;margin-top:6px}
+.btn2{padding:9px 14px;border:none;border-radius:8px;background:#e5e7eb;font-weight:bold;cursor:pointer;font-size:.9rem;text-decoration:none;color:#374151;display:inline-block}
+.btn2.azul{background:#dbeafe;color:#1e40af}
+.btn2.rojo{background:#fee2e2;color:#b91c1c}
+.msg{margin-bottom:16px;padding:10px;border-radius:6px;font-weight:bold;display:none}
 .msg.ok{background:#d1fae5;color:#065f46;display:block}
 .msg.err{background:#fee2e2;color:#b91c1c;display:block}
-.fila{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #e5e7eb}
-.fila:last-child{border-bottom:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid #d1d5db;background:#fff;color:#374151;font-weight:bold;cursor:pointer;font-size:.9rem}
+.chip.on{background:#1e50c8;color:#fff;border-color:#1e50c8}
+details.al{border-bottom:1px solid #e5e7eb;padding:10px 0}
+details.al:last-child{border-bottom:none}
+details.al summary{cursor:pointer;list-style:none}
+details.al summary::-webkit-details-marker{display:none}
+.nom{font-weight:bold;color:#1f2937}
 .sub{color:#6b7280;font-size:.85rem;margin-top:2px}
-.borrar{background:none;border:none;font-size:1.2rem;cursor:pointer}
+.tag{display:inline-block;font-size:.72rem;font-weight:bold;padding:2px 8px;border-radius:999px;margin-right:4px;background:#dbeafe;color:#1e40af}
+.tag.em{background:#fef3c7;color:#92400e}
+.tag.no{background:#fee2e2;color:#b91c1c}
+.det{margin-top:12px}
+.datos{font-size:.9rem;color:#374151;line-height:1.6;background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:10px}
+.datos b{color:#1f2937}
+.acciones{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.hist{font-size:.8rem;color:#6b7280;margin-top:10px;line-height:1.5}
 .vacio{color:#6b7280;font-style:italic;text-align:center}
 .pie{text-align:center;color:rgba(255,255,255,.7);margin-top:30px;font-size:.9rem}
+.nota{font-size:.8rem;color:#6b7280;margin-top:4px}
 </style>
 </head>
 <body>
 <div class="contenedor">
-<a href="index.html" class="volver">← Volver al Panel Principal</a>
+<a href="escuelas.html" class="volver">← Volver</a>
 <header><h1>👥 Alumnos</h1><p>Registro y consulta</p></header>
-<div class="tarjeta"><h3>Nuevo alumno</h3><div id="formulario"></div><div id="msg" class="msg"></div></div>
-<div class="tarjeta"><h3>Registrados</h3><div id="lista"></div></div>
+
+<div id="msg" class="msg"></div>
+
+<div class="tarjeta">
+  <h3>Nuevo alumno</h3>
+  <div id="formNuevo"></div>
+  <button class="btn" id="btnGuardar" onclick="guardarNuevo()">➕ Registrar alumno</button>
+</div>
+
+<div class="tarjeta">
+  <h3>Lista de alumnos</h3>
+  <div class="campo"><input type="text" id="buscar" placeholder="🔍 Buscar por nombre, teléfono o correo" oninput="pintar()"></div>
+  <div id="chips" class="chips"></div>
+  <div id="lista"><p class="vacio">Cargando...</p></div>
+</div>
+
 <div class="pie">© 2026 Chavarría Producciones</div>
 </div>
+
 <script src="config.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="registro.js"></script>
 <script>
-iniciarLista({
-  coleccion: 'alumnos',
-  campos: [
-    {id:'nombreCompleto', etiqueta:'Nombre completo', ph:'Nombre y apellidos'},
-    {id:'whatsapp', etiqueta:'WhatsApp (solo números)', ph:'3121234567'},
-    {id:'eco', etiqueta:'ECO', tipo:'check'},
-    {id:'em', etiqueta:'EM', tipo:'check'}
-  ]
+firebase.initializeApp(window.firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const FV = firebase.firestore.FieldValue;
+
+let todos = [];
+let dips = [];
+let filtro = 'todos';
+const abiertos = new Set();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+const ahora = () => new Date().toISOString();
+const nuevoId = () => 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
+function aviso(t, ok = true) {
+  const m = $('msg');
+  m.textContent = t;
+  m.className = 'msg ' + (ok ? 'ok' : 'err');
+  m.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  clearTimeout(aviso.t);
+  aviso.t = setTimeout(() => { m.className = 'msg'; }, 6000);
+}
+function errorTexto(e) {
+  if (e && e.code === 'permission-denied') return 'No tienes permiso para esta acción (solo administradores).';
+  return 'Error: ' + (e && e.message ? e.message : e);
+}
+
+const SEXOS = ['Masculino', 'Femenino'];
+const CIVIL = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Viudo(a)', 'Divorciado(a)'];
+const ESCOLARIDAD = ['Primaria', 'Secundaria', 'Preparatoria / Bachillerato', 'Carrera técnica', 'Licenciatura', 'Posgrado', 'Sin estudios'];
+const opts = (arr, sel, vacio) => '<option value="">' + vacio + '</option>' + arr.map(x => '<option ' + (x === sel ? 'selected' : '') + '>' + x + '</option>').join('');
+
+function edadDe(f) {
+  if (!f) return null;
+  const n = new Date(f + 'T00:00:00');
+  if (isNaN(n)) return null;
+  const h = new Date();
+  let e = h.getFullYear() - n.getFullYear();
+  const m = h.getMonth() - n.getMonth();
+  if (m < 0 || (m === 0 && h.getDate() < n.getDate())) e--;
+  return e;
+}
+
+function dipOpts(sel) {
+  return '<option value="">Sin diplomado por ahora</option>' +
+    dips.map(d => '<option value="' + d.id + '" ' + (d.id === sel ? 'selected' : '') + '>' + esc(d.nombre) + '</option>').join('');
+}
+
+// Formulario reutilizable (p = prefijo: 'n' nuevo, o id del alumno)
+function formHTML(p, a) {
+  a = a || {};
+  const v = k => esc(a[k] || '');
+  return '' +
+  '<div class="sec">📌 Escuela y nivel</div>' +
+  '<div class="esc"><label class="chk"><input type="checkbox" id="' + p + '_eco" ' + (a.eco ? 'checked' : '') + ' onchange="mostrar(\'' + p + '\')"> ECO — Escuela de Consolidación</label>' +
+    '<div class="sub2" id="' + p + '_ecoBox"><label style="font-weight:bold;font-size:.9rem;color:#374151">Nivel ECO</label>' +
+    '<select id="' + p + '_ecoNivel">' + [1, 2, 3].map(n => '<option value="' + n + '" ' + (a.ecoNivel === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') + '</select></div></div>' +
+  '<div class="esc"><label class="chk"><input type="checkbox" id="' + p + '_em" ' + (a.em ? 'checked' : '') + ' onchange="mostrar(\'' + p + '\')"> EMI — Escuela de Ministerios</label>' +
+    '<div class="sub2" id="' + p + '_emBox"><label style="font-weight:bold;font-size:.9rem;color:#374151">Nivel EMI</label>' +
+    '<select id="' + p + '_emNivel">' + [1, 2].map(n => '<option value="' + n + '" ' + (a.emNivel === n ? 'selected' : '') + '>Nivel ' + n + '</option>').join('') + '</select>' +
+    '<label style="font-weight:bold;font-size:.9rem;color:#374151;display:block;margin-top:10px">Inscribir en diplomado (opcional)</label>' +
+    '<select id="' + p + '_dip">' + dipOpts('') + '</select></div></div>' +
+
+  '<div class="sec">👤 Datos personales</div>' +
+  '<div class="campo"><label>Nombre completo *</label><input type="text" id="' + p + '_nombre" placeholder="Nombre(s) y apellidos" value="' + v('nombreCompleto') + '"></div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Fecha de nacimiento</label><input type="date" id="' + p + '_fnac" value="' + v('fechaNacimiento') + '"></div>' +
+    '<div class="campo"><label>Sexo</label><select id="' + p + '_sexo">' + opts(SEXOS, a.sexo, 'Elegir...') + '</select></div>' +
+  '</div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Estado civil</label><select id="' + p + '_civil">' + opts(CIVIL, a.estadoCivil, 'Elegir...') + '</select></div>' +
+    '<div class="campo"><label>CURP (opcional)</label><input type="text" id="' + p + '_curp" maxlength="18" value="' + v('curp') + '"></div>' +
+  '</div>' +
+
+  '<div class="sec">📞 Contacto</div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>WhatsApp (solo números)</label><input type="tel" id="' + p + '_wa" placeholder="3121234567" value="' + v('whatsapp') + '"></div>' +
+    '<div class="campo"><label>Teléfono alterno</label><input type="tel" id="' + p + '_tel" value="' + v('telefono') + '"></div>' +
+  '</div>' +
+  '<div class="campo"><label>Correo electrónico</label><input type="email" id="' + p + '_correo" value="' + v('correo') + '"></div>' +
+  '<div class="campo"><label>Calle y número</label><input type="text" id="' + p + '_dir" value="' + v('direccion') + '"></div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Colonia</label><input type="text" id="' + p + '_col" value="' + v('colonia') + '"></div>' +
+    '<div class="campo"><label>Ciudad / Municipio</label><input type="text" id="' + p + '_ciudad" value="' + (a.ciudad ? esc(a.ciudad) : 'Colima') + '"></div>' +
+  '</div>' +
+
+  '<div class="sec">🎓 Datos académicos y laborales</div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Escolaridad</label><select id="' + p + '_escol">' + opts(ESCOLARIDAD, a.escolaridad, 'Elegir...') + '</select></div>' +
+    '<div class="campo"><label>Ocupación</label><input type="text" id="' + p + '_ocup" value="' + v('ocupacion') + '"></div>' +
+  '</div>' +
+
+  '<div class="sec">⛪ Datos de la iglesia</div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Iglesia / Congregación</label><input type="text" id="' + p + '_igl" placeholder="Ej. Tercera de Colima" value="' + v('iglesia') + '"></div>' +
+    '<div class="campo"><label>Ministerio donde sirve</label><input type="text" id="' + p + '_min" value="' + v('ministerio') + '"></div>' +
+  '</div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Fecha de conversión</label><input type="date" id="' + p + '_fconv" value="' + v('fechaConversion') + '"></div>' +
+    '<div class="campo"><label>Fecha de bautismo</label><input type="date" id="' + p + '_fbaut" value="' + v('fechaBautismo') + '"></div>' +
+  '</div>' +
+  '<div class="campo"><label>Pastor / Líder que lo recomienda</label><input type="text" id="' + p + '_past" value="' + v('pastor') + '"></div>' +
+
+  '<div class="sec">🚨 Contacto de emergencia</div>' +
+  '<div class="campo"><label>Nombre</label><input type="text" id="' + p + '_emNom" value="' + v('emergenciaNombre') + '"></div>' +
+  '<div class="fila">' +
+    '<div class="campo"><label>Parentesco</label><input type="text" id="' + p + '_emPar" value="' + v('emergenciaParentesco') + '"></div>' +
+    '<div class="campo"><label>Teléfono</label><input type="tel" id="' + p + '_emTel" value="' + v('emergenciaTelefono') + '"></div>' +
+  '</div>' +
+
+  '<div class="sec">👪 Padre o tutor (si es menor de edad)</div>' +
+  '<div class="campo"><label>Nombre del tutor</label><input type="text" id="' + p + '_tutNom" value="' + v('tutorNombre') + '"></div>' +
+  '<div class="campo"><label>Teléfono del tutor</label><input type="tel" id="' + p + '_tutTel" value="' + v('tutorTelefono') + '"></div>' +
+
+  '<div class="sec">📝 Observaciones</div>' +
+  '<div class="campo"><textarea id="' + p + '_obs" placeholder="Notas adicionales">' + v('observaciones') + '</textarea></div>';
+}
+
+function mostrar(p) {
+  $(p + '_ecoBox').style.display = $(p + '_eco').checked ? '' : 'none';
+  $(p + '_emBox').style.display = $(p + '_em').checked ? '' : 'none';
+}
+
+function leer(p) {
+  const g = k => $(p + '_' + k).value.trim().replace(/\s+/g, ' ');
+  const d = {
+    nombreCompleto: g('nombre').toUpperCase(),
+    fechaNacimiento: $(p + '_fnac').value, sexo: $(p + '_sexo').value, estadoCivil: $(p + '_civil').value,
+    curp: g('curp').toUpperCase(),
+    whatsapp: $(p + '_wa').value.replace(/\D/g, ''), telefono: $(p + '_tel').value.replace(/\D/g, ''),
+    correo: g('correo').toLowerCase(), direccion: g('dir'), colonia: g('col'), ciudad: g('ciudad'),
+    escolaridad: $(p + '_escol').value, ocupacion: g('ocup'),
+    iglesia: g('igl'), ministerio: g('min'),
+    fechaConversion: $(p + '_fconv').value, fechaBautismo: $(p + '_fbaut').value, pastor: g('past'),
+    emergenciaNombre: g('emNom'), emergenciaParentesco: g('emPar'), emergenciaTelefono: $(p + '_emTel').value.replace(/\D/g, ''),
+    tutorNombre: g('tutNom'), tutorTelefono: $(p + '_tutTel').value.replace(/\D/g, ''),
+    observaciones: $(p + '_obs').value.trim()
+  };
+  return {
+    datos: d,
+    eco: $(p + '_eco').checked, ecoNivel: Number($(p + '_ecoNivel').value),
+    em: $(p + '_em').checked, emNivel: Number($(p + '_emNivel').value),
+    dipId: $(p + '_dip').value
+  };
+}
+
+function validar(f) {
+  const d = f.datos;
+  if (!d.nombreCompleto) return 'Escribe el nombre completo del alumno';
+  if (!f.eco && !f.em) return 'Elige la escuela: ECO o EMI (o ambas)';
+  if (d.correo && !/^\S+@\S+\.\S+$/.test(d.correo)) return 'El correo no parece válido';
+  const e = edadDe(d.fechaNacimiento);
+  if (e !== null && e < 18 && !d.tutorNombre) return 'Es menor de edad: escribe el nombre del padre o tutor';
+  return '';
+}
+
+function nuevaInscripcion(dipId) {
+  const d = dips.find(x => x.id === dipId);
+  return { id: nuevoId(), diplomadoId: dipId, diplomadoNombre: d ? d.nombre : '', moduloId: '', moduloNombre: '', estado: 'cursando', fecha: ahora() };
+}
+
+auth.onAuthStateChanged(u => {
+  if (!u) { window.location.href = 'index.html'; return; }
+  iniciar();
 });
+
+async function iniciar() {
+  try {
+    const c = await db.collection('catalogo').where('tipo', '==', 'diplomado').get();
+    dips = c.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => norm(a.nombre).localeCompare(norm(b.nombre)));
+  } catch (e) { console.error(e); dips = []; }
+  resetNuevo();
+  await cargar();
+}
+
+function resetNuevo() {
+  $('formNuevo').innerHTML = formHTML('n', {});
+  mostrar('n');
+}
+
+async function cargar() {
+  try {
+    const snap = await db.collection('alumnos').get();
+    todos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    pintar();
+  } catch (e) {
+    console.error(e);
+    $('lista').innerHTML = '<p class="vacio">No se pudo cargar la lista. ' + esc(errorTexto(e)) + '</p>';
+  }
+}
+
+function setFiltro(f) { filtro = f; pintar(); }
+
+function fechaMX(f) { return f ? new Date(f + 'T00:00:00').toLocaleDateString('es-MX') : ''; }
+function fila(t, v) { return v ? '<div><b>' + t + ':</b> ' + esc(v) + '</div>' : ''; }
+
+function textoHist(h) {
+  const f = h.fecha ? new Date(h.fecha).toLocaleDateString('es-MX') : '';
+  const e = h.escuela === 'ECO' ? 'ECO' : (h.escuela === 'EMIN' ? 'EMI' : 'Registro');
+  let t = '';
+  if (h.accion === 'alta') t = 'Alta en ' + e + (h.a ? ' nivel ' + h.a : '');
+  else if (h.accion === 'cambio de nivel') t = e + ' nivel ' + (h.de || 'sin nivel') + ' → ' + h.a;
+  else if (h.accion === 'baja') t = 'Baja de ' + e;
+  else if (h.accion === 'inscripcion') t = 'Inscrito en ' + h.a;
+  else if (h.accion === 'datos') t = 'Datos actualizados';
+  return f + ': ' + t;
+}
+
+function pintar() {
+  const q = norm($('buscar').value);
+  const cuenta = fn => todos.filter(fn).length;
+  const chips = [
+    ['todos', 'Todos (' + todos.length + ')', () => true],
+    ['eco', 'ECO (' + cuenta(a => a.eco === true) + ')'],
+    ['em', 'EMI (' + cuenta(a => a.em === true) + ')'],
+    ['sin', 'Sin escuela (' + cuenta(a => !a.eco && !a.em) + ')']
+  ];
+  $('chips').innerHTML = chips.map(c =>
+    '<button class="chip ' + (filtro === c[0] ? 'on' : '') + '" onclick="setFiltro(\'' + c[0] + '\')">' + c[1] + '</button>').join('');
+
+  let lista = todos.slice().sort((x, y) => norm(x.nombreCompleto).localeCompare(norm(y.nombreCompleto)));
+  if (filtro === 'eco') lista = lista.filter(a => a.eco === true);
+  else if (filtro === 'em') lista = lista.filter(a => a.em === true);
+  else if (filtro === 'sin') lista = lista.filter(a => !a.eco && !a.em);
+  if (q) lista = lista.filter(a => norm([a.nombreCompleto, a.whatsapp, a.telefono, a.correo].join(' ')).includes(q));
+  if (!lista.length) { $('lista').innerHTML = '<p class="vacio">No hay alumnos aquí</p>'; return; }
+
+  $('lista').innerHTML = lista.map(a => {
+    const wa = String(a.whatsapp || '').replace(/\D/g, '');
+    const edad = edadDe(a.fechaNacimiento);
+    const tags =
+      (a.eco ? '<span class="tag">ECO ' + (a.ecoNivel ? 'N' + a.ecoNivel : 'sin nivel') + '</span>' : '') +
+      (a.em ? '<span class="tag em">EMI ' + (a.emNivel ? 'N' + a.emNivel : 'sin nivel') + '</span>' : '') +
+      (!a.eco && !a.em ? '<span class="tag no">Sin escuela</span>' : '');
+    const insc = (a.inscripciones || []).map(i => (i.diplomadoNombre || '') + (i.moduloNombre ? ' — ' + i.moduloNombre : '') + ' (' + (i.estado || 'cursando') + ')');
+    const hist = (a.historial || []).slice(-6).reverse().map(textoHist).map(esc).join('<br>');
+    const abierto = abiertos.has(a.id);
+    return '<details class="al" data-id="' + a.id + '" ' + (abierto ? 'open' : '') + '>' +
+      '<summary><div class="nom">' + esc(a.nombreCompleto) + '</div>' +
+      '<div class="sub">' + tags + (wa ? ' ' + esc(wa) : '') + (edad !== null ? ' · ' + edad + ' años' : '') + '</div></summary>' +
+      '<div class="det" id="det_' + a.id + '">' +
+        '<div class="datos">' +
+          fila('Nacimiento', fechaMX(a.fechaNacimiento)) + fila('Sexo', a.sexo) + fila('Estado civil', a.estadoCivil) + fila('CURP', a.curp) +
+          fila('WhatsApp', a.whatsapp) + fila('Tel. alterno', a.telefono) + fila('Correo', a.correo) +
+          fila('Domicilio', [a.direccion, a.colonia, a.ciudad].filter(Boolean).join(', ')) +
+          fila('Escolaridad', a.escolaridad) + fila('Ocupación', a.ocupacion) +
+          fila('Iglesia', a.iglesia) + fila('Ministerio', a.ministerio) + fila('Conversión', fechaMX(a.fechaConversion)) + fila('Bautismo', fechaMX(a.fechaBautismo)) + fila('Pastor/Líder', a.pastor) +
+          fila('Emergencia', [a.emergenciaNombre, a.emergenciaParentesco, a.emergenciaTelefono].filter(Boolean).join(' · ')) +
+          fila('Tutor', [a.tutorNombre, a.tutorTelefono].filter(Boolean).join(' · ')) +
+          fila('Diplomados', insc.join('; ')) + fila('Notas', a.observaciones) +
+        '</div>' +
+        '<div class="acciones">' +
+          (wa ? '<a class="btn2" target="_blank" href="https://wa.me/' + (wa.length === 10 ? '52' + wa : wa) + '">📲 WhatsApp</a>' : '') +
+          '<button class="btn2 azul" onclick="editar(\'' + a.id + '\')">✏️ Editar</button>' +
+          '<button class="btn2 rojo" onclick="eliminar(\'' + a.id + '\')">🗑️ Eliminar</button>' +
+        '</div>' +
+        (hist ? '<div class="hist"><b>Historial</b><br>' + hist + '</div>' : '') +
+      '</div></details>';
+  }).join('');
+}
+
+$('lista').addEventListener('toggle', e => {
+  const d = e.target;
+  if (d && d.matches && d.matches('details.al')) {
+    if (d.open) abiertos.add(d.dataset.id); else abiertos.delete(d.dataset.id);
+  }
+}, true);
+
+function cambiosHist(f, a) {
+  const h = [];
+  const eco = f.eco, em = f.em;
+  if (eco && !(a && a.eco)) h.push({ fecha: ahora(), escuela: 'ECO', accion: 'alta', a: f.ecoNivel });
+  else if (eco && a && a.ecoNivel !== f.ecoNivel) h.push({ fecha: ahora(), escuela: 'ECO', accion: 'cambio de nivel', de: a.ecoNivel || null, a: f.ecoNivel });
+  else if (!eco && a && a.eco) h.push({ fecha: ahora(), escuela: 'ECO', accion: 'baja' });
+  if (em && !(a && a.em)) h.push({ fecha: ahora(), escuela: 'EMIN', accion: 'alta', a: f.emNivel });
+  else if (em && a && a.emNivel !== f.emNivel) h.push({ fecha: ahora(), escuela: 'EMIN', accion: 'cambio de nivel', de: a.emNivel || null, a: f.emNivel });
+  else if (!em && a && a.em) h.push({ fecha: ahora(), escuela: 'EMIN', accion: 'baja' });
+  return h;
+}
+
+function armarCampos(f, a) {
+  const campos = Object.assign({}, f.datos);
+  campos.eco = f.eco; campos.em = f.em;
+  campos.ecoNivel = f.eco ? f.ecoNivel : ((a && a.ecoNivel) || null);
+  campos.emNivel = f.em ? f.emNivel : ((a && a.emNivel) || null);
+  const hist = cambiosHist(f, a);
+  let insc = (a && a.inscripciones) || [];
+  if (f.em && f.dipId && !insc.some(i => i.diplomadoId === f.dipId && !i.moduloId)) {
+    const ni = nuevaInscripcion(f.dipId);
+    insc = insc.concat([ni]);
+    hist.push({ fecha: ahora(), escuela: 'EMIN', accion: 'inscripcion', a: ni.diplomadoNombre });
+  }
+  campos.inscripciones = insc;
+  return { campos, hist };
+}
+
+async function guardarNuevo() {
+  const f = leer('n');
+  const err = validar(f);
+  if (err) { aviso(err, false); return; }
+  const btn = $('btnGuardar');
+  btn.disabled = true;
+  try {
+    const dup = todos.find(a => norm(a.nombreCompleto) === norm(f.datos.nombreCompleto));
+    if (dup) {
+      aviso('Ya existe un alumno con ese nombre. Búscalo en la lista y usa ✏️ Editar.', false);
+      abiertos.add(dup.id); $('buscar').value = dup.nombreCompleto; pintar();
+      btn.disabled = false; return;
+    }
+    const { campos, hist } = armarCampos(f, null);
+    await db.collection('alumnos').add(Object.assign(campos, {
+      historial: hist, creadoPor: auth.currentUser.email, fechaCreacion: new Date()
+    }));
+    aviso('✅ Alumno registrado: ' + f.datos.nombreCompleto);
+    resetNuevo();
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+  btn.disabled = false;
+}
+
+function editar(id) {
+  const a = todos.find(x => x.id === id);
+  if (!a) return;
+  $('det_' + id).innerHTML = formHTML('e' + id, a) +
+    '<div class="acciones"><button class="btn2 azul" onclick="guardarEdicion(\'' + id + '\')">💾 Guardar cambios</button>' +
+    '<button class="btn2" onclick="pintar()">Cancelar</button></div>';
+  mostrar('e' + id);
+}
+
+async function guardarEdicion(id) {
+  const a = todos.find(x => x.id === id);
+  const f = leer('e' + id);
+  const err = validar(f);
+  if (err) { aviso(err, false); return; }
+  const otro = todos.find(x => x.id !== id && norm(x.nombreCompleto) === norm(f.datos.nombreCompleto));
+  if (otro) { aviso('Ya existe otro alumno con ese nombre', false); return; }
+  try {
+    const { campos, hist } = armarCampos(f, a);
+    hist.push({ fecha: ahora(), escuela: 'REG', accion: 'datos' });
+    campos.historial = FV.arrayUnion(...hist);
+    campos.actualizadoPor = auth.currentUser.email;
+    campos.fechaActualizacion = new Date();
+    await db.collection('alumnos').doc(id).update(campos);
+    aviso('✅ Datos guardados');
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+}
+
+async function eliminar(id) {
+  const a = todos.find(x => x.id === id);
+  if (!a) return;
+  if (!confirm('¿Eliminar a ' + a.nombreCompleto + ' definitivamente?\n\nSe borra su registro (no sus calificaciones ni asistencias ya guardadas). Si solo quieres sacarlo de una escuela, usa ✏️ Editar.')) return;
+  try {
+    await db.collection('alumnos').doc(id).delete();
+    aviso('Alumno eliminado');
+    await cargar();
+  } catch (e) {
+    console.error(e);
+    aviso(errorTexto(e), false);
+  }
+}
 </script>
 </body>
 </html>
